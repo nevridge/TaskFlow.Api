@@ -33,7 +33,11 @@ public class TaskItemsController : ControllerBase
     [HttpGet("{id}", Name = "GetTask")]
     public ActionResult<TaskItem> Get(int id)
     {
-        var item = _items.FirstOrDefault(t => t.Id == id);
+        TaskItem? item;
+        lock (_lock)
+        {
+            item = _items.FirstOrDefault(t => t.Id == id);
+        }
         if (item is null) return NotFound();
         return Ok(item);
     }
@@ -42,10 +46,17 @@ public class TaskItemsController : ControllerBase
     [HttpPost]
     public ActionResult<TaskItem> Create([FromBody] CreateTaskItemDto createDto)
     {
-        create.Id = Interlocked.Increment(ref _nextId);
+        var item = new TaskItem
+        {
+            Id = Interlocked.Increment(ref _nextId),
+            Title = createDto.Title,
+            Description = createDto.Description,
+            IsComplete = createDto.IsComplete
+        };
+        
         lock (_lock)
         {
-            _items.Add(create);
+            _items.Add(item);
         }
 
         return CreatedAtRoute("GetTask", new { id = item.Id }, item);
@@ -56,7 +67,7 @@ public class TaskItemsController : ControllerBase
     public IActionResult Update(int id, [FromBody] UpdateTaskItemDto updateDto)
     {
         // Validate Title
-        if (string.IsNullOrWhiteSpace(update.Title))
+        if (string.IsNullOrWhiteSpace(updateDto.Title))
         {
             return BadRequest("Title cannot be null, empty, or whitespace.");
         }
