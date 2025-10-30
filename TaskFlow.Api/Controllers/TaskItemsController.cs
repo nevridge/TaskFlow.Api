@@ -13,7 +13,7 @@ public class TaskItemsController : ControllerBase
         new TaskItem { Id = 1, Title = "Sample Task", Description = "This is a sample task.", IsComplete = false }
     ];
 
-    private static int _nextId = _items.Count != 0 ? _items.Max(i => i.Id) + 1 : 1;
+    private static int _nextId = _items.Count != 0 ? _items.Max(i => i.Id) : 0;
     private static readonly Lock _lock = new();
 
     // GET: api/TaskItems
@@ -41,9 +41,9 @@ public class TaskItemsController : ControllerBase
     [HttpPost]
     public ActionResult<TaskItem> Create([FromBody] TaskItem create)
     {
+        create.Id = Interlocked.Increment(ref _nextId);
         lock (_lock)
         {
-            create.Id = _nextId++;
             _items.Add(create);
         }
 
