@@ -47,7 +47,7 @@ public class TaskItemsController : ControllerBase
 
     // PUT: api/TaskItems/5
     [HttpPut("{id}")]
-    public IActionResult Update(int id, [FromBody] TaskItem update)
+    public IActionResult Update(int id, [FromBody] UpdateTaskItemDto update)
     {
         lock (_lock)
         {
