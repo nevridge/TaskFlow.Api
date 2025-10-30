@@ -1,38 +1,35 @@
 ﻿# TaskFlow.Api
 
-Summary
-- Small .NET 9 Web API demonstrating OpenAPI (Swagger) and a simple in-memory CRUD for `TaskItem`.
-- Purpose: scaffold + experiment with API endpoints, Swagger UI, and local in-memory storage for development and testing.
+## Overview
+TaskFlow.Api is a simple .NET 9 Web API project designed to manage task items through basic CRUD operations. This project serves as a learning and career development exercise, focusing on building and experimenting with modern .NET Web APIs, OpenAPI documentation, and in-memory data storage. It represents the initial steps in a broader plan to deepen skills in API development, best practices, and potentially expanding to full-stack applications or cloud deployments.
 
-What we changed / added today
-- Enabled OpenAPI metadata and Swagger UI via `Swashbuckle` in `Program.cs`.
-- Added a minimal API controller `TaskItemsController` with standard CRUD endpoints backed by an in-memory `List<TaskItem>`.
-- Created the `TaskItem` model (`TaskFlow.Api\Models\TaskItem.cs`).
-- Configured the app to show the Swagger UI at application root (Development environment) for quick exploration.
+## Features
+- RESTful API endpoints for creating, reading, updating, and deleting task items.
+- OpenAPI (Swagger) integration for interactive API documentation and testing.
+- In-memory data storage using a `List<TaskItem>` for simplicity and quick prototyping.
+- Configured for development with Swagger UI accessible during local runs.
 
-How to run
-1. Ensure you have .NET 9 SDK installed.
-2. From the solution/project root (where this README lives) run:
-   - `dotnet restore`
-   - `dotnet run --project TaskFlow.Api`
-3. When running in the `Development` environment the Swagger UI is available at:
-   - `https://localhost:{port}/` (or `http://localhost:{port}/`) — the exact port comes from `launchSettings.json` or the console output.
+## Getting Started
+### Prerequisites
+- .NET 9 SDK installed.
 
-API endpoints
-- GET `/api/TaskItems` — list all tasks
-- GET `/api/TaskItems/{id}` — get a task by id
-- POST `/api/TaskItems` — create a new task (returns `201 Created`)
-- PUT `/api/TaskItems/{id}` — update an existing task (returns `204 No Content`)
-- DELETE `/api/TaskItems/{id}` — delete a task (returns `204 No Content`)
+### Running the Application
+1. Clone or navigate to the project directory.
+2. Restore dependencies: `dotnet restore`.
+3. Run the project: `dotnet run --project TaskFlow.Api`.
+4. In Development mode, access the Swagger UI at `https://localhost:{port}/` (or `http://localhost:{port}/`), where the port is specified in `launchSettings.json` or console output.
 
-Notes & recommendations
-- Storage is purely in-memory and non-persistent — suitable for demos and tests only. Replace with a database or repository for production.
-- Swagger UI is enabled only when `ASPNETCORE_ENVIRONMENT=Development` (recommended). Do not expose the dev UI in production unless secured.
-- If you prefer the UI at `/swagger` instead of the app root, remove `c.RoutePrefix = string.Empty;` from `Program.cs` and update your launch settings (`launchSettings.json`) to `launchUrl: "swagger"`.
+## API Endpoints
+- `GET /api/TaskItems` — Retrieve all task items.
+- `GET /api/TaskItems/{id}` — Retrieve a specific task item by ID.
+- `POST /api/TaskItems` — Create a new task item.
+- `PUT /api/TaskItems/{id}` — Update an existing task item.
+- `DELETE /api/TaskItems/{id}` — Delete a task item by ID.
 
-Add this README to the Solution Items folder
-- In Visual Studio: open the solution, right-click the solution node in __Solution Explorer__ → __Add__ → __Existing Item...__, choose this `README.md`, then click the drop-down on the Add button and select __Add__ (it will appear under the Solution Items folder).
-- Alternatively, keep the file at the repository root (it is already here) and add it to source control so teammates see it.
+## Notes
+- Data is stored in-memory and is not persistent across application restarts. This is ideal for development and testing; consider integrating a database for production use.
+- Swagger UI is enabled only in the Development environment for security. Avoid exposing it in production unless properly secured.
+- This project is in its early stages and may evolve with additional features, such as authentication, database integration, or frontend components.
 
-License
-- No license specified. Add a license file if you intend to publish or share externally.
+## License
+No license specified. Add a license file if you intend to publish or share externally.
