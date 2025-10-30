@@ -49,6 +49,12 @@ public class TaskItemsController : ControllerBase
     [HttpPut("{id}")]
     public IActionResult Update(int id, [FromBody] TaskItem update)
     {
+        // Validate Title
+        if (string.IsNullOrWhiteSpace(update.Title))
+        {
+            return BadRequest("Title cannot be null, empty, or whitespace.");
+        }
+
         lock (_lock)
         {
             var existing = _items.FirstOrDefault(t => t.Id == id);
