@@ -20,7 +20,12 @@ public class TaskItemsController : ControllerBase
     [HttpGet]
     public ActionResult<IEnumerable<TaskItem>> GetAll()
     {
-        return Ok(_items);
+        List<TaskItem> snapshot;
+        lock (_lock)
+        {
+            snapshot = new List<TaskItem>(_items);
+        }
+        return Ok(snapshot);
     }
 
     // GET: api/TaskItems/5
