@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using TaskFlow.Api.DTOs;
 using TaskFlow.Api.Models;
 
 namespace TaskFlow.Api.Controllers;
@@ -39,20 +40,27 @@ public class TaskItemsController : ControllerBase
 
     // POST: api/TaskItems
     [HttpPost]
-    public ActionResult<TaskItem> Create([FromBody] TaskItem create)
+    public ActionResult<TaskItem> Create([FromBody] CreateTaskItemDto createDto)
     {
+        var item = new TaskItem
+        {
+            Title = createDto.Title,
+            Description = createDto.Description,
+            IsComplete = createDto.IsComplete
+        };
+
         lock (_lock)
         {
-            create.Id = _nextId++;
-            _items.Add(create);
+            item.Id = _nextId++;
+            _items.Add(item);
         }
 
-        return CreatedAtRoute("GetTask", new { id = create.Id }, create);
+        return CreatedAtRoute("GetTask", new { id = item.Id }, item);
     }
 
     // PUT: api/TaskItems/5
     [HttpPut("{id}")]
-    public IActionResult Update(int id, [FromBody] TaskItem update)
+    public IActionResult Update(int id, [FromBody] UpdateTaskItemDto updateDto)
     {
         lock (_lock)
         {
@@ -60,9 +68,9 @@ public class TaskItemsController : ControllerBase
             if (existing is null) return NotFound();
 
             // Update fields
-            existing.Title = update.Title;
-            existing.Description = update.Description;
-            existing.IsComplete = update.IsComplete;
+            existing.Title = updateDto.Title;
+            existing.Description = updateDto.Description;
+            existing.IsComplete = updateDto.IsComplete;
         }
 
         return NoContent();
