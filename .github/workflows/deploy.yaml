@@ -15,6 +15,8 @@ env:
   WEBAPP_NAME: taskflowapi2074394909
   ACR_NAME: taskflowregistry
   ACR_IMAGE_NAME: taskflowapi9
+  APP_SERVICE_PLAN: TaskFlowAppServicePlan
+  LOCATION: eastus
 
 jobs:
   build-and-deploy:
@@ -29,6 +31,32 @@ jobs:
         uses: azure/login@v2
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Verify and set subscription
+        run: |
+          az account show
+          if [ -n "${{ secrets.AZURE_SUBSCRIPTION_ID }}" ]; then
+            az account set --subscription "${{ secrets.AZURE_SUBSCRIPTION_ID }}"
+          fi
+
+      - name: Ensure resource group exists
+        run: |
+          if az group show -n ${{ env.RESOURCE_GROUP }} >/dev/null 2>&1; then
+            echo "Resource group ${{ env.RESOURCE_GROUP }} exists"
+          else
+            echo "Creating resource group ${{ env.RESOURCE_GROUP }}"
+            az group create -n ${{ env.RESOURCE_GROUP }} -l ${{ env.LOCATION }}
+          fi
+
+      - name: Ensure ACR exists
+        run: |
+          if az acr show -n ${{ env.ACR_NAME }} -g ${{ env.RESOURCE_GROUP }} >/dev/null 2>&1; then
+            echo "ACR ${{ env.ACR_NAME }} exists"
+          else
+            echo "Creating ACR ${{ env.ACR_NAME }}"
+            az acr create -n ${{ env.ACR_NAME }} -g ${{ env.RESOURCE_GROUP }} --sku Basic --admin-enabled true
+          fi
 
       - name: Build and push Docker image to ACR
         run: |
@@ -38,6 +66,32 @@ jobs:
             --image ${{ env.ACR_IMAGE_NAME }}:${{ github.sha }} \
             --file TaskFlow.Api/Dockerfile \
             .
+
+      - name: Ensure App Service Plan exists
+        run: |
+          if az appservice plan show -n ${{ env.APP_SERVICE_PLAN }} -g ${{ env.RESOURCE_GROUP }} >/dev/null 2>&1; then
+            echo "App Service Plan ${{ env.APP_SERVICE_PLAN }} exists"
+          else
+            echo "Creating App Service Plan ${{ env.APP_SERVICE_PLAN }}"
+            az appservice plan create \
+              -n ${{ env.APP_SERVICE_PLAN }} \
+              -g ${{ env.RESOURCE_GROUP }} \
+              --is-linux \
+              --sku B1
+          fi
+
+      - name: Ensure Web App exists
+        run: |
+          if az webapp show -n ${{ env.WEBAPP_NAME }} -g ${{ env.RESOURCE_GROUP }} >/dev/null 2>&1; then
+            echo "Web App ${{ env.WEBAPP_NAME }} exists"
+          else
+            echo "Creating Web App ${{ env.WEBAPP_NAME }}"
+            az webapp create \
+              -n ${{ env.WEBAPP_NAME }} \
+              -g ${{ env.RESOURCE_GROUP }} \
+              --plan ${{ env.APP_SERVICE_PLAN }} \
+              --deployment-container-image-name ${{ env.ACR_NAME }}.azurecr.io/${{ env.ACR_IMAGE_NAME }}:latest
+          fi
 
       - name: Enable system-assigned identity
         run: |
@@ -60,7 +114,7 @@ jobs:
           az role assignment create \
             --assignee ${{ env.PRINCIPAL_ID }} \
             --role AcrPull \
-            --scope $(az acr show --name ${{ env.ACR_NAME }} --query id -o tsv)
+            --scope $(az acr show --name ${{ env.ACR_NAME }} --query id -o tsv) || true
 
       - name: Configure webapp to use managed identity for ACR
         run: |
