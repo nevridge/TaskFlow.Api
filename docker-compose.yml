@@ -14,8 +14,6 @@ services:
       - ASPNETCORE_URLS=http://+:8080
       - Database__MigrateOnStartup=true
     volumes:
-      # Mount current directory for hot reload (optional)
-      - ./TaskFlow.Api:/app:ro
       # Persist database
       - taskflow-data:/app/data
 

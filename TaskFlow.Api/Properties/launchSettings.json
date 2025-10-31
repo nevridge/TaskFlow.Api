@@ -28,6 +28,21 @@
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
       }
+    },
+    "Container (Dockerfile.dev)": {
+      "commandName": "Docker",
+      "launchBrowser": true,
+      "launchUrl": "{Scheme}://{ServiceHost}:{ServicePort}",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      },
+      "publishAllPorts": true,
+      "useSSL": false,
+      "dockerfileRunArguments": "-e Database__MigrateOnStartup=true -v taskflow-data:/app/data",
+      "DockerfileFile": "Dockerfile.dev",
+      "DockerfileContext": ".",
+      "DockerfileBuildArguments": "",
+      "DockerfileTag": "taskflow-api:dev"
     }
   }
 }

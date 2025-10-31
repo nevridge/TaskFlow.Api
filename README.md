@@ -14,6 +14,8 @@ TaskFlow.Api is a small .NET 9 Web API for managing task items (CRUD). The proje
 ## Prerequisites
 - .NET 9 SDK installed.
 - Recommended (development): a terminal and optional __Package Manager Console__ or the CLI tools for EF commands.
+- **For Docker development**: Docker Desktop installed and running.
+- **For Visual Studio Docker support**: Visual Studio 2022 (17.0+) with "Container Development Tools" workload installed.
 
 ## Getting started (local development)
 1. Clone the repo and change directory:
@@ -34,9 +36,28 @@ TaskFlow.Api is a small .NET 9 Web API for managing task items (CRUD). The proje
 The project includes Docker support for both development and production deployments.
 
 ### Local development with Docker
-For local development, the recommended approach is to use Docker Compose:
 
-1. **Using Docker Compose** (recommended):
+#### Option 1: Visual Studio (Windows/Mac)
+If you have Visual Studio 2022 with the "Container Development Tools" workload installed:
+
+1. Open the solution in Visual Studio
+2. Select **"Container (Dockerfile.dev)"** from the debug dropdown
+3. Press **F5** or click the Run button
+4. Visual Studio will automatically:
+   - Build the Docker image using Dockerfile.dev
+   - Start the container with Development environment
+   - Enable automatic database migrations
+   - Open your browser to the API
+
+**Requirements:**
+- Visual Studio 2022 (17.0 or later)
+- "Container Development Tools" workload (install via Visual Studio Installer)
+- Docker Desktop running
+
+#### Option 2: Docker Compose (Cross-platform)
+For command-line or non-Visual Studio users:
+
+1. **Start the containers**:
    ```bash
    docker-compose up
    ```
@@ -45,22 +66,24 @@ For local development, the recommended approach is to use Docker Compose:
    - Auto-applies database migrations
    - Persists the SQLite database in a Docker volume
 
-2. **Using Docker directly** (alternative):
-   ```bash
-   cd TaskFlow.Api
-   docker build -f Dockerfile.dev -t taskflow-api:dev .
-   docker run -p 8080:8080 -e ASPNETCORE_ENVIRONMENT=Development taskflow-api:dev
-   ```
-
-3. **Stopping the containers**:
+2. **Stop the containers**:
    ```bash
    docker-compose down
    ```
 
-4. **Viewing logs**:
+3. **View logs**:
    ```bash
    docker-compose logs -f
    ```
+
+#### Option 3: Docker CLI (Alternative)
+Using Docker directly without compose:
+
+```bash
+cd TaskFlow.Api
+docker build -f Dockerfile.dev -t taskflow-api:dev .
+docker run -p 8080:8080 -e ASPNETCORE_ENVIRONMENT=Development -e Database__MigrateOnStartup=true taskflow-api:dev
+```
 
 ### Production deployment
 
