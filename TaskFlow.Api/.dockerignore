@@ -4,3 +4,8 @@ obj/
 .git/
 logs/
 *.db
+**/.dockerignore
+**/.gitignore
+**/Dockerfile*
+README.md
+**/*.md
