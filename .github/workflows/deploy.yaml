@@ -50,6 +50,12 @@ jobs:
       - name: Grant webapp identity AcrPull on the registry
         run: az role assignment create --assignee ${{ env.PRINCIPAL_ID }} --role AcrPull --scope ${{ env.ACR_ID }}
 
+      - name: Grant the service principal "User Access Administrator" on the ACR
+        run: |
+          spObjectId="bd533ad2-ceec-42d4-9298-7724a2d25cbd"
+          acrId=$(az acr show -n taskflowregistry --query id -o tsv)
+          az role assignment create --assignee-object-id $spObjectId --assignee-principal-type ServicePrincipal --role "User Access Administrator" --scope $acrId
+
       - name: Set the container image
         run: |
           az webapp config container set \
