@@ -35,15 +35,24 @@ jobs:
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-      - name: Build and push container image
-        run: |
-          docker build -t taskflowapi9 .
-          docker tag taskflowapi9 ${{ secrets.ACR_LOGIN_SERVER }}/taskflowapi9:latest
-          echo ${{ secrets.ACR_PASSWORD }} | docker login ${{ secrets.ACR_LOGIN_SERVER }} -u ${{ secrets.ACR_USERNAME }} --password-stdin
-          docker push ${{ secrets.ACR_LOGIN_SERVER }}/taskflowapi9:latest
+      - name: Enable system-assigned identity
+        run: az webapp identity assign --resource-group TaskFlowRG --name taskflowapi2074394909
 
-      - name: Deploy container to Azure Web App
-        uses: azure/webapps-deploy@v3
-        with:
-          app-name: ${{ secrets.AZURE_WEBAPP_NAME }}
-          images: ${{ secrets.ACR_LOGIN_SERVER }}/taskflowapi9:latest
+      - name: Retrieve principalId and ACR resource id
+        id: ids
+        run: |
+          principalId=$(az webapp show -g TaskFlowRG -n taskflowapi2074394909 --query identity.principalId -o tsv)
+          acrId=$(az acr show -n taskflowregistry --query id -o tsv)
+          echo "PRINCIPAL_ID=$principalId" >> $GITHUB_ENV
+          echo "ACR_ID=$acrId" >> $GITHUB_ENV
+
+      - name: Grant webapp identity AcrPull on the registry
+        run: az role assignment create --assignee ${{ env.PRINCIPAL_ID }} --role AcrPull --scope ${{ env.ACR_ID }}
+
+      - name: Set the container image
+        run: |
+          az webapp config container set \
+            --name taskflowapi2074394909 \
+            --resource-group TaskFlowRG \
+            --container-image-name taskflowregistry.azurecr.io/taskflowapi9:latest \
+            --container-registry-url https://taskflowregistry.azurecr.io
