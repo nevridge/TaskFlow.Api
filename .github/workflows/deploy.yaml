@@ -35,19 +35,20 @@ jobs:
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-      - name: Enable system-assigned identity
-        run: az webapp identity assign --resource-group TaskFlowRG --name taskflowapi2074394909
-
-      - name: Retrieve principalId and ACR resource id
-        id: ids
+      - name: Enable system-assigned identity and get the principal ID
+        id: enable_identity
         run: |
-          principalId=$(az webapp show -g TaskFlowRG -n taskflowapi2074394909 --query identity.principalId -o tsv)
-          acrId=$(az acr show -n taskflowregistry --query id -o tsv)
+          principalId=$(az webapp identity assign --resource-group TaskFlowRG --name taskflowapi2074394909 --query principalId -o tsv)
           echo "PRINCIPAL_ID=$principalId" >> $GITHUB_ENV
+
+      - name: Get the ACR resource ID
+        id: get_acr_id
+        run: |
+          acrId=$(az acr show -n taskflowregistry --query id -o tsv)
           echo "ACR_ID=$acrId" >> $GITHUB_ENV
 
       - name: Grant webapp identity AcrPull on the registry
-        run: az role assignment create --assignee ${{ env.PRINCIPAL_ID }} --role AcrPull --scope ${{ env.ACR_ID }} --skip-if-exists
+        run: az role assignment create --assignee ${{ env.PRINCIPAL_ID }} --role AcrPull --scope ${{ env.ACR_ID }}
 
       - name: Set the container image
         run: |
