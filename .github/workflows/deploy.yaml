@@ -1,8 +1,12 @@
-name: Build and Deploy TaskFlow API
+﻿name: Build and Deploy TaskFlow API (.NET 9)
 
 on:
   push:
     branches: [ "main" ]
+
+permissions:
+  id-token: write      # Required for OIDC
+  contents: read
 
 jobs:
   build-and-deploy:
@@ -12,7 +16,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up .NET
+      - name: Set up .NET 9
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '9.0.x'
@@ -26,9 +30,13 @@ jobs:
       - name: Publish
         run: dotnet publish TaskFlow.Api.csproj -c Release -o ./publish
 
-      - name: Deploy to Azure WebApp
+      - name: Azure Login (using Service Principal)
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Deploy to Azure Web App
         uses: azure/webapps-deploy@v3
         with:
           app-name: ${{ secrets.AZURE_WEBAPP_NAME }}
-          publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
           package: ./publish
