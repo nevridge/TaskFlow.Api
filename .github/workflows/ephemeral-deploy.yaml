@@ -28,7 +28,6 @@ on:
 env:
   RESOURCE_GROUP_DEFAULT: TaskFlowRG
   ACR_NAME_DEFAULT: taskflowregistry
-  SUBSCRIPTION_ID: ''
 
 permissions:
   id-token: write
@@ -47,18 +46,11 @@ jobs:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
-      - name: Verify login and subscription
+      - name: Verify and set subscription
         run: |
-          echo "Azure account details:"
-          az account show || true
-          # If subscription secret not provided, try to use subscription from AZURE_CREDENTIALS (if present)
-          if [ -z "${{ secrets.AZURE_SUBSCRIPTION_ID }}" ]; then
-            echo "No AZURE_SUBSCRIPTION_ID secret set; showing available accounts"
-            az account list -o table
-          else
-            echo "Setting subscription to ${{ secrets.AZURE_SUBSCRIPTION_ID }}"
+          az account show
+          if [ -n "${{ secrets.AZURE_SUBSCRIPTION_ID }}" ]; then
             az account set --subscription "${{ secrets.AZURE_SUBSCRIPTION_ID }}"
-            az account show
           fi
 
       - name: Compute names and set variables
@@ -71,7 +63,6 @@ jobs:
           if [ -n "$RG_INPUT" ]; then
             RESOURCE_GROUP="$RG_INPUT"
           else
-            # default to production RG if you want reuse, otherwise create ephemeral
             if [ -n "${{ env.RESOURCE_GROUP_DEFAULT }}" ]; then
               RESOURCE_GROUP="${{ env.RESOURCE_GROUP_DEFAULT }}"
             else
@@ -97,15 +88,19 @@ jobs:
           echo "IMAGE_TAG=$IMAGE_TAG" >> $GITHUB_ENV
           echo "ACI_NAME=$ACI_NAME" >> $GITHUB_ENV
 
-      - name: Create resource group (if action=deploy and not reusing prod RG)
-        if: ${{ github.event.inputs.action == 'deploy' && github.event.inputs.resource_group == '' }}
+      - name: Ensure resource group exists (if action=deploy)
+        if: ${{ github.event.inputs.action == 'deploy' }}
         run: |
-          az group create -n $RESOURCE_GROUP -l $LOCATION
+          if az group show -n $RESOURCE_GROUP >/dev/null 2>&1; then
+            echo "Resource group $RESOURCE_GROUP exists"
+          else
+            echo "Creating resource group $RESOURCE_GROUP"
+            az group create -n $RESOURCE_GROUP -l $LOCATION
+          fi
 
       - name: Ensure ACR exists (if action=deploy)
         if: ${{ github.event.inputs.action == 'deploy' }}
         run: |
-          set -e
           if az acr show -n $ACR_NAME -g $RESOURCE_GROUP >/dev/null 2>&1; then
             echo "ACR $ACR_NAME already exists"
           else
@@ -129,7 +124,8 @@ jobs:
             --registry-username $(az acr credential show -n $ACR_NAME --query username -o tsv) \
             --registry-password $(az acr credential show -n $ACR_NAME --query "passwords[0].value" -o tsv) \
             --cpu 1 --memory 1.5 \
-            --ports 80
+            --ports 80 \
+            --dns-name-label taskflow-aci-${GITHUB_RUN_ID}
 
       - name: Wait for ACI to be ready and print FQDN (if action=deploy)
         if: ${{ github.event.inputs.action == 'deploy' }}
@@ -168,4 +164,9 @@ jobs:
       - name: Teardown resource group (if action=teardown)
         if: ${{ github.event.inputs.action == 'teardown' }}
         run: |
-          az group delete -n '${{ github.event.inputs.resource_group }}' --yes --no-wait
+          RG_TO_DELETE='${{ github.event.inputs.resource_group }}'
+          if [ -z "$RG_TO_DELETE" ]; then
+            RG_TO_DELETE="${{ env.RESOURCE_GROUP }}"
+          fi
+          echo "Deleting resource group: $RG_TO_DELETE"
+          az group delete -n "$RG_TO_DELETE" --yes --no-wait
