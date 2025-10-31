@@ -41,11 +41,9 @@ docker build -t taskflow-api:latest .
 
 ### Running the container
 ```bash
-docker run -d -p 8080:8080 --name taskflow-api taskflow-api:latest
-```
-The API will be available at `http://localhost:8080`.
-
-### Docker notes
+# For persistent database storage, mount a host directory to /app (where tasks.db is stored):
+docker run -d -p 8080:8080 -v $(pwd)/data:/app --name taskflow-api taskflow-api:latest
+# Without the -v option, all data will be lost when the container is removed.
 - The Dockerfile uses a 2-stage build:
   - **Stage 1**: Compiles the app with the .NET 9 SDK image
   - **Stage 2**: Runs it from the smaller ASP.NET 9 runtime image
