@@ -5,7 +5,7 @@ on:
     branches: [ "main" ]
 
 permissions:
-  id-token: write      # Required for OIDC
+  id-token: write
   contents: read
 
 jobs:
@@ -16,24 +16,19 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up .NET 9
-        uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: '9.0.x'
-
-      - name: Restore dependencies
-        run: dotnet restore TaskFlow.Api/TaskFlow.Api.csproj
-
-      - name: Build
-        run: dotnet build TaskFlow.Api/TaskFlow.Api.csproj --configuration Release --no-restore
-
-      - name: Publish
-        run: dotnet publish TaskFlow.Api/TaskFlow.Api.csproj -c Release -o ./publish
-
-      - name: Azure Login (using Service Principal)
+      - name: Azure Login
         uses: azure/login@v1
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Build and push Docker image to ACR
+        run: |
+          az acr build \
+            --registry taskflowregistry \
+            --image taskflowapi9:latest \
+            --image taskflowapi9:${{ github.sha }} \
+            --file TaskFlow.Api/Dockerfile \
+            .
 
       - name: Enable system-assigned identity
         run: |
@@ -52,19 +47,19 @@ jobs:
           echo "Principal ID: $principalId"
 
       - name: Grant AcrPull role to webapp identity
+        continue-on-error: true
         run: |
           az role assignment create \
             --assignee ${{ env.PRINCIPAL_ID }} \
             --role AcrPull \
-            --scope /subscriptions/b615d287-669e-4541-9623-2cc0093c487a/resourceGroups/TaskFlowRG/providers/Microsoft.ContainerRegistry/registries/taskflowregistry \
-            || echo "Role assignment may already exist"
+            --scope /subscriptions/b615d287-669e-4541-9623-2cc0093c487a/resourceGroups/TaskFlowRG/providers/Microsoft.ContainerRegistry/registries/taskflowregistry
+          echo "Role assignment step completed (may already exist)"
 
       - name: Configure webapp to use managed identity for ACR
         run: |
-          az webapp config set \
-            --resource-group TaskFlowRG \
-            --name taskflowapi2074394909 \
-            --generic-configurations '{"acrUseManagedIdentityCreds": true}'
+          az resource update \
+            --ids /subscriptions/b615d287-669e-4541-9623-2cc0093c487a/resourceGroups/TaskFlowRG/providers/Microsoft.Web/sites/taskflowapi2074394909/config/web \
+            --set properties.acrUseManagedIdentityCreds=true
 
       - name: Set the container image
         run: |
