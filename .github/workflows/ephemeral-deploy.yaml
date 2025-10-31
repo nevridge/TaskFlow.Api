@@ -134,6 +134,7 @@ jobs:
             --registry-username $(az acr credential show -n $ACR_NAME --query username -o tsv) \
             --registry-password $(az acr credential show -n $ACR_NAME --query "passwords[0].value" -o tsv) \
             --cpu 1 --memory 1.5 \
+            --os-type Linux \
             --ports 80 \
             --dns-name-label taskflow-aci-${GITHUB_RUN_ID}
 
