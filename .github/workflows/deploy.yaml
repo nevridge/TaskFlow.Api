@@ -47,7 +47,7 @@ jobs:
           echo "ACR_ID=$acrId" >> $GITHUB_ENV
 
       - name: Grant webapp identity AcrPull on the registry
-        run: az role assignment create --assignee ${{ env.PRINCIPAL_ID }} --role AcrPull --scope ${{ env.ACR_ID }}
+        run: az role assignment create --assignee ${{ env.PRINCIPAL_ID }} --role AcrPull --scope ${{ env.ACR_ID }} --skip-if-exists
 
       - name: Set the container image
         run: |
