@@ -1,29 +1,23 @@
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using TaskFlow.Api.Data;
+using FluentValidation;
 using TaskFlow.Api.DTOs;
 using TaskFlow.Api.Models;
+using TaskFlow.Api.Services;
 
 namespace TaskFlow.Api.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public class TaskItemsController : ControllerBase
+public class TaskItemsController(TaskService taskService, IValidator<TaskItem> validator) : ControllerBase
 {
-    private readonly TaskDbContext _db;
-
-    public TaskItemsController(TaskDbContext db)
-    {
-        _db = db;
-    }
+    private readonly TaskService _taskService = taskService;
+    private readonly IValidator<TaskItem> _validator = validator;
 
     // GET: api/TaskItems
     [HttpGet]
     public async Task<ActionResult<IEnumerable<TaskItem>>> GetAll()
     {
-        var items = await _db.TaskItems
-            .AsNoTracking()
-            .ToListAsync();
+        var items = await _taskService.GetAllTasksAsync();
         return Ok(items);
     }
 
@@ -31,9 +25,7 @@ public class TaskItemsController : ControllerBase
     [HttpGet("{id}", Name = "GetTask")]
     public async Task<ActionResult<TaskItem>> Get(int id)
     {
-        var item = await _db.TaskItems
-            .AsNoTracking()
-            .FirstOrDefaultAsync(t => t.Id == id);
+        var item = await _taskService.GetTaskAsync(id);
 
         if (item is null) return NotFound();
         return Ok(item);
@@ -43,11 +35,6 @@ public class TaskItemsController : ControllerBase
     [HttpPost]
     public async Task<ActionResult<TaskItem>> Create([FromBody] CreateTaskItemDto createDto)
     {
-        if (string.IsNullOrWhiteSpace(createDto.Title))
-        {
-            return BadRequest("Title cannot be null, empty, or whitespace.");
-        }
-
         var item = new TaskItem
         {
             Title = createDto.Title,
@@ -55,29 +42,36 @@ public class TaskItemsController : ControllerBase
             IsComplete = createDto.IsComplete
         };
 
-        _db.TaskItems.Add(item);
-        await _db.SaveChangesAsync();
+        var validationResult = await _validator.ValidateAsync(item);
+        if (!validationResult.IsValid)
+        {
+            return BadRequest(validationResult.Errors);
+        }
 
-        return CreatedAtRoute("GetTask", new { id = item.Id }, item);
+        var createdItem = await _taskService.CreateTaskAsync(item);
+
+        return CreatedAtRoute("GetTask", new { id = createdItem.Id }, createdItem);
     }
 
     // PUT: api/TaskItems/5
     [HttpPut("{id}")]
     public async Task<IActionResult> Update(int id, [FromBody] UpdateTaskItemDto updateDto)
     {
-        if (string.IsNullOrWhiteSpace(updateDto.Title))
-        {
-            return BadRequest("Title cannot be null, empty, or whitespace.");
-        }
-
-        var existing = await _db.TaskItems.FindAsync(id);
+        var existing = await _taskService.GetTaskAsync(id);
         if (existing is null) return NotFound();
 
+        // Apply incoming changes
         existing.Title = updateDto.Title;
         existing.Description = updateDto.Description;
         existing.IsComplete = updateDto.IsComplete;
 
-        await _db.SaveChangesAsync();
+        var validationResult = await _validator.ValidateAsync(existing);
+        if (!validationResult.IsValid)
+        {
+            return BadRequest(validationResult.Errors);
+        }
+
+        await _taskService.UpdateTaskAsync(existing);
 
         return NoContent();
     }
@@ -86,11 +80,10 @@ public class TaskItemsController : ControllerBase
     [HttpDelete("{id}")]
     public async Task<IActionResult> Delete(int id)
     {
-        var existing = await _db.TaskItems.FindAsync(id);
+        var existing = await _taskService.GetTaskAsync(id);
         if (existing is null) return NotFound();
 
-        _db.TaskItems.Remove(existing);
-        await _db.SaveChangesAsync();
+        await _taskService.DeleteTaskAsync(id);
 
         return NoContent();
     }

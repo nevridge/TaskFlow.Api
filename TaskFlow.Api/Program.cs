@@ -1,7 +1,13 @@
+using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using Serilog;
 using TaskFlow.Api.Data;
+using TaskFlow.Api.Middleware;
+using TaskFlow.Api.Models;
+using TaskFlow.Api.Repositories;
+using TaskFlow.Api.Services;
+using TaskFlow.Api.Validators;
 
 Log.Logger = new LoggerConfiguration()
     .WriteTo.Console()
@@ -32,6 +38,11 @@ try
     // Register SQLite DB context BEFORE calling Build()
     builder.Services.AddDbContext<TaskDbContext>(options =>
         options.UseSqlite(connectionString));
+
+    builder.Services.AddScoped<ITaskRepository, TaskRepository>();
+    builder.Services.AddScoped<TaskService>();
+    // Register validators
+    builder.Services.AddValidatorsFromAssemblyContaining<TaskItemValidator>();
 
     var app = builder.Build();
 
@@ -67,6 +78,9 @@ try
             c.RoutePrefix = string.Empty; // serve at root
         });
     }
+
+    // Add the middleware
+    app.UseMiddleware<ValidationMiddleware>();
 
     app.UseHttpsRedirection();
     app.MapControllers();

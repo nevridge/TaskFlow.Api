@@ -30,6 +30,15 @@ TaskFlow.Api is a small .NET 9 Web API for managing task items (CRUD). The proje
 6. Open the Swagger UI in Development:
    - `https://localhost:{port}/` (the app logs the exact URL on startup)
 
+## Testing
+- Use the built-in Swagger UI to exercise the API in Development.
+- Postman collection: import the collection and environment to run example requests and quickly test CRUD flows.
+  - Collection (shared): https://studyplan-9664.postman.co/workspace/StudyPlan~b854a959-3425-41a8-9125-d9e7335da054/collection/102031-e46c6909-f827-46a6-affb-06cae2c01a09?action=share&creator=102031&active-environment=102031-85338ffd-20d0-49b1-b9fc-c0008742e5a4
+  - Import instructions:
+    1. Open Postman → __File > Import__ → paste the collection URL or use the workspace import.
+    2. Also import or select the linked environment (the shared workspace should contain it) to ensure base URL and any variables are set.
+    3. Adjust the `baseUrl` (if present) or run against `https://localhost:{port}` while the app is running.
+
 ## Configuration
 - Application settings live in `appsettings.json` (with environment overrides like `appsettings.Development.json`).
 - Connection string key: `ConnectionStrings:DefaultConnection`.
