@@ -6,7 +6,6 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
     <DockerfileContext>.</DockerfileContext>
-    <DockerfileFastModeStage>build</DockerfileFastModeStage>
     <DockerfileFile>Dockerfile.dev</DockerfileFile>
   </PropertyGroup>
 
