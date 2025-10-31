@@ -35,11 +35,26 @@ try
 
     var app = builder.Build();
 
-    // Apply EF migrations (optional but recommended for persistent DB)
+    // Apply EF migrations conditionally to avoid surprises in production:
+    // - Always auto-migrate in Development (convenience)
+    // - In other environments, only apply if config "Database:MigrateOnStartup" is true
+    //   (set via appsettings, environment var DATABASE__MigrateOnStartup, or secrets)
     using (var scope = app.Services.CreateScope())
     {
-        var db = scope.ServiceProvider.GetRequiredService<TaskDbContext>();
-        db.Database.Migrate(); // requires migrations or will create schema if migrations exist
+        var env = app.Environment;
+        var shouldMigrate = env.IsDevelopment()
+                            || builder.Configuration.GetValue<bool>("Database:MigrateOnStartup");
+
+        if (shouldMigrate)
+        {
+            Log.Information("Applying EF Core migrations on startup (Environment: {Env})", env.EnvironmentName);
+            var db = scope.ServiceProvider.GetRequiredService<TaskDbContext>();
+            db.Database.Migrate(); // requires migrations to be present
+        }
+        else
+        {
+            Log.Information("Skipping automatic migrations on startup (Environment: {Env})", env.EnvironmentName);
+        }
     }
 
     // Enable Swagger UI in Development (recommended)
