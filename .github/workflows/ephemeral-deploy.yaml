@@ -56,6 +56,13 @@ jobs:
             echo "No subscriptionId in AZURE_CREDENTIALS, using default"
           fi
 
+      - name: Register Azure Container Instances provider (if action=deploy)
+        if: ${{ github.event.inputs.action == 'deploy' }}
+        run: |
+          echo "Registering Microsoft.ContainerInstance provider"
+          az provider register --namespace Microsoft.ContainerInstance --wait || true
+          az provider show --namespace Microsoft.ContainerInstance --query "registrationState" -o tsv
+
       - name: Compute names and set variables
         run: |
           RG_INPUT='${{ github.event.inputs.resource_group }}'
