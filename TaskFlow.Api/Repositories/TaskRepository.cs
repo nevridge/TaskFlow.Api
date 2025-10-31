@@ -18,7 +18,7 @@ public class TaskRepository(TaskDbContext context) : ITaskRepository
     }
     public async Task UpdateAsync(TaskItem task)
     {
-        _context.Entry(task).State = EntityState.Modified;
+        _context.TaskItems.Update(task);
         await _context.SaveChangesAsync();
     }
     public async Task DeleteAsync(int id)
