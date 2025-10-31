@@ -51,6 +51,10 @@ try
     // Register validators
     builder.Services.AddValidatorsFromAssemblyContaining<TaskItemValidator>();
 
+    // Add health checks
+    builder.Services.AddHealthChecks()
+        .AddDbContextCheck<TaskDbContext>();
+
     var app = builder.Build();
 
     // Apply EF migrations
@@ -107,6 +111,11 @@ try
     }
     
     app.MapControllers();
+
+    // Map health check endpoints
+    app.MapHealthChecks("/health");           // Overall health (all checks)
+    app.MapHealthChecks("/health/ready");     // Readiness probe
+    app.MapHealthChecks("/health/live");      // Liveness probe
 
     Log.Information("Starting web host on port {Port}", Environment.GetEnvironmentVariable("ASPNETCORE_HTTP_PORTS") ?? "8080");
     app.Run();
