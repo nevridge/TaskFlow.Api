@@ -35,20 +35,36 @@ jobs:
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-      - name: Enable system-assigned identity and get the principal ID
-        id: enable_identity
+      - name: Enable system-assigned identity
         run: |
-          principalId=$(az webapp identity assign --resource-group TaskFlowRG --name taskflowapi2074394909 --query principalId -o tsv)
+          az webapp identity assign \
+            --resource-group TaskFlowRG \
+            --name taskflowapi2074394909
+
+      - name: Get webapp managed identity principal ID
+        id: get_principal
+        run: |
+          principalId=$(az webapp show \
+            --resource-group TaskFlowRG \
+            --name taskflowapi2074394909 \
+            --query identity.principalId -o tsv)
           echo "PRINCIPAL_ID=$principalId" >> $GITHUB_ENV
+          echo "Principal ID: $principalId"
 
-      - name: Get the ACR resource ID
-        id: get_acr_id
+      - name: Grant AcrPull role to webapp identity
         run: |
-          acrId=$(az acr show -n taskflowregistry --query id -o tsv)
-          echo "ACR_ID=$acrId" >> $GITHUB_ENV
+          az role assignment create \
+            --assignee ${{ env.PRINCIPAL_ID }} \
+            --role AcrPull \
+            --scope /subscriptions/b615d287-669e-4541-9623-2cc0093c487a/resourceGroups/TaskFlowRG/providers/Microsoft.ContainerRegistry/registries/taskflowregistry \
+            || echo "Role assignment may already exist"
 
-      - name: Grant webapp identity AcrPull on the registry
-        run: az role assignment create --assignee ${{ env.PRINCIPAL_ID }} --role AcrPull --scope ${{ env.ACR_ID }} || true
+      - name: Configure webapp to use managed identity for ACR
+        run: |
+          az webapp config set \
+            --resource-group TaskFlowRG \
+            --name taskflowapi2074394909 \
+            --generic-configurations '{"acrUseManagedIdentityCreds": true}'
 
       - name: Set the container image
         run: |
@@ -57,3 +73,9 @@ jobs:
             --resource-group TaskFlowRG \
             --container-image-name taskflowregistry.azurecr.io/taskflowapi9:latest \
             --container-registry-url https://taskflowregistry.azurecr.io
+
+      - name: Restart webapp
+        run: |
+          az webapp restart \
+            --resource-group TaskFlowRG \
+            --name taskflowapi2074394909
