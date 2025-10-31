@@ -12,7 +12,7 @@ RUN dotnet restore "TaskFlow.Api.csproj"
 COPY . .
 
 # Build for Debug configuration to /app/bin (standard output location)
-RUN dotnet build "TaskFlow.Api.csproj" -c Debug
+RUN dotnet build "TaskFlow.Api.csproj" -c Debug -o /app/bin/Debug/net9.0
 
 # The build outputs to /app/bin/Debug/net9.0 by default
 WORKDIR /app/bin/Debug/net9.0
