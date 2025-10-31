@@ -66,8 +66,12 @@ public class ValidationMiddleware(RequestDelegate next, IServiceProvider service
             // Resolve strongly-typed IValidator<T> to run validation
             if (_serviceProvider.GetService(typeof(IValidator<>).MakeGenericType(modelType)) is not IValidator typedValidator) continue;
 
-            var contextValidation = new ValidationContext<object>(model);
-            var result = await typedValidator.ValidateAsync(contextValidation);
+            var contextType = typeof(ValidationContext<>).MakeGenericType(modelType);
+            var contextValidation = Activator.CreateInstance(contextType, model);
+            var result = await (Task<FluentValidation.Results.ValidationResult>)
+                typedValidator.GetType()
+                .GetMethod("ValidateAsync", new[] { contextType, typeof(CancellationToken) })!
+                .Invoke(typedValidator, new[] { contextValidation, CancellationToken.None });
 
             if (!result.IsValid)
             {
