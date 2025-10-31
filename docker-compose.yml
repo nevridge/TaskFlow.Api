@@ -13,7 +13,7 @@ services:
       - Database__MigrateOnStartup=true
       - DOTNET_RUNNING_IN_CONTAINER=true
     volumes:
-      # Don't mount the entire output directory - just create a data subdirectory
+      # Mount host directories for data and logs persistence
       - ./data:/app/data
       - ./logs:/app/logs
     container_name: taskflow-api
