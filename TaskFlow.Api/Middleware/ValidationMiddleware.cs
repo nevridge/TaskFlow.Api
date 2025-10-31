@@ -14,7 +14,7 @@ public class ValidationMiddleware(RequestDelegate next, IServiceProvider service
         // Only validate JSON requests with a body for safety
         if (context.Request.ContentLength == null
             || context.Request.ContentLength == 0
-            || !context.Request.ContentType?.StartsWith("application/json", StringComparison.OrdinalIgnoreCase) == true
+            || context.Request.ContentType?.StartsWith("application/json", StringComparison.OrdinalIgnoreCase) != true
             || HttpMethods.IsGet(context.Request.Method)
             || HttpMethods.IsHead(context.Request.Method)
             || HttpMethods.IsDelete(context.Request.Method))
