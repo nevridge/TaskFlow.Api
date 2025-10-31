@@ -30,6 +30,29 @@ TaskFlow.Api is a small .NET 9 Web API for managing task items (CRUD). The proje
 6. Open the Swagger UI in Development:
    - `https://localhost:{port}/` (the app logs the exact URL on startup)
 
+## Docker deployment
+The project includes a Dockerfile for containerized deployment with a multi-stage build process.
+
+### Building the Docker image
+From the `TaskFlow.Api` directory (where the Dockerfile is located):
+```bash
+docker build -t taskflow-api:latest .
+```
+
+### Running the container
+```bash
+docker run -d -p 8080:8080 --name taskflow-api taskflow-api:latest
+```
+The API will be available at `http://localhost:8080`.
+
+### Docker notes
+- The Dockerfile uses a 2-stage build:
+  - **Stage 1**: Compiles the app with the .NET 9 SDK image
+  - **Stage 2**: Runs it from the smaller ASP.NET 9 runtime image
+- The `.dockerignore` file excludes build artifacts, dependencies, and unnecessary files from the build context
+- The container exposes port 8080 by default
+- Database migrations will auto-apply on startup in Development mode or when `Database:MigrateOnStartup` is enabled
+
 ## Testing
 - Use the built-in Swagger UI to exercise the API in Development.
 - Postman collection: import the collection and environment to run example requests and quickly test CRUD flows.
