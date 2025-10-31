@@ -41,8 +41,6 @@ try
 
     builder.Services.AddScoped<ITaskRepository, TaskRepository>();
     builder.Services.AddScoped<TaskService>();
-    builder.Services.AddScoped<IValidator<TaskItem>, TaskItemValidator>();
-
     // Register validators
     builder.Services.AddValidatorsFromAssemblyContaining<TaskItemValidator>();
 
