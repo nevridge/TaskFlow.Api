@@ -12,7 +12,9 @@ services:
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_URLS=http://+:8080
+      - ASPNETCORE_HTTP_PORTS=8080
       - Database__MigrateOnStartup=true
+      - DOTNET_RUNNING_IN_CONTAINER=true
     volumes:
       # Persist database
       - taskflow-data:/app/data
