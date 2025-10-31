@@ -87,6 +87,7 @@ jobs:
               ACR_NAME="${{ env.ACR_NAME_DEFAULT }}"
             else
               ACR_NAME="taskflowregistryephemeral${GITHUB_RUN_ID}"
+
             fi
           fi
 
@@ -135,7 +136,7 @@ jobs:
             --registry-password $(az acr credential show -n $ACR_NAME --query "passwords[0].value" -o tsv) \
             --cpu 1 --memory 1.5 \
             --os-type Linux \
-            --ports 80 \
+            --ports 8080 \
             --dns-name-label taskflow-aci-${GITHUB_RUN_ID}
 
       - name: Wait for ACI to be ready and print FQDN (if action=deploy)
@@ -159,9 +160,9 @@ jobs:
       - name: Smoke test HTTP (if action=deploy)
         if: ${{ github.event.inputs.action == 'deploy' }}
         run: |
-          echo "Testing http://$FQDN/"
+          echo "Testing http://$FQDN:8080/"
           for i in {1..10}; do
-            status=$(curl -s -o /dev/null -w '%{http_code}' --max-time 5 http://$FQDN/)
+            status=$(curl -s -o /dev/null -w '%{http_code}' --max-time 5 http://$FQDN:8080/)
             echo "HTTP status: $status"
             if [ "$status" = "200" ] || [ "$status" = "404" ]; then
               echo "App responded (status $status)"
