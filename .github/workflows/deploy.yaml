@@ -18,13 +18,13 @@ jobs:
           dotnet-version: '9.0.x'
 
       - name: Restore dependencies
-        run: dotnet restore TaskFlow.Api.csproj
+        run: dotnet restore TaskFlow.Api/TaskFlow.Api.csproj
 
       - name: Build
-        run: dotnet build TaskFlow.Api.csproj --configuration Release --no-restore
+        run: dotnet build TaskFlow.Api/TaskFlow.Api.csproj --configuration Release --no-restore
 
       - name: Publish
-        run: dotnet publish TaskFlow.Api.csproj -c Release -o ./publish
+        run: dotnet publish TaskFlow.Api/TaskFlow.Api.csproj -c Release -o ./publish
 
       - name: Deploy to Azure WebApp
         uses: azure/webapps-deploy@v3
