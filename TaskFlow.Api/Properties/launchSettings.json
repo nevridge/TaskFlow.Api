@@ -40,7 +40,7 @@
       "publishAllPorts": false,
       "httpPort": 8080,
       "useSSL": false,
-      "dockerfileRunArguments": "-e Database__MigrateOnStartup=true -v taskflow-data:/app/data",
+      "dockerfileRunArguments": "-e Database__MigrateOnStartup=true",
       "DockerfileFile": "Dockerfile.dev",
       "DockerfileContext": ".",
       "DockerfileBuildArguments": "",
