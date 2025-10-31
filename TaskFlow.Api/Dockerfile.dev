@@ -1,19 +1,29 @@
-# Development Dockerfile with debugging support
-FROM mcr.microsoft.com/dotnet/sdk:9.0
-WORKDIR /app
-EXPOSE 8080
-ENV ASPNETCORE_HTTP_PORTS=8080
+# Use the official .NET 9 SDK image for building
+FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
+WORKDIR /src
 
-# Copy project files and restore dependencies
+# Copy project file (build context is TaskFlow.Api folder when running locally)
 COPY ["TaskFlow.Api.csproj", "./"]
 RUN dotnet restore "TaskFlow.Api.csproj"
 
-# Copy everything else
+# Copy everything else and build
 COPY . .
+RUN dotnet publish "TaskFlow.Api.csproj" -c Release -o /app/publish /p:UseAppHost=false --no-restore
 
-# Build for Debug configuration to /app/bin (standard output location)
-RUN dotnet build "TaskFlow.Api.csproj" -c Debug -o /app/bin/Debug/net9.0
+# Use the official ASP.NET runtime image for final container
+FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS final
+WORKDIR /app
 
-# The build outputs to /app/bin/Debug/net9.0 by default
-WORKDIR /app/bin/Debug/net9.0
+# Create directories for logs and data
+RUN mkdir -p /home/logs && chmod 777 /home/logs
+
+COPY --from=build /app/publish .
+
+# Expose port and configure Kestrel
+EXPOSE 8080
+ENV ASPNETCORE_HTTP_PORTS=8080
+ENV DOTNET_RUNNING_IN_CONTAINER=true
+ENV ASPNETCORE_ENVIRONMENT=Development
+
+# Define entry point
 ENTRYPOINT ["dotnet", "TaskFlow.Api.dll"]

@@ -6,6 +6,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
     <DockerfileContext>.</DockerfileContext>
+    <DockerfileFile>Dockerfile.dev</DockerfileFile>
   </PropertyGroup>
 
   <ItemGroup>
