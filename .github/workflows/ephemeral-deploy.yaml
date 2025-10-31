@@ -10,7 +10,7 @@ on:
       resource_group:
         description: 'Resource group name (for teardown reuse)'
         required: false
-        default: 'taskflow-ephemeral-${{ github.run_id }}'
+        default: ''
       location:
         description: 'Azure location'
         required: false
@@ -18,7 +18,7 @@ on:
       acr_name:
         description: 'ACR name (must be globally unique)'
         required: false
-        default: 'taskflowregistryephemeral${{ github.run_id }}'
+        default: ''
       image_tag:
         description: 'Image tag to build/use'
         required: false
@@ -40,13 +40,34 @@ jobs:
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-      - name: Set variables
+      - name: Compute names and set variables
         run: |
-          echo "RESOURCE_GROUP=${{ github.event.inputs.resource_group }}" >> $GITHUB_ENV
-          echo "LOCATION=${{ github.event.inputs.location }}" >> $GITHUB_ENV
-          echo "ACR_NAME=${{ github.event.inputs.acr_name }}" >> $GITHUB_ENV
-          echo "IMAGE_TAG=${{ github.event.inputs.image_tag }}" >> $GITHUB_ENV
-          echo "ACI_NAME=taskflow-aci-${{ github.run_id }}" >> $GITHUB_ENV
+          # Inputs (may be empty strings)
+          RG_INPUT='${{ github.event.inputs.resource_group }}'
+          ACR_INPUT='${{ github.event.inputs.acr_name }}'
+          IMAGE_TAG='${{ github.event.inputs.image_tag }}'
+          LOCATION='${{ github.event.inputs.location }}'
+
+          # Use provided input if present, otherwise include run id for uniqueness
+          if [ -z "$RG_INPUT" ]; then
+            RESOURCE_GROUP="taskflow-ephemeral-${GITHUB_RUN_ID}"
+          else
+            RESOURCE_GROUP="$RG_INPUT"
+          fi
+
+          if [ -z "$ACR_INPUT" ]; then
+            ACR_NAME="taskflowregistryephemeral${GITHUB_RUN_ID}"
+          else
+            ACR_NAME="$ACR_INPUT"
+          fi
+
+          ACI_NAME="taskflow-aci-${GITHUB_RUN_ID}"
+
+          echo "RESOURCE_GROUP=$RESOURCE_GROUP" >> $GITHUB_ENV
+          echo "LOCATION=$LOCATION" >> $GITHUB_ENV
+          echo "ACR_NAME=$ACR_NAME" >> $GITHUB_ENV
+          echo "IMAGE_TAG=$IMAGE_TAG" >> $GITHUB_ENV
+          echo "ACI_NAME=$ACI_NAME" >> $GITHUB_ENV
 
       - name: Create resource group (if action=deploy)
         if: ${{ github.event.inputs.action == 'deploy' }}
@@ -113,4 +134,4 @@ jobs:
       - name: Teardown resource group (if action=teardown)
         if: ${{ github.event.inputs.action == 'teardown' }}
         run: |
-          az group delete -n ${{ github.event.inputs.resource_group }} --yes --no-wait
+          az group delete -n '${{ github.event.inputs.resource_group }}' --yes --no-wait
