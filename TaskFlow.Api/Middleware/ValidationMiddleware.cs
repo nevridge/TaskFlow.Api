@@ -38,7 +38,7 @@ public class ValidationMiddleware(RequestDelegate next, IServiceProvider service
 
         // Resolve all validators registered in DI (IValidator and IValidator<T>)
         // Note: GetServices<IValidator>() returns non-generic IValidator instances
-        var validators = _serviceProvider.GetServices<IValidator>().Cast<IValidator>().ToList();
+        var validators = _serviceProvider.GetServices<IValidator>().ToList();
 
         foreach (var validator in validators)
         {
