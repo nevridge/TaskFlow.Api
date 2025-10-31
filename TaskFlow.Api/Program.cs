@@ -8,9 +8,14 @@ using TaskFlow.Api.Repositories;
 using TaskFlow.Api.Services;
 using TaskFlow.Api.Validators;
 
+// Configure Serilog with safe paths for containers
 Log.Logger = new LoggerConfiguration()
     .WriteTo.Console()
-    .WriteTo.File("/app/logs/log.txt", rollingInterval: RollingInterval.Day)
+    .WriteTo.File(
+        path: "/home/logs/log.txt",  // Use /home which is persistent in Azure App Service
+        rollingInterval: RollingInterval.Day,
+        shared: true,
+        flushToDiskInterval: TimeSpan.FromSeconds(1))
     .CreateLogger();
 
 try
@@ -24,17 +29,20 @@ try
 
     // Add services to the container.
     builder.Services.AddControllers();
-    builder.Services.AddEndpointsApiExplorer(); // useful for minimal APIs and Swagger discovery
+    builder.Services.AddEndpointsApiExplorer();
     builder.Services.AddSwaggerGen(options =>
     {
         options.SwaggerDoc("v1", new OpenApiInfo { Title = "TaskFlow API", Version = "v1" });
     });
 
-    // Read connection string from configuration (appsettings.json, environment, or secrets)
+    // Read connection string from configuration
+    // Default to /home/tasks.db which is persistent in Azure
     var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
-                           ?? "Data Source=tasks.db";
+                           ?? "Data Source=/home/tasks.db";
 
-    // Register SQLite DB context BEFORE calling Build()
+    Log.Information("Using connection string: {ConnectionString}", connectionString);
+
+    // Register SQLite DB context
     builder.Services.AddDbContext<TaskDbContext>(options =>
         options.UseSqlite(connectionString));
 
@@ -45,10 +53,7 @@ try
 
     var app = builder.Build();
 
-    // Apply EF migrations conditionally to avoid surprises in production:
-    // - Always auto-migrate in Development (convenience)
-    // - In other environments, only apply if config "Database:MigrateOnStartup" is true
-    //   (set via appsettings, environment var DATABASE__MigrateOnStartup, or secrets)
+    // Apply EF migrations
     using (var scope = app.Services.CreateScope())
     {
         var env = app.Environment;
@@ -59,7 +64,21 @@ try
         {
             Log.Information("Applying EF Core migrations on startup (Environment: {Env})", env.EnvironmentName);
             var db = scope.ServiceProvider.GetRequiredService<TaskDbContext>();
-            db.Database.Migrate(); // requires migrations to be present
+            
+            // Ensure the directory exists for SQLite
+            var dbPath = db.Database.GetConnectionString();
+            if (!string.IsNullOrEmpty(dbPath) && dbPath.StartsWith("Data Source="))
+            {
+                var filePath = dbPath.Replace("Data Source=", "").Split(';')[0];
+                var directory = Path.GetDirectoryName(filePath);
+                if (!string.IsNullOrEmpty(directory) && !Directory.Exists(directory))
+                {
+                    Directory.CreateDirectory(directory);
+                    Log.Information("Created database directory: {Directory}", directory);
+                }
+            }
+            
+            db.Database.Migrate();
         }
         else
         {
@@ -67,29 +86,29 @@ try
         }
     }
 
-    // Enable Swagger UI in Development (recommended)
+    // Enable Swagger UI in Development
     if (app.Environment.IsDevelopment())
     {
         app.UseSwagger();
         app.UseSwaggerUI(c =>
         {
             c.SwaggerEndpoint("/swagger/v1/swagger.json", "TaskFlow API v1");
-            c.RoutePrefix = string.Empty; // serve at root
+            c.RoutePrefix = string.Empty;
         });
     }
 
-    // Add the middleware
     app.UseMiddleware<ValidationMiddleware>();
 
-    // Only use HTTPS redirection when not running in a container
-    if (!app.Environment.IsEnvironment("Container") && string.IsNullOrEmpty(Environment.GetEnvironmentVariable("DOTNET_RUNNING_IN_CONTAINER")))
+    // Skip HTTPS redirection in containers
+    if (!app.Environment.IsEnvironment("Container") && 
+        string.IsNullOrEmpty(Environment.GetEnvironmentVariable("DOTNET_RUNNING_IN_CONTAINER")))
     {
         app.UseHttpsRedirection();
     }
     
     app.MapControllers();
 
-    Log.Information("Starting web host");
+    Log.Information("Starting web host on port {Port}", Environment.GetEnvironmentVariable("ASPNETCORE_HTTP_PORTS") ?? "8080");
     app.Run();
 }
 catch (Exception ex)

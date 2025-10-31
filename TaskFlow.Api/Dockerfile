@@ -13,12 +13,17 @@ RUN dotnet publish "TaskFlow.Api.csproj" -c Release -o /app/publish /p:UseAppHos
 # Use the official ASP.NET runtime image for final container
 FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS final
 WORKDIR /app
+
+# Create directories for logs and data
+RUN mkdir -p /home/logs && chmod 777 /home/logs
+
 COPY --from=build /app/publish .
 
 # Expose port and configure Kestrel
 EXPOSE 8080
 ENV ASPNETCORE_HTTP_PORTS=8080
 ENV DOTNET_RUNNING_IN_CONTAINER=true
+ENV ASPNETCORE_ENVIRONMENT=Production
 
 # Define entry point
 ENTRYPOINT ["dotnet", "TaskFlow.Api.dll"]
