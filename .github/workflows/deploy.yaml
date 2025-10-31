@@ -1,50 +1,58 @@
-﻿name: Build and Deploy TaskFlow API (.NET 9)
+﻿name: Deploy to Azure Production
 
 on:
+  workflow_dispatch: {}
   push:
-    branches: [ "main" ]
+    tags:
+      - 'v*'
 
 permissions:
   id-token: write
   contents: read
 
+env:
+  RESOURCE_GROUP: TaskFlowRG
+  WEBAPP_NAME: taskflowapi2074394909
+  ACR_NAME: taskflowregistry
+  ACR_IMAGE_NAME: taskflowapi9
+
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
+    environment: production
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
       - name: Azure Login
-        uses: azure/login@v1
+        uses: azure/login@v2
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
       - name: Build and push Docker image to ACR
         run: |
           az acr build \
-            --registry taskflowregistry \
-            --image taskflowapi9:latest \
-            --image taskflowapi9:${{ github.sha }} \
+            --registry ${{ env.ACR_NAME }} \
+            --image ${{ env.ACR_IMAGE_NAME }}:latest \
+            --image ${{ env.ACR_IMAGE_NAME }}:${{ github.sha }} \
             --file TaskFlow.Api/Dockerfile \
             .
 
       - name: Enable system-assigned identity
         run: |
           az webapp identity assign \
-            --resource-group TaskFlowRG \
-            --name taskflowapi2074394909
+            --resource-group ${{ env.RESOURCE_GROUP }} \
+            --name ${{ env.WEBAPP_NAME }}
 
       - name: Get webapp managed identity principal ID
         id: get_principal
         run: |
           principalId=$(az webapp show \
-            --resource-group TaskFlowRG \
-            --name taskflowapi2074394909 \
+            --resource-group ${{ env.RESOURCE_GROUP }} \
+            --name ${{ env.WEBAPP_NAME }} \
             --query identity.principalId -o tsv)
           echo "PRINCIPAL_ID=$principalId" >> $GITHUB_ENV
-          echo "Principal ID: $principalId"
 
       - name: Grant AcrPull role to webapp identity
         continue-on-error: true
@@ -52,25 +60,24 @@ jobs:
           az role assignment create \
             --assignee ${{ env.PRINCIPAL_ID }} \
             --role AcrPull \
-            --scope /subscriptions/b615d287-669e-4541-9623-2cc0093c487a/resourceGroups/TaskFlowRG/providers/Microsoft.ContainerRegistry/registries/taskflowregistry
-          echo "Role assignment step completed (may already exist)"
+            --scope $(az acr show --name ${{ env.ACR_NAME }} --query id -o tsv)
 
       - name: Configure webapp to use managed identity for ACR
         run: |
           az resource update \
-            --ids /subscriptions/b615d287-669e-4541-9623-2cc0093c487a/resourceGroups/TaskFlowRG/providers/Microsoft.Web/sites/taskflowapi2074394909/config/web \
+            --ids /subscriptions/$(az account show --query id -o tsv)/resourceGroups/${{ env.RESOURCE_GROUP }}/providers/Microsoft.Web/sites/${{ env.WEBAPP_NAME }}/config/web \
             --set properties.acrUseManagedIdentityCreds=true
 
       - name: Set the container image
         run: |
           az webapp config container set \
-            --name taskflowapi2074394909 \
-            --resource-group TaskFlowRG \
-            --container-image-name taskflowregistry.azurecr.io/taskflowapi9:latest \
-            --container-registry-url https://taskflowregistry.azurecr.io
+            --name ${{ env.WEBAPP_NAME }} \
+            --resource-group ${{ env.RESOURCE_GROUP }} \
+            --container-image-name ${{ env.ACR_NAME }}.azurecr.io/${{ env.ACR_IMAGE_NAME }}:latest \
+            --container-registry-url https://${{ env.ACR_NAME }}.azurecr.io
 
       - name: Restart webapp
         run: |
           az webapp restart \
-            --resource-group TaskFlowRG \
-            --name taskflowapi2074394909
+            --resource-group ${{ env.RESOURCE_GROUP }} \
+            --name ${{ env.WEBAPP_NAME }}

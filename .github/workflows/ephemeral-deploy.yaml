@@ -1,0 +1,117 @@
+name: Ephemeral deploy (ACI) - create / test / teardown
+
+on:
+  workflow_dispatch:
+    inputs:
+      action:
+        description: 'deploy or teardown'
+        required: true
+        default: 'deploy'
+      resource_group:
+        description: 'Resource group name (for teardown reuse)'
+        required: false
+        default: 'taskflow-ephemeral-${{ github.run_id }}'
+      location:
+        description: 'Azure location'
+        required: false
+        default: 'eastus'
+      acr_name:
+        description: 'ACR name (must be globally unique)'
+        required: false
+        default: 'taskflowregistryephemeral${{ github.run_id }}'
+      image_tag:
+        description: 'Image tag to build/use'
+        required: false
+        default: 'latest'
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  run-ephemeral:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Azure login
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Set variables
+        run: |
+          echo "RESOURCE_GROUP=${{ github.event.inputs.resource_group }}" >> $GITHUB_ENV
+          echo "LOCATION=${{ github.event.inputs.location }}" >> $GITHUB_ENV
+          echo "ACR_NAME=${{ github.event.inputs.acr_name }}" >> $GITHUB_ENV
+          echo "IMAGE_TAG=${{ github.event.inputs.image_tag }}" >> $GITHUB_ENV
+          echo "ACI_NAME=taskflow-aci-${{ github.run_id }}" >> $GITHUB_ENV
+
+      - name: Create resource group (if action=deploy)
+        if: ${{ github.event.inputs.action == 'deploy' }}
+        run: |
+          az group create -n $RESOURCE_GROUP -l $LOCATION
+
+      - name: Create ACR (if action=deploy)
+        if: ${{ github.event.inputs.action == 'deploy' }}
+        run: |
+          az acr create -n $ACR_NAME -g $RESOURCE_GROUP --sku Basic --admin-enabled true
+
+      - name: Build and push image to ACR (if action=deploy)
+        if: ${{ github.event.inputs.action == 'deploy' }}
+        run: |
+          az acr build --registry $ACR_NAME --image taskflowapi:${IMAGE_TAG} --file TaskFlow.Api/Dockerfile .
+
+
+      - name: Create ACI from ACR image (if action=deploy)
+        if: ${{ github.event.inputs.action == 'deploy' }}
+        run: |
+          az container create \
+            --resource-group $RESOURCE_GROUP \
+            --name $ACI_NAME \
+            --image $ACR_NAME.azurecr.io/taskflowapi:${IMAGE_TAG} \
+            --registry-login-server $ACR_NAME.azurecr.io \
+            --registry-username $(az acr credential show -n $ACR_NAME --query username -o tsv) \
+            --registry-password $(az acr credential show -n $ACR_NAME --query "passwords[0].value" -o tsv) \
+            --cpu 1 --memory 1.5 \
+            --ports 80
+
+      - name: Wait for ACI to be ready and print FQDN (if action=deploy)
+        if: ${{ github.event.inputs.action == 'deploy' }}
+        run: |
+          for i in {1..30}; do
+            fqdn=$(az container show -g $RESOURCE_GROUP -n $ACI_NAME --query ipAddress.fqdn -o tsv)
+            if [ -n "$fqdn" ] && [ "$fqdn" != "null" ]; then
+              echo "FQDN=$fqdn" >> $GITHUB_ENV
+              echo "Container FQDN: $fqdn"
+              break
+            fi
+            echo "Waiting for ACI..."
+            sleep 5
+          done
+          # Explicitly check if FQDN was obtained
+          if [ -z "$fqdn" ] || [ "$fqdn" = "null" ]; then
+            echo "Error: FQDN was not obtained after waiting for ACI. Exiting."
+            exit 1
+          fi
+      - name: Smoke test HTTP (if action=deploy)
+        if: ${{ github.event.inputs.action == 'deploy' }}
+        run: |
+          echo "Testing http://$FQDN/"
+          for i in {1..10}; do
+            status=$(curl -s -o /dev/null -w '%{http_code}' --max-time 5 http://$FQDN/)
+            echo "HTTP status: $status"
+            if [ "$status" = "200" ] || [ "$status" = "404" ]; then
+              echo "App responded (status $status)"
+              exit 0
+            fi
+            sleep 3
+          done
+          echo "Smoke test failed"
+          exit 1
+
+      - name: Teardown resource group (if action=teardown)
+        if: ${{ github.event.inputs.action == 'teardown' }}
+        run: |
+          az group delete -n ${{ github.event.inputs.resource_group }} --yes --no-wait
