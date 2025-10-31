@@ -1,4 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using TaskFlow.Api.Data;
 using TaskFlow.Api.DTOs;
 using TaskFlow.Api.Models;
 
@@ -8,94 +10,87 @@ namespace TaskFlow.Api.Controllers;
 [Route("api/[controller]")]
 public class TaskItemsController : ControllerBase
 {
-    // In-memory store
-    private static readonly List<TaskItem> _items =
-    [
-        new TaskItem { Id = 1, Title = "Sample Task", Description = "This is a sample task.", IsComplete = false }
-    ];
+    private readonly TaskDbContext _db;
 
-    private static int _nextId = _items.Count != 0 ? _items.Max(i => i.Id) : 0;
-    private static readonly Lock _lock = new();
+    public TaskItemsController(TaskDbContext db)
+    {
+        _db = db;
+    }
 
     // GET: api/TaskItems
     [HttpGet]
-    public ActionResult<IEnumerable<TaskItem>> GetAll()
+    public async Task<ActionResult<IEnumerable<TaskItem>>> GetAll()
     {
-        List<TaskItem> snapshot;
-        lock (_lock)
-        {
-            snapshot = new List<TaskItem>(_items);
-        }
-        return Ok(snapshot);
+        var items = await _db.TaskItems
+            .AsNoTracking()
+            .ToListAsync();
+        return Ok(items);
     }
 
     // GET: api/TaskItems/5
     [HttpGet("{id}", Name = "GetTask")]
-    public ActionResult<TaskItem> Get(int id)
+    public async Task<ActionResult<TaskItem>> Get(int id)
     {
-        TaskItem? item;
-        lock (_lock)
-        {
-            item = _items.FirstOrDefault(t => t.Id == id);
-        }
+        var item = await _db.TaskItems
+            .AsNoTracking()
+            .FirstOrDefaultAsync(t => t.Id == id);
+
         if (item is null) return NotFound();
         return Ok(item);
     }
 
     // POST: api/TaskItems
     [HttpPost]
-    public ActionResult<TaskItem> Create([FromBody] CreateTaskItemDto createDto)
+    public async Task<ActionResult<TaskItem>> Create([FromBody] CreateTaskItemDto createDto)
     {
+        if (string.IsNullOrWhiteSpace(createDto.Title))
+        {
+            return BadRequest("Title cannot be null, empty, or whitespace.");
+        }
+
         var item = new TaskItem
         {
-            Id = Interlocked.Increment(ref _nextId),
             Title = createDto.Title,
             Description = createDto.Description,
             IsComplete = createDto.IsComplete
         };
-        
-        lock (_lock)
-        {
-            _items.Add(item);
-        }
+
+        _db.TaskItems.Add(item);
+        await _db.SaveChangesAsync();
 
         return CreatedAtRoute("GetTask", new { id = item.Id }, item);
     }
 
     // PUT: api/TaskItems/5
     [HttpPut("{id}")]
-    public IActionResult Update(int id, [FromBody] UpdateTaskItemDto updateDto)
+    public async Task<IActionResult> Update(int id, [FromBody] UpdateTaskItemDto updateDto)
     {
-        // Validate Title
         if (string.IsNullOrWhiteSpace(updateDto.Title))
         {
             return BadRequest("Title cannot be null, empty, or whitespace.");
         }
 
-        lock (_lock)
-        {
-            var existing = _items.FirstOrDefault(t => t.Id == id);
-            if (existing is null) return NotFound();
+        var existing = await _db.TaskItems.FindAsync(id);
+        if (existing is null) return NotFound();
 
-            // Update fields
-            existing.Title = updateDto.Title;
-            existing.Description = updateDto.Description;
-            existing.IsComplete = updateDto.IsComplete;
-        }
+        existing.Title = updateDto.Title;
+        existing.Description = updateDto.Description;
+        existing.IsComplete = updateDto.IsComplete;
+
+        await _db.SaveChangesAsync();
 
         return NoContent();
     }
 
     // DELETE: api/TaskItems/5
     [HttpDelete("{id}")]
-    public IActionResult Delete(int id)
+    public async Task<IActionResult> Delete(int id)
     {
-        lock (_lock)
-        {
-            var existing = _items.FirstOrDefault(t => t.Id == id);
-            if (existing is null) return NotFound();
-            _items.Remove(existing);
-        }
+        var existing = await _db.TaskItems.FindAsync(id);
+        if (existing is null) return NotFound();
+
+        _db.TaskItems.Remove(existing);
+        await _db.SaveChangesAsync();
 
         return NoContent();
     }

@@ -1,32 +1,87 @@
+using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
+using Serilog;
+using TaskFlow.Api.Data;
 
-var builder = WebApplication.CreateBuilder(args);
+Log.Logger = new LoggerConfiguration()
+    .WriteTo.Console()
+    .WriteTo.File("logs/log.txt", rollingInterval: RollingInterval.Day)
+    .CreateLogger();
 
-// Add services to the container.
-builder.Services.AddControllers();
-builder.Services.AddEndpointsApiExplorer(); // useful for minimal APIs and Swagger discovery
-builder.Services.AddSwaggerGen(options =>
+try
 {
-    options.SwaggerDoc("v1", new OpenApiInfo { Title = "TaskFlow API", Version = "v1" });
-    // Optional: include XML comments if you generate them
-    // var xmlFile = $"{System.Reflection.Assembly.GetExecutingAssembly().GetName().Name}.xml";
-    // var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
-    // if (File.Exists(xmlPath)) options.IncludeXmlComments(xmlPath);
-});
+    Log.Information("Starting TaskFlow API (bootstrap logger)");
 
-var app = builder.Build();
+    var builder = WebApplication.CreateBuilder(args);
 
-// Enable Swagger UI in Development (recommended)
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI(c =>
+    // Use Serilog as the host logger (will use the static Log.Logger)
+    builder.Host.UseSerilog();
+
+    // Add services to the container.
+    builder.Services.AddControllers();
+    builder.Services.AddEndpointsApiExplorer(); // useful for minimal APIs and Swagger discovery
+    builder.Services.AddSwaggerGen(options =>
     {
-        c.SwaggerEndpoint("/swagger/v1/swagger.json", "TaskFlow API v1");
-        c.RoutePrefix = string.Empty; // serve at root: https://localhost:5001/
+        options.SwaggerDoc("v1", new OpenApiInfo { Title = "TaskFlow API", Version = "v1" });
     });
-}
 
-app.UseHttpsRedirection();
-app.MapControllers();
-app.Run();
+    // Read connection string from configuration (appsettings.json, environment, or secrets)
+    var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
+                           ?? "Data Source=tasks.db";
+
+    // Register SQLite DB context BEFORE calling Build()
+    builder.Services.AddDbContext<TaskDbContext>(options =>
+        options.UseSqlite(connectionString));
+
+    var app = builder.Build();
+
+    // Apply EF migrations conditionally to avoid surprises in production:
+    // - Always auto-migrate in Development (convenience)
+    // - In other environments, only apply if config "Database:MigrateOnStartup" is true
+    //   (set via appsettings, environment var DATABASE__MigrateOnStartup, or secrets)
+    using (var scope = app.Services.CreateScope())
+    {
+        var env = app.Environment;
+        var shouldMigrate = env.IsDevelopment()
+                            || builder.Configuration.GetValue<bool>("Database:MigrateOnStartup");
+
+        if (shouldMigrate)
+        {
+            Log.Information("Applying EF Core migrations on startup (Environment: {Env})", env.EnvironmentName);
+            var db = scope.ServiceProvider.GetRequiredService<TaskDbContext>();
+            db.Database.Migrate(); // requires migrations to be present
+        }
+        else
+        {
+            Log.Information("Skipping automatic migrations on startup (Environment: {Env})", env.EnvironmentName);
+        }
+    }
+
+    // Enable Swagger UI in Development (recommended)
+    if (app.Environment.IsDevelopment())
+    {
+        app.UseSwagger();
+        app.UseSwaggerUI(c =>
+        {
+            c.SwaggerEndpoint("/swagger/v1/swagger.json", "TaskFlow API v1");
+            c.RoutePrefix = string.Empty; // serve at root
+        });
+    }
+
+    app.UseHttpsRedirection();
+    app.MapControllers();
+
+    Log.Information("Starting web host");
+    app.Run();
+}
+catch (Exception ex)
+{
+    // Ensure serious startup errors are captured
+    Log.Fatal(ex, "Host terminated unexpectedly");
+    throw;
+}
+finally
+{
+    // Ensure all logs are flushed and sinks are disposed
+    Log.CloseAndFlush();
+}

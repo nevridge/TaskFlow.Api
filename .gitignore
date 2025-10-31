@@ -184,4 +184,17 @@ docker-compose.override.yml
 .env.*.local
 Thumbs.db
 
+# Ignore local SQLite DB files created at runtime
+/tasks.db
+TaskFlow.Api/tasks.db
+TaskFlow.Api/tasks.db-shm
+TaskFlow.Api/tasks.db-wal
+
+# optional broader patterns if you prefer
+*.db
+*.sqlite
+*.sqlite3
+*.db-shm
+*.db-wal
+
 # End of file
