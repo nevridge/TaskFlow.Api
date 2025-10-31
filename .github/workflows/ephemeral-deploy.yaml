@@ -1,4 +1,4 @@
-name: Ephemeral deploy (ACI) - create / test / teardown
+name: Ephemeral ACI deploy - create test teardown
 
 on:
   workflow_dispatch:
@@ -63,7 +63,6 @@ jobs:
         run: |
           az acr build --registry $ACR_NAME --image taskflowapi:${IMAGE_TAG} --file TaskFlow.Api/Dockerfile .
 
-
       - name: Create ACI from ACR image (if action=deploy)
         if: ${{ github.event.inputs.action == 'deploy' }}
         run: |
@@ -90,11 +89,11 @@ jobs:
             echo "Waiting for ACI..."
             sleep 5
           done
-          # Explicitly check if FQDN was obtained
           if [ -z "$fqdn" ] || [ "$fqdn" = "null" ]; then
             echo "Error: FQDN was not obtained after waiting for ACI. Exiting."
             exit 1
           fi
+
       - name: Smoke test HTTP (if action=deploy)
         if: ${{ github.event.inputs.action == 'deploy' }}
         run: |
