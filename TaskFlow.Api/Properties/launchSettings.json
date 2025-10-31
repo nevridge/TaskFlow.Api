@@ -28,6 +28,24 @@
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
       }
+    },
+    "Docker": {
+      "commandName": "Docker",
+      "launchBrowser": true,
+      "launchUrl": "{Scheme}://{ServiceHost}:{ServicePort}",
+      "environmentVariables": {
+        "ASPNETCORE_URLS": "http://+:8080",
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      },
+      "httpPort": 8080,
+      "useSSL": false
+    },
+    "Docker Compose": {
+      "commandName": "DockerCompose",
+      "composePath": "../../docker-compose.yml",
+      "serviceActions": {
+        "taskflow-api": "StartDebugging"
+      }
     }
   }
 }

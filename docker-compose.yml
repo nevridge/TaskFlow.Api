@@ -1,0 +1,23 @@
+version: '3.8'
+
+services:
+  taskflow-api:
+    image: taskflow-api:dev
+    build:
+      context: ./TaskFlow.Api
+      dockerfile: Dockerfile.dev
+    container_name: taskflow-api-dev
+    ports:
+      - "8080:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:8080
+      - Database__MigrateOnStartup=true
+    volumes:
+      # Mount current directory for hot reload (optional)
+      - ./TaskFlow.Api:/app:ro
+      # Persist database
+      - taskflow-data:/app/data
+
+volumes:
+  taskflow-data:

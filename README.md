@@ -31,25 +31,56 @@ TaskFlow.Api is a small .NET 9 Web API for managing task items (CRUD). The proje
    - `https://localhost:{port}/` (the app logs the exact URL on startup)
 
 ## Docker deployment
-The project includes a Dockerfile for containerized deployment with a multi-stage build process.
+The project includes Docker support for both development and production deployments.
 
-### Building the Docker image
+### Local development with Docker (Visual Studio / VS Code)
+For local development with debugging support in Visual Studio or VS Code:
+
+1. **Using Docker Compose** (recommended for local development):
+   ```bash
+   docker-compose up
+   ```
+   The API will be available at `http://localhost:8080`. The development configuration automatically:
+   - Runs in Development mode
+   - Auto-applies database migrations
+   - Persists the SQLite database in a Docker volume
+
+2. **From Visual Studio / VS Code**:
+   - Select the "Docker" or "Docker Compose" launch profile from the debug dropdown
+   - Press F5 to start debugging
+   - The container will start automatically with debugging support
+
+3. **Using Docker directly** (development):
+   ```bash
+   cd TaskFlow.Api
+   docker build -f Dockerfile.dev -t taskflow-api:dev .
+   docker run -p 8080:8080 -e ASPNETCORE_ENVIRONMENT=Development taskflow-api:dev
+   ```
+
+### Production deployment
+
+#### Building the Docker image
 From the `TaskFlow.Api` directory (where the Dockerfile is located):
 ```bash
 docker build -t taskflow-api:latest .
 ```
 
-### Running the container
+#### Running the container
 ```bash
 # For persistent database storage, mount a host directory to /app (where tasks.db is stored):
 docker run -d -p 8080:8080 -v $(pwd)/data:/app --name taskflow-api taskflow-api:latest
 # Without the -v option, all data will be lost when the container is removed.
-- The Dockerfile uses a 2-stage build:
+```
+
+### Docker notes
+- **Development**: Uses `Dockerfile.dev` with Debug configuration and SDK image for full debugging support
+- **Production**: Uses `Dockerfile` with a 2-stage build:
   - **Stage 1**: Compiles the app with the .NET 9 SDK image
   - **Stage 2**: Runs it from the smaller ASP.NET 9 runtime image
 - The `.dockerignore` file excludes build artifacts, dependencies, and unnecessary files from the build context
 - The container exposes port 8080 by default
-- By default, the Docker container runs in Production mode and migrations will **not** auto-apply. To enable automatic migrations, set either `ASPNETCORE_ENVIRONMENT=Development` or `Database__MigrateOnStartup=true` via environment variables when running the container.
+- **Persistence warning:** Without volume mounting, the SQLite database will be lost when the container is removed
+- By default, the production Docker container runs in Production mode and migrations will **not** auto-apply. To enable automatic migrations, set either `ASPNETCORE_ENVIRONMENT=Development` or `Database__MigrateOnStartup=true` via environment variables when running the container.
 
 ## Testing
 - Use the built-in Swagger UI to exercise the API in Development.
