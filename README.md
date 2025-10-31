@@ -51,7 +51,7 @@ The API will be available at `http://localhost:8080`.
   - **Stage 2**: Runs it from the smaller ASP.NET 9 runtime image
 - The `.dockerignore` file excludes build artifacts, dependencies, and unnecessary files from the build context
 - The container exposes port 8080 by default
-- Database migrations will auto-apply on startup in Development mode or when `Database:MigrateOnStartup` is enabled
+- By default, the Docker container runs in Production mode and migrations will **not** auto-apply. To enable automatic migrations, set either `ASPNETCORE_ENVIRONMENT=Development` or `Database__MigrateOnStartup=true` via environment variables when running the container.
 
 ## Testing
 - Use the built-in Swagger UI to exercise the API in Development.
