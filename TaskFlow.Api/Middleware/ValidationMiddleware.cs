@@ -55,7 +55,12 @@ public class ValidationMiddleware(RequestDelegate next, IServiceProvider service
             {
                 model = JsonSerializer.Deserialize(body, modelType, _jsonOptions);
             }
-            catch
+            catch (JsonException)
+            {
+                // If deserialization fails for this model type, skip it
+                continue;
+            }
+            catch (NotSupportedException)
             {
                 // If deserialization fails for this model type, skip it
                 continue;
