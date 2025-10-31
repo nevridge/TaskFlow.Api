@@ -25,9 +25,13 @@ try
         options.SwaggerDoc("v1", new OpenApiInfo { Title = "TaskFlow API", Version = "v1" });
     });
 
+    // Read connection string from configuration (appsettings.json, environment, or secrets)
+    var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
+                           ?? "Data Source=tasks.db";
+
     // Register SQLite DB context BEFORE calling Build()
     builder.Services.AddDbContext<TaskDbContext>(options =>
-        options.UseSqlite("Data Source=tasks.db"));
+        options.UseSqlite(connectionString));
 
     var app = builder.Build();
 
