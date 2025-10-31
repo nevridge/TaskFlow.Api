@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using Serilog;
 using TaskFlow.Api.Data;
+using TaskFlow.Api.Middleware;
 using TaskFlow.Api.Models;
 using TaskFlow.Api.Repositories;
 using TaskFlow.Api.Services;
@@ -42,6 +43,8 @@ try
     builder.Services.AddScoped<TaskService>();
     builder.Services.AddScoped<IValidator<TaskItem>, TaskItemValidator>();
 
+    // Register validators
+    builder.Services.AddValidatorsFromAssemblyContaining<TaskItemValidator>();
 
     var app = builder.Build();
 
@@ -77,6 +80,9 @@ try
             c.RoutePrefix = string.Empty; // serve at root
         });
     }
+
+    // Add the middleware
+    app.UseMiddleware<ValidationMiddleware>();
 
     app.UseHttpsRedirection();
     app.MapControllers();
