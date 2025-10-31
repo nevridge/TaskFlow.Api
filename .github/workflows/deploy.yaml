@@ -60,7 +60,7 @@ jobs:
           az role assignment create \
             --assignee ${{ env.PRINCIPAL_ID }} \
             --role AcrPull \
-            --scope $(az acr show --name ${{ env.ACR_NAME }} --query id -o tsv) || true
+            --scope $(az acr show --name ${{ env.ACR_NAME }} --query id -o tsv)
 
       - name: Configure webapp to use managed identity for ACR
         run: |
