@@ -1,8 +1,17 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
+using Serilog;
 using TaskFlow.Api.Data;
 
+Log.Logger = new LoggerConfiguration()
+    .WriteTo.Console()
+    .WriteTo.File("logs/log.txt", rollingInterval: RollingInterval.Day)
+    .CreateLogger();
+
 var builder = WebApplication.CreateBuilder(args);
+
+// Use Serilog as the host logger (will use the static Log.Logger)
+builder.Host.UseSerilog();
 
 // Add services to the container.
 builder.Services.AddControllers();
