@@ -33,10 +33,10 @@ TaskFlow.Api is a small .NET 9 Web API for managing task items (CRUD). The proje
 ## Docker deployment
 The project includes Docker support for both development and production deployments.
 
-### Local development with Docker (Visual Studio / VS Code)
-For local development with debugging support in Visual Studio or VS Code:
+### Local development with Docker
+For local development, the recommended approach is to use Docker Compose:
 
-1. **Using Docker Compose** (recommended for local development):
+1. **Using Docker Compose** (recommended):
    ```bash
    docker-compose up
    ```
@@ -45,16 +45,21 @@ For local development with debugging support in Visual Studio or VS Code:
    - Auto-applies database migrations
    - Persists the SQLite database in a Docker volume
 
-2. **From Visual Studio / VS Code**:
-   - Select the "Docker" or "Docker Compose" launch profile from the debug dropdown
-   - Press F5 to start debugging
-   - The container will start automatically with debugging support
-
-3. **Using Docker directly** (development):
+2. **Using Docker directly** (alternative):
    ```bash
    cd TaskFlow.Api
    docker build -f Dockerfile.dev -t taskflow-api:dev .
    docker run -p 8080:8080 -e ASPNETCORE_ENVIRONMENT=Development taskflow-api:dev
+   ```
+
+3. **Stopping the containers**:
+   ```bash
+   docker-compose down
+   ```
+
+4. **Viewing logs**:
+   ```bash
+   docker-compose logs -f
    ```
 
 ### Production deployment
