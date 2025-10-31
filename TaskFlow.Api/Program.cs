@@ -2,6 +2,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using Serilog;
 using TaskFlow.Api.Data;
+using TaskFlow.Api.Repositories;
+using TaskFlow.Api.Services;
 
 Log.Logger = new LoggerConfiguration()
     .WriteTo.Console()
@@ -32,6 +34,9 @@ try
     // Register SQLite DB context BEFORE calling Build()
     builder.Services.AddDbContext<TaskDbContext>(options =>
         options.UseSqlite(connectionString));
+
+    builder.Services.AddScoped<ITaskRepository, TaskRepository>();
+    builder.Services.AddScoped<TaskService>();
 
     var app = builder.Build();
 
