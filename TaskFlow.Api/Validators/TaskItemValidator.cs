@@ -9,6 +9,6 @@ public class TaskItemValidator : AbstractValidator<TaskItem>
     {
         RuleFor(t => t.Title)
             .NotEmpty().WithMessage("Title is required.")
-            .MaximumLength(100);
+            .MaximumLength(100).WithMessage("Title must not exceed 100 characters.");
     }
 }
