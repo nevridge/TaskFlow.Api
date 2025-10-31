@@ -11,9 +11,9 @@ RUN dotnet restore "TaskFlow.Api.csproj"
 # Copy everything else
 COPY . .
 
-# Build for Debug configuration (for docker-compose)
-RUN dotnet build "TaskFlow.Api.csproj" -c Debug -o /app/build
+# Build for Debug configuration to /app/bin (standard output location)
+RUN dotnet build "TaskFlow.Api.csproj" -c Debug
 
-# Run the application
-WORKDIR /app/build
+# The build outputs to /app/bin/Debug/net9.0 by default
+WORKDIR /app/bin/Debug/net9.0
 ENTRYPOINT ["dotnet", "TaskFlow.Api.dll"]

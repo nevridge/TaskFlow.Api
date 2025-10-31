@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   taskflow-api:
     image: taskflow-api:dev
@@ -15,6 +13,7 @@ services:
       - Database__MigrateOnStartup=true
       - DOTNET_RUNNING_IN_CONTAINER=true
     volumes:
-      - ./data:/app/build
-      - ./logs:/app/build/logs
+      # Don't mount the entire output directory - just create a data subdirectory
+      - ./data:/app/data
+      - ./logs:/app/logs
     container_name: taskflow-api

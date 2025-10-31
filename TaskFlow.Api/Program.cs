@@ -4,14 +4,13 @@ using Microsoft.OpenApi.Models;
 using Serilog;
 using TaskFlow.Api.Data;
 using TaskFlow.Api.Middleware;
-using TaskFlow.Api.Models;
 using TaskFlow.Api.Repositories;
 using TaskFlow.Api.Services;
 using TaskFlow.Api.Validators;
 
 Log.Logger = new LoggerConfiguration()
     .WriteTo.Console()
-    .WriteTo.File("logs/log.txt", rollingInterval: RollingInterval.Day)
+    .WriteTo.File("/app/logs/log.txt", rollingInterval: RollingInterval.Day)
     .CreateLogger();
 
 try
