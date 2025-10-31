@@ -2,12 +2,13 @@
 FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 WORKDIR /src
 
-# Copy project files and restore dependencies
-COPY ["TaskFlow.Api.csproj", "./"]
-RUN dotnet restore "TaskFlow.Api.csproj"
+# Copy project file from the correct path
+COPY ["TaskFlow.Api/TaskFlow.Api.csproj", "TaskFlow.Api/"]
+RUN dotnet restore "TaskFlow.Api/TaskFlow.Api.csproj"
 
-# Copy everything else and build
-COPY . .
+# Copy the rest of the TaskFlow.Api folder
+COPY TaskFlow.Api/ TaskFlow.Api/
+WORKDIR /src/TaskFlow.Api
 RUN dotnet publish "TaskFlow.Api.csproj" -c Release -o /app/publish /p:UseAppHost=false --no-restore
 
 # Use the official ASP.NET runtime image for final container
