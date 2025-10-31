@@ -51,7 +51,7 @@ try
     // Register validators
     builder.Services.AddValidatorsFromAssemblyContaining<TaskItemValidator>();
 
-    // Add health checks
+    // Add health checks with database connectivity validation
     builder.Services.AddHealthChecks()
         .AddDbContextCheck<TaskDbContext>();
 
