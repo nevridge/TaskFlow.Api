@@ -63,14 +63,6 @@ jobs:
         run: |
           az acr build --registry $ACR_NAME --image taskflowapi:${IMAGE_TAG} --file TaskFlow.Api/Dockerfile .
 
-      - name: Get ACR credentials (if action=deploy)
-        if: ${{ github.event.inputs.action == 'deploy' }}
-        id: acrcreds
-        run: |
-          creds=$(az acr credential show -n $ACR_NAME --query "{username:username,password:passwords[0].value}" -o json)
-          echo "ACR_USERNAME=$(echo $creds | jq -r '.username')" >> $GITHUB_ENV
-          echo "ACR_PASSWORD=$(echo $creds | jq -r '.password')" >> $GITHUB_ENV
-        shell: bash
 
       - name: Create ACI from ACR image (if action=deploy)
         if: ${{ github.event.inputs.action == 'deploy' }}
