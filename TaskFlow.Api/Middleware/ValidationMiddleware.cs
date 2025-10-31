@@ -73,10 +73,18 @@ public class ValidationMiddleware(RequestDelegate next, IServiceProvider service
 
             var contextType = typeof(ValidationContext<>).MakeGenericType(modelType);
             var contextValidation = Activator.CreateInstance(contextType, model);
-            var result = await (Task<FluentValidation.Results.ValidationResult>)
-                typedValidator.GetType()
-                .GetMethod("ValidateAsync", new[] { contextType, typeof(CancellationToken) })!
-                .Invoke(typedValidator, new[] { contextValidation, CancellationToken.None });
+            var methodInfo = typedValidator.GetType().GetMethod("ValidateAsync", [contextType, typeof(CancellationToken)]);
+            if (methodInfo == null)
+            {
+                continue; // Skip if method not found
+            }
+
+            if (methodInfo.Invoke(typedValidator, [contextValidation, CancellationToken.None]) is not Task<FluentValidation.Results.ValidationResult> taskObj)
+            {
+                continue; // Skip if invocation failed or returned null
+            }
+
+            var result = await taskObj;
 
             if (!result.IsValid)
             {
