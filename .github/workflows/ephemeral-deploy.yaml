@@ -16,13 +16,19 @@ on:
         required: false
         default: 'eastus'
       acr_name:
-        description: 'ACR name (must be globally unique)'
+        description: 'ACR name (must be globally unique or same as production to reuse)'
         required: false
         default: ''
       image_tag:
         description: 'Image tag to build/use'
         required: false
         default: 'latest'
+
+# Reuse production values by default
+env:
+  RESOURCE_GROUP_DEFAULT: TaskFlowRG
+  ACR_NAME_DEFAULT: taskflowregistry
+  SUBSCRIPTION_ID: ''
 
 permissions:
   id-token: write
@@ -39,26 +45,48 @@ jobs:
         uses: azure/login@v2
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Verify login and subscription
+        run: |
+          echo "Azure account details:"
+          az account show || true
+          # If subscription secret not provided, try to use subscription from AZURE_CREDENTIALS (if present)
+          if [ -z "${{ secrets.AZURE_SUBSCRIPTION_ID }}" ]; then
+            echo "No AZURE_SUBSCRIPTION_ID secret set; showing available accounts"
+            az account list -o table
+          else
+            echo "Setting subscription to ${{ secrets.AZURE_SUBSCRIPTION_ID }}"
+            az account set --subscription "${{ secrets.AZURE_SUBSCRIPTION_ID }}"
+            az account show
+          fi
 
       - name: Compute names and set variables
         run: |
-          # Inputs (may be empty strings)
           RG_INPUT='${{ github.event.inputs.resource_group }}'
           ACR_INPUT='${{ github.event.inputs.acr_name }}'
           IMAGE_TAG='${{ github.event.inputs.image_tag }}'
           LOCATION='${{ github.event.inputs.location }}'
 
-          # Use provided input if present, otherwise include run id for uniqueness
-          if [ -z "$RG_INPUT" ]; then
-            RESOURCE_GROUP="taskflow-ephemeral-${GITHUB_RUN_ID}"
-          else
+          if [ -n "$RG_INPUT" ]; then
             RESOURCE_GROUP="$RG_INPUT"
+          else
+            # default to production RG if you want reuse, otherwise create ephemeral
+            if [ -n "${{ env.RESOURCE_GROUP_DEFAULT }}" ]; then
+              RESOURCE_GROUP="${{ env.RESOURCE_GROUP_DEFAULT }}"
+            else
+              RESOURCE_GROUP="taskflow-ephemeral-${GITHUB_RUN_ID}"
+            fi
           fi
 
-          if [ -z "$ACR_INPUT" ]; then
-            ACR_NAME="taskflowregistryephemeral${GITHUB_RUN_ID}"
-          else
+          if [ -n "$ACR_INPUT" ]; then
             ACR_NAME="$ACR_INPUT"
+          else
+            if [ -n "${{ env.ACR_NAME_DEFAULT }}" ]; then
+              ACR_NAME="${{ env.ACR_NAME_DEFAULT }}"
+            else
+              ACR_NAME="taskflowregistryephemeral${GITHUB_RUN_ID}"
+            fi
           fi
 
           ACI_NAME="taskflow-aci-${GITHUB_RUN_ID}"
@@ -69,15 +97,21 @@ jobs:
           echo "IMAGE_TAG=$IMAGE_TAG" >> $GITHUB_ENV
           echo "ACI_NAME=$ACI_NAME" >> $GITHUB_ENV
 
-      - name: Create resource group (if action=deploy)
-        if: ${{ github.event.inputs.action == 'deploy' }}
+      - name: Create resource group (if action=deploy and not reusing prod RG)
+        if: ${{ github.event.inputs.action == 'deploy' && github.event.inputs.resource_group == '' }}
         run: |
           az group create -n $RESOURCE_GROUP -l $LOCATION
 
-      - name: Create ACR (if action=deploy)
+      - name: Ensure ACR exists (if action=deploy)
         if: ${{ github.event.inputs.action == 'deploy' }}
         run: |
-          az acr create -n $ACR_NAME -g $RESOURCE_GROUP --sku Basic --admin-enabled true
+          set -e
+          if az acr show -n $ACR_NAME -g $RESOURCE_GROUP >/dev/null 2>&1; then
+            echo "ACR $ACR_NAME already exists"
+          else
+            echo "Creating ACR $ACR_NAME in $RESOURCE_GROUP"
+            az acr create -n $ACR_NAME -g $RESOURCE_GROUP --sku Basic --admin-enabled true
+          fi
 
       - name: Build and push image to ACR (if action=deploy)
         if: ${{ github.event.inputs.action == 'deploy' }}
