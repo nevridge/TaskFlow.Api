@@ -90,7 +90,11 @@ jobs:
             echo "Waiting for ACI..."
             sleep 5
           done
-
+          # Explicitly check if FQDN was obtained
+          if [ -z "$fqdn" ] || [ "$fqdn" = "null" ]; then
+            echo "Error: FQDN was not obtained after waiting for ACI. Exiting."
+            exit 1
+          fi
       - name: Smoke test HTTP (if action=deploy)
         if: ${{ github.event.inputs.action == 'deploy' }}
         run: |
