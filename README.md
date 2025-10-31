@@ -14,6 +14,8 @@ TaskFlow.Api is a small .NET 9 Web API for managing task items (CRUD). The proje
 ## Prerequisites
 - .NET 9 SDK installed.
 - Recommended (development): a terminal and optional __Package Manager Console__ or the CLI tools for EF commands.
+- **For Docker development**: Docker Desktop installed and running.
+- **For Visual Studio Docker support**: Visual Studio 2022 (17.0+) with "Container Development Tools" workload installed.
 
 ## Getting started (local development)
 1. Clone the repo and change directory:
@@ -29,6 +31,84 @@ TaskFlow.Api is a small .NET 9 Web API for managing task items (CRUD). The proje
    - `dotnet run --project TaskFlow.Api`
 6. Open the Swagger UI in Development:
    - `https://localhost:{port}/` (the app logs the exact URL on startup)
+
+## Docker deployment
+The project includes Docker support for both development and production deployments.
+
+### Local development with Docker
+
+#### Option 1: Visual Studio (Windows/Mac)
+If you have Visual Studio 2022 with the "Container Development Tools" workload installed:
+
+1. Open the solution in Visual Studio
+2. Select **"Container (Dockerfile.dev)"** from the debug dropdown
+3. Press **F5** or click the Run button
+4. Visual Studio will automatically:
+   - Build the Docker image using Dockerfile.dev
+   - Start the container with Development environment
+   - Enable automatic database migrations
+   - Open your browser to the API
+
+**Requirements:**
+- Visual Studio 2022 (17.0 or later)
+- "Container Development Tools" workload (install via Visual Studio Installer)
+- Docker Desktop running
+
+#### Option 2: Docker Compose (Cross-platform)
+For command-line or non-Visual Studio users:
+
+1. **Start the containers**:
+   ```bash
+   docker-compose up
+   ```
+   The API will be available at `http://localhost:8080`. The development configuration automatically:
+   - Runs in Development mode
+   - Auto-applies database migrations
+   - Persists the SQLite database in a Docker volume
+
+2. **Stop the containers**:
+   ```bash
+   docker-compose down
+   ```
+
+3. **View logs**:
+   ```bash
+   docker-compose logs -f
+   ```
+
+#### Option 3: Docker CLI (Alternative)
+Using Docker directly without compose:
+
+```bash
+cd TaskFlow.Api
+docker build -f Dockerfile.dev -t taskflow-api:dev .
+docker run -p 8080:8080 -e ASPNETCORE_ENVIRONMENT=Development -e Database__MigrateOnStartup=true taskflow-api:dev
+```
+
+### Production deployment
+
+#### Building the Docker image
+From the `TaskFlow.Api` directory (where the Dockerfile is located):
+```bash
+docker build -t taskflow-api:latest .
+```
+
+#### Running the container
+```bash
+# For persistent database storage, mount a host directory to /app (where tasks.db is stored):
+docker run -d -p 8080:8080 -v $(pwd)/data:/app --name taskflow-api taskflow-api:latest
+# Without the -v option, all data will be lost when the container is removed.
+```
+
+### Docker notes
+- **Development**: Uses `Dockerfile.dev` with Debug configuration and SDK image for full debugging support
+- **Production**: Uses `Dockerfile` with a 2-stage build:
+  - **Stage 1**: Compiles the app with the .NET 9 SDK image
+  - **Stage 2**: Runs it from the smaller ASP.NET 9 runtime image
+- The `.dockerignore` file excludes build artifacts, dependencies, and unnecessary files from the build context
+- The container exposes port 8080 by default
+- **Persistence warning:** Without volume mounting, the SQLite database will be lost when the container is removed
+- By default, the production Docker container runs in Production mode and migrations will **not** auto-apply. To enable automatic migrations, set either `ASPNETCORE_ENVIRONMENT=Development` or `Database__MigrateOnStartup=true` via environment variables when running the container.
 
 ## Testing
 - Use the built-in Swagger UI to exercise the API in Development.
