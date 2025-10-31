@@ -15,8 +15,10 @@ FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS final
 WORKDIR /app
 COPY --from=build /app/publish .
 
-# Expose port
+# Expose port and configure Kestrel
 EXPOSE 8080
+ENV ASPNETCORE_HTTP_PORTS=8080
+ENV DOTNET_RUNNING_IN_CONTAINER=true
 
 # Define entry point
 ENTRYPOINT ["dotnet", "TaskFlow.Api.dll"]

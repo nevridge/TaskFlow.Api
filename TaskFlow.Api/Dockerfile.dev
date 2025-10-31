@@ -1,18 +1,5 @@
 # Development Dockerfile with debugging support
-FROM mcr.microsoft.com/dotnet/sdk:9.0 AS base
+FROM mcr.microsoft.com/dotnet/sdk:9.0
 WORKDIR /app
 EXPOSE 8080
-
-# Copy project files
-COPY ["TaskFlow.Api.csproj", "./"]
-RUN dotnet restore "TaskFlow.Api.csproj"
-
-# Copy everything else
-COPY . .
-
-# Build for Debug configuration (not Release)
-RUN dotnet build "TaskFlow.Api.csproj" -c Debug -o /app/build
-
-# Run the application
-WORKDIR /app/build
-ENTRYPOINT ["dotnet", "TaskFlow.Api.dll"]
+ENV ASPNETCORE_HTTP_PORTS=8080

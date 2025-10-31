@@ -82,7 +82,12 @@ try
     // Add the middleware
     app.UseMiddleware<ValidationMiddleware>();
 
-    app.UseHttpsRedirection();
+    // Only use HTTPS redirection when not running in a container
+    if (!app.Environment.IsEnvironment("Container") && string.IsNullOrEmpty(Environment.GetEnvironmentVariable("DOTNET_RUNNING_IN_CONTAINER")))
+    {
+        app.UseHttpsRedirection();
+    }
+    
     app.MapControllers();
 
     Log.Information("Starting web host");
