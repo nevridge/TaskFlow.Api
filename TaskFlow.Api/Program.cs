@@ -1,9 +1,12 @@
+using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using Serilog;
 using TaskFlow.Api.Data;
+using TaskFlow.Api.Models;
 using TaskFlow.Api.Repositories;
 using TaskFlow.Api.Services;
+using TaskFlow.Api.Validators;
 
 Log.Logger = new LoggerConfiguration()
     .WriteTo.Console()
@@ -37,6 +40,8 @@ try
 
     builder.Services.AddScoped<ITaskRepository, TaskRepository>();
     builder.Services.AddScoped<TaskService>();
+    builder.Services.AddScoped<IValidator<TaskItem>, TaskItemValidator>();
+
 
     var app = builder.Build();
 

@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using FluentValidation;
 using TaskFlow.Api.Data;
 using TaskFlow.Api.DTOs;
 using TaskFlow.Api.Models;
@@ -11,10 +12,12 @@ namespace TaskFlow.Api.Controllers;
 public class TaskItemsController : ControllerBase
 {
     private readonly TaskDbContext _db;
+    private readonly IValidator<TaskItem> _validator;
 
-    public TaskItemsController(TaskDbContext db)
+    public TaskItemsController(TaskDbContext db, IValidator<TaskItem> validator)
     {
         _db = db;
+        _validator = validator;
     }
 
     // GET: api/TaskItems
@@ -43,17 +46,18 @@ public class TaskItemsController : ControllerBase
     [HttpPost]
     public async Task<ActionResult<TaskItem>> Create([FromBody] CreateTaskItemDto createDto)
     {
-        if (string.IsNullOrWhiteSpace(createDto.Title))
-        {
-            return BadRequest("Title cannot be null, empty, or whitespace.");
-        }
-
         var item = new TaskItem
         {
             Title = createDto.Title,
             Description = createDto.Description,
             IsComplete = createDto.IsComplete
         };
+
+        var validationResult = await _validator.ValidateAsync(item);
+        if (!validationResult.IsValid)
+        {
+            return BadRequest(validationResult.Errors);
+        }
 
         _db.TaskItems.Add(item);
         await _db.SaveChangesAsync();
@@ -65,17 +69,19 @@ public class TaskItemsController : ControllerBase
     [HttpPut("{id}")]
     public async Task<IActionResult> Update(int id, [FromBody] UpdateTaskItemDto updateDto)
     {
-        if (string.IsNullOrWhiteSpace(updateDto.Title))
-        {
-            return BadRequest("Title cannot be null, empty, or whitespace.");
-        }
-
         var existing = await _db.TaskItems.FindAsync(id);
         if (existing is null) return NotFound();
 
+        // Apply incoming changes
         existing.Title = updateDto.Title;
         existing.Description = updateDto.Description;
         existing.IsComplete = updateDto.IsComplete;
+
+        var validationResult = await _validator.ValidateAsync(existing);
+        if (!validationResult.IsValid)
+        {
+            return BadRequest(validationResult.Errors);
+        }
 
         await _db.SaveChangesAsync();
 
