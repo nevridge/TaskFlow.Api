@@ -43,6 +43,11 @@ public class TaskItemsController : ControllerBase
     [HttpPost]
     public async Task<ActionResult<TaskItem>> Create([FromBody] CreateTaskItemDto createDto)
     {
+        if (string.IsNullOrWhiteSpace(createDto.Title))
+        {
+            return BadRequest("Title cannot be null, empty, or whitespace.");
+        }
+
         var item = new TaskItem
         {
             Title = createDto.Title,
