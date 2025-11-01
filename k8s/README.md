@@ -85,7 +85,6 @@ The deployment sets the following environment variables:
 ```yaml
 - ASPNETCORE_ENVIRONMENT=Production
 - ASPNETCORE_URLS=http://+:8080
-- ASPNETCORE_HTTP_PORTS=8080
 - Database__MigrateOnStartup=true
 - DOTNET_RUNNING_IN_CONTAINER=true
 ```
