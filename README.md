@@ -326,12 +326,38 @@ The workflow automatically verifies the deployment by checking the health endpoi
 
 ### Ephemeral deployment to Azure Container Instances (ACI)
 
-The ephemeral deployment workflow (`.github/workflows/ephemeral-deploy.yaml`) allows you to create temporary test environments using Azure Container Instances.
+The ephemeral deployment workflow (`.github/workflows/ephemeral-deploy.yaml`) creates a QA test environment using Azure Container Instances with a **fixed, predictable DNS name**.
 
 #### Use cases
+- QA testing with a stable endpoint
 - Testing pull requests in an isolated environment
-- Short-lived demo environments
-- Integration testing
+- Integration testing and automated test suites
+- Demo environments with consistent URLs
+
+#### Fixed QA DNS endpoint
+
+The QA deployment always uses the same DNS name for predictability:
+- **DNS Name Label**: `taskflow-qa`
+- **Full DNS Format**: `taskflow-qa.{region}.azurecontainer.io`
+- **Example (eastus region)**: `taskflow-qa.eastus.azurecontainer.io`
+- **API Endpoint**: `http://taskflow-qa.{region}.azurecontainer.io:8080`
+- **Health Check**: `http://taskflow-qa.{region}.azurecontainer.io:8080/health`
+
+This fixed DNS allows you to:
+- Configure Postman collections with a static QA URL
+- Set up automated tests without updating endpoints
+- Share a consistent QA link with team members
+- Avoid DNS changes between deployments
+
+#### How it works
+
+The workflow automatically manages DNS conflicts:
+1. **Checks for existing container**: Before deploying, checks if a container with the name `taskflow-qa` exists
+2. **Replaces previous deployment**: If found, deletes the old container to free up the DNS name
+3. **Creates new container**: Deploys the new version with the same fixed DNS name `taskflow-qa`
+4. **Verifies deployment**: Performs a smoke test on the `/health` endpoint
+
+This ensures the QA DNS name remains constant across all deployments while always serving the latest version.
 
 #### Triggering ephemeral deployment
 
@@ -349,19 +375,76 @@ This workflow must be triggered manually with parameters:
 
 #### Deploy workflow steps
 1. Builds Docker image and pushes to ACR
-2. Creates Azure Container Instance
-3. Exposes API on public FQDN with DNS label
-4. Performs smoke test on `/health` endpoint
+2. Deletes any existing ACI container with the name `taskflow-qa` (if present)
+3. Creates new Azure Container Instance with fixed DNS name `taskflow-qa`
+4. Exposes API on the predictable FQDN: `taskflow-qa.{region}.azurecontainer.io`
+5. Performs smoke test on `/health` endpoint
+6. Displays the fixed QA endpoint URL in the workflow output
 
-The deployment creates a unique ACI instance with DNS: `taskflow-aci-{run-id}.{region}.azurecontainer.io`
+#### Using the QA endpoint in Postman
+
+To configure Postman for the QA environment:
+
+1. **Create/Update an Environment** in Postman named "TaskFlow QA"
+2. **Set the base URL variable**:
+   - Variable name: `baseUrl`
+   - Value: `http://taskflow-qa.eastus.azurecontainer.io:8080` (adjust region if different)
+3. **Use the variable in requests**: `{{baseUrl}}/api/TaskItems`
+
+The QA endpoint URL never changes, so you set it once and use it for all future QA testing.
+
+#### Using the QA endpoint in automated tests
+
+Example test configuration:
+
+**JavaScript/Node.js:**
+```javascript
+// test-config.js
+const QA_BASE_URL = 'http://taskflow-qa.eastus.azurecontainer.io:8080';
+
+// Use in tests
+describe('TaskFlow API QA Tests', () => {
+  it('should return healthy status', async () => {
+    const response = await fetch(`${QA_BASE_URL}/health`);
+    expect(response.status).toBe(200);
+  });
+});
+```
+
+**Python:**
+```python
+# test_config.py
+QA_BASE_URL = 'http://taskflow-qa.eastus.azurecontainer.io:8080'
+
+# Use in tests
+def test_health_endpoint():
+    response = requests.get(f'{QA_BASE_URL}/health')
+    assert response.status_code == 200
+```
+
+**Bash/cURL:**
+```bash
+# qa-test.sh
+QA_URL="http://taskflow-qa.eastus.azurecontainer.io:8080"
+curl -f "$QA_URL/health" || exit 1
+```
 
 #### Teardown
 To delete the ephemeral environment:
 1. Run the workflow with `action: teardown`
 2. Provide the `resource_group` name from the deployment
-3. The workflow will delete the entire resource group
+3. The workflow will delete the entire resource group including the QA container
 
 **Note**: Ephemeral deployments use the same ACR as production by default. You can specify a different ACR name if needed.
+
+#### Region-specific DNS
+
+If you deploy to different Azure regions, the DNS name will vary by region:
+- **East US**: `taskflow-qa.eastus.azurecontainer.io`
+- **West US**: `taskflow-qa.westus.azurecontainer.io`
+- **West Europe**: `taskflow-qa.westeurope.azurecontainer.io`
+
+Update your Postman environments and test configurations to match the region you deploy to.
 
 ### Azure deployment best practices
 
