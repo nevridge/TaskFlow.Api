@@ -52,7 +52,7 @@ try
         options.UseSqlite(connectionString));
 
     builder.Services.AddScoped<ITaskRepository, TaskRepository>();
-    builder.Services.AddScoped<TaskService>();
+    builder.Services.AddScoped<ITaskService, TaskService>();
     // Register validators
     builder.Services.AddValidatorsFromAssemblyContaining<TaskItemValidator>();
 
