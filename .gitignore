@@ -207,4 +207,7 @@ TaskFlow.Api/tasks.db-wal
 *.db-shm
 *.db-wal
 
+# Ignore data directory created by docker-compose for volume mounts
+data/
+
 # End of file

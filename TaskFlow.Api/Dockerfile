@@ -15,8 +15,8 @@ RUN dotnet publish "TaskFlow.Api.csproj" -c Release -o /app/publish /p:UseAppHos
 FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS final
 WORKDIR /app
 
-# Create directories for logs and data
-RUN mkdir -p /home/logs && chmod 777 /home/logs
+# Create directories for logs and data with proper permissions
+RUN mkdir -p /app/logs /app/data && chmod 777 /app/logs /app/data
 
 COPY --from=build /app/publish .
 
