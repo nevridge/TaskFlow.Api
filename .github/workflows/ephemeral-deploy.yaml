@@ -91,13 +91,15 @@ jobs:
             fi
           fi
 
-          ACI_NAME="taskflow-aci-${GITHUB_RUN_ID}"
+          ACI_NAME="taskflow-qa"
+          DNS_NAME_LABEL="taskflow-qa"
 
           echo "RESOURCE_GROUP=$RESOURCE_GROUP" >> $GITHUB_ENV
           echo "LOCATION=$LOCATION" >> $GITHUB_ENV
           echo "ACR_NAME=$ACR_NAME" >> $GITHUB_ENV
           echo "IMAGE_TAG=$IMAGE_TAG" >> $GITHUB_ENV
           echo "ACI_NAME=$ACI_NAME" >> $GITHUB_ENV
+          echo "DNS_NAME_LABEL=$DNS_NAME_LABEL" >> $GITHUB_ENV
 
       - name: Ensure resource group exists (if action=deploy)
         if: ${{ github.event.inputs.action == 'deploy' }}
@@ -124,6 +126,30 @@ jobs:
         run: |
           az acr build --registry $ACR_NAME --image taskflowapi:${IMAGE_TAG} --file TaskFlow.Api/Dockerfile .
 
+      - name: Delete existing ACI if it exists (if action=deploy)
+        if: ${{ github.event.inputs.action == 'deploy' }}
+        run: |
+          echo "Checking for existing ACI container with name: $ACI_NAME"
+          if az container show -g $RESOURCE_GROUP -n $ACI_NAME >/dev/null 2>&1; then
+            echo "Found existing ACI container '$ACI_NAME'. Deleting to avoid DNS conflicts..."
+            az container delete -g $RESOURCE_GROUP -n $ACI_NAME --yes
+            echo "Waiting for container deletion to complete (polling for up to 60 seconds)..."
+            TIMEOUT=60
+            INTERVAL=2
+            ELAPSED=0
+            while az container show -g $RESOURCE_GROUP -n $ACI_NAME >/dev/null 2>&1; do
+              if [ $ELAPSED -ge $TIMEOUT ]; then
+                echo "Timeout waiting for container deletion. Exiting with error."
+                exit 1
+              fi
+              sleep $INTERVAL
+              ELAPSED=$((ELAPSED + INTERVAL))
+            done
+            echo "Container deletion confirmed."
+          else
+            echo "No existing ACI container found with name '$ACI_NAME'. Proceeding with deployment."
+          fi
+
       - name: Create ACI from ACR image (if action=deploy)
         if: ${{ github.event.inputs.action == 'deploy' }}
         run: |
@@ -137,19 +163,31 @@ jobs:
             --cpu 1 --memory 1.5 \
             --os-type Linux \
             --ports 8080 \
-            --dns-name-label taskflow-aci-${GITHUB_RUN_ID}
+            --dns-name-label $DNS_NAME_LABEL
 
       - name: Wait for ACI to be ready and print FQDN (if action=deploy)
         if: ${{ github.event.inputs.action == 'deploy' }}
         run: |
+          echo "========================================"
+          echo "Waiting for QA deployment to be ready..."
+          echo "========================================"
           for i in {1..30}; do
             fqdn=$(az container show -g $RESOURCE_GROUP -n $ACI_NAME --query ipAddress.fqdn -o tsv)
             if [ -n "$fqdn" ] && [ "$fqdn" != "null" ]; then
               echo "FQDN=$fqdn" >> $GITHUB_ENV
-              echo "Container FQDN: $fqdn"
+              echo ""
+              echo "========================================"
+              echo "QA Deployment Ready!"
+              echo "========================================"
+              echo "Fixed QA DNS: $fqdn"
+              echo "API Endpoint: http://$fqdn:8080"
+              echo "Health Check: http://$fqdn:8080/health"
+              echo "========================================"
+              echo ""
+              echo "This QA endpoint will remain at this fixed DNS name for all future deployments."
               break
             fi
-            echo "Waiting for ACI..."
+            echo "Waiting for ACI... (attempt $i/30)"
             sleep 5
           done
           if [ -z "$fqdn" ] || [ "$fqdn" = "null" ]; then
