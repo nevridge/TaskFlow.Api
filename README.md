@@ -393,6 +393,7 @@ To configure Postman for the QA environment:
 
 The QA endpoint URL never changes, so you set it once and use it for all future QA testing.
 
+> For troubleshooting, advanced testing, and more details on QA deployments, see the [QA Deployment Guide](docs/QA_DEPLOYMENT.md).
 #### Using the QA endpoint in automated tests
 
 Example test configuration:
