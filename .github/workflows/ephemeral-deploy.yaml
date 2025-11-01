@@ -133,8 +133,19 @@ jobs:
           if az container show -g $RESOURCE_GROUP -n $ACI_NAME >/dev/null 2>&1; then
             echo "Found existing ACI container '$ACI_NAME'. Deleting to avoid DNS conflicts..."
             az container delete -g $RESOURCE_GROUP -n $ACI_NAME --yes
-            echo "Waiting for deletion to complete..."
-            sleep 10
+            echo "Waiting for container deletion to complete (polling for up to 60 seconds)..."
+            TIMEOUT=60
+            INTERVAL=2
+            ELAPSED=0
+            while az container show -g $RESOURCE_GROUP -n $ACI_NAME >/dev/null 2>&1; do
+              if [ $ELAPSED -ge $TIMEOUT ]; then
+                echo "Timeout waiting for container deletion. Exiting with error."
+                exit 1
+              fi
+              sleep $INTERVAL
+              ELAPSED=$((ELAPSED + INTERVAL))
+            done
+            echo "Container deletion confirmed."
           else
             echo "No existing ACI container found with name '$ACI_NAME'. Proceeding with deployment."
           fi
