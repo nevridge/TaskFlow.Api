@@ -83,7 +83,7 @@ The `docker-compose.yml` defines the following service:
   - **Ports**: Maps host port `8080` to container port `8080`
   - **Volumes**: 
     - `./data:/app/data` - Persists the SQLite database
-    - `./logs:/app/logs` - Mount point for logs (Note: logs are written to `/home/logs` by default in the application)
+    - `./logs:/app/logs` - Persists application logs
   - **Environment Variables**:
     - `ASPNETCORE_ENVIRONMENT=Development` - Runs in development mode
     - `ASPNETCORE_URLS=http://+:8080` - Configures Kestrel to listen on port 8080
@@ -92,12 +92,11 @@ The `docker-compose.yml` defines the following service:
     - `DOTNET_RUNNING_IN_CONTAINER=true` - Indicates running in container
 
 **Important Notes:**
-- The `./data` directory will be created automatically on first run
+- The `./data` and `./logs` directories will be created automatically on first run
 - Database file is stored at `/app/data/tasks.dev.db` (configured in `appsettings.Development.json`) and persisted via the `./data` volume mount
-- **Log path mismatch**: Application logs are written to `/home/logs/` by default (configured in `Program.cs`). The docker-compose mounts `./logs:/app/logs` but logs won't appear there. To fix this, either:
-  - Change the volume mount to `./logs:/home/logs` in `docker-compose.yml`, OR
-  - Override the log path by modifying the Serilog configuration in `Program.cs` to use `/app/logs/log.txt`
+- Application logs are written to `/app/logs/log.txt` and persisted via the `./logs` volume mount
 - Ensure these directories are excluded from version control (they're in `.gitignore`)
+- For detailed volume configuration, see [docs/volumes.md](docs/volumes.md)
 
 #### Option 3: Docker CLI (Alternative)
 Using Docker directly without compose:
@@ -120,17 +119,21 @@ Note: The production `Dockerfile` uses a multi-stage build with the repository r
 
 #### Running the container
 ```bash
-# For persistent database storage, mount a host directory to /home
-# The database will be stored at /home/tasks.db (inside the container)
-docker run -d -p 8080:8080 -v $(pwd)/data:/home --name taskflow-api taskflow-api:latest
-# Without the -v option, all data will be lost when the container is removed.
+# For persistent database and log storage, mount host directories
+docker run -d -p 8080:8080 \
+  -v $(pwd)/data:/app/data \
+  -v $(pwd)/logs:/app/logs \
+  --name taskflow-api taskflow-api:latest
+# Without the -v options, all data and logs will be lost when the container is removed.
 ```
 
-**Important**: In production, the database defaults to `/home/tasks.db` (configured in `appsettings.json`). When you mount `$(pwd)/data:/home`, the database file will be created as `./data/tasks.db` on your host. To use a different path, override the connection string:
+**Important**: The application uses `/app/data/tasks.db` for the database and `/app/logs/log.txt` for logs by default. To use custom paths, override via environment variables:
 ```bash
 docker run -d -p 8080:8080 \
-  -e ConnectionStrings__DefaultConnection="Data Source=/home/mydb/tasks.db" \
-  -v $(pwd)/data:/home/mydb \
+  -e ConnectionStrings__DefaultConnection="Data Source=/app/data/production.db" \
+  -e LOG_PATH=/app/logs/taskflow.log \
+  -v $(pwd)/data:/app/data \
+  -v $(pwd)/logs:/app/logs \
   --name taskflow-api taskflow-api:latest
 ```
 
@@ -139,27 +142,30 @@ docker run -d -p 8080:8080 \
   - Uses .NET 9 SDK and ASP.NET runtime
   - Build context is the `TaskFlow.Api` directory
   - Sets `ASPNETCORE_ENVIRONMENT=Development`
-  - Creates `/home/logs` directory for log persistence
+  - Creates `/app/logs` and `/app/data` directories for persistence
   
 - **Production Dockerfile** (`Dockerfile`):
   - Two-stage build: SDK for build, ASP.NET runtime for final image
   - Build context is the repository root
   - Sets `ASPNETCORE_ENVIRONMENT=Production`
-  - Creates `/home/logs` directory for log persistence
+  - Creates `/app/logs` and `/app/data` directories for persistence
   - Exposes port 8080
 
 - **docker-compose.yml**:
   - Builds using `Dockerfile.dev` from the `TaskFlow.Api` directory
-  - Mounts `./data` for database persistence
-  - Mounts `./logs` for log persistence
+  - Mounts `./data:/app/data` for database persistence
+  - Mounts `./logs:/app/logs` for log persistence
   - Configures development environment with automatic migrations
 
 - **Key environment variables**:
   - `ASPNETCORE_ENVIRONMENT`: Controls environment (Development/Production)
   - `ASPNETCORE_URLS` / `ASPNETCORE_HTTP_PORTS`: Configure Kestrel ports
   - `Database__MigrateOnStartup`: Enable/disable automatic migrations (true/false)
-  - `ConnectionStrings__DefaultConnection`: Override SQLite database path
+  - `ConnectionStrings__DefaultConnection`: Override SQLite database path (default: `/app/data/tasks.db`)
+  - `LOG_PATH`: Override log file path (default: `/app/logs/log.txt`)
   - `DOTNET_RUNNING_IN_CONTAINER`: Signals container runtime
+
+For detailed volume configuration and troubleshooting, see [docs/volumes.md](docs/volumes.md).
 
 ### Docker notes
 - The `.dockerignore` file excludes build artifacts, dependencies, and unnecessary files from the build context
@@ -597,9 +603,11 @@ builder.Services.AddHealthChecks()
 
 ## Logging
 - Serilog is configured with a minimal bootstrap logger and used as the host logger.
-- By default logs are written to console and to daily rolling files under `logs/`.
+- By default logs are written to console and to daily rolling files at `/app/logs/log.txt` (in containers) or `logs/log.txt` (local development).
+- The log path can be customized via the `LOG_PATH` environment variable.
 - Log configuration can be extended in `appsettings.json` (Serilog section) and via environment variables.
 - Ensure `logs/` is ignored in Git (see .gitignore recommendations below).
+- For Docker volume configuration, see [docs/volumes.md](docs/volumes.md).
 
 ## Security & production notes
 - Do not commit local runtime artifacts such as the SQLite DB file or log files.

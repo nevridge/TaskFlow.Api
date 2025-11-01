@@ -9,10 +9,13 @@ using TaskFlow.Api.Services;
 using TaskFlow.Api.Validators;
 
 // Configure Serilog with safe paths for containers
+// LOG_PATH can be overridden via environment variable for flexibility
+const string DefaultLogPath = "/app/logs/log.txt";
+var logPath = Environment.GetEnvironmentVariable("LOG_PATH") ?? DefaultLogPath;
 Log.Logger = new LoggerConfiguration()
     .WriteTo.Console()
     .WriteTo.File(
-        path: "/home/logs/log.txt",  // Use /home which is persistent in Azure App Service
+        path: logPath,
         rollingInterval: RollingInterval.Day,
         shared: true,
         flushToDiskInterval: TimeSpan.FromSeconds(1))
@@ -36,9 +39,9 @@ try
     });
 
     // Read connection string from configuration
-    // Default to /home/tasks.db which is persistent in Azure
+    // Default to /app/data/tasks.db for consistent container paths
     var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
-                           ?? "Data Source=/home/tasks.db";
+                           ?? "Data Source=/app/data/tasks.db";
 
     Log.Information("Using connection string: {ConnectionString}", connectionString);
 
