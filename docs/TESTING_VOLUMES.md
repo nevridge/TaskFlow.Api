@@ -175,7 +175,7 @@ echo "=== Verification Complete ==="
 
 1. **Build the production image from repository root:**
    ```bash
-   cd /path/to/TaskFlow.Api
+   cd /path/to/repository-root
    docker build -f TaskFlow.Api/Dockerfile -t taskflow-api:test .
    ```
 

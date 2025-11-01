@@ -220,12 +220,13 @@ The default `/app/data` and `/app/logs` paths will work, but data will only pers
    docker cp taskflow-api:/tmp/backup.db ./backups/tasks-$(date +%Y%m%d).db
    
    # Method 3: Create backups directly to a mounted backup volume
+   # Recommended: Use the actual TaskFlow API image to ensure environment matches production
    docker run -v $(pwd)/data:/app/data -v $(pwd)/backups:/backups \
-     --rm mcr.microsoft.com/dotnet/aspnet:9.0 \
+     --rm taskflow-api:latest \
      sh -c "cp /app/data/tasks.db /backups/tasks-$(date +%Y%m%d).db"
    ```
 
-3. **Log rotation**: Serilog is configured with daily rolling logs. Old logs are automatically archived with date suffixes (e.g., `log20231201.txt`).
+3. **Log rotation**: Serilog is configured with daily rolling logs. The current log file is named `log.txt`, and old logs are automatically archived with date suffixes in the format `log<YYYYMMDD>.txt` (e.g., the file for December 1, 2023 would be `log20231201.txt`).
 
 4. **Monitor disk space**: Ensure adequate disk space for logs and database growth.
 
