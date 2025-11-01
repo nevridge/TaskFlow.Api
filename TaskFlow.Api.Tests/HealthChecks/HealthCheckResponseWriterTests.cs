@@ -33,7 +33,7 @@ public class HealthCheckResponseWriterTests
 
         // Assert
         responseBody.Position = 0;
-        var reader = new StreamReader(responseBody);
+        using var reader = new StreamReader(responseBody);
         var response = await reader.ReadToEndAsync();
         
         response.Should().NotBeNullOrEmpty();
@@ -67,7 +67,7 @@ public class HealthCheckResponseWriterTests
 
         // Assert
         responseBody.Position = 0;
-        var reader = new StreamReader(responseBody);
+        using var reader = new StreamReader(responseBody);
         var response = await reader.ReadToEndAsync();
         
         response.Should().NotBeNullOrEmpty();
@@ -107,7 +107,7 @@ public class HealthCheckResponseWriterTests
 
         // Assert
         responseBody.Position = 0;
-        var reader = new StreamReader(responseBody);
+        using var reader = new StreamReader(responseBody);
         var response = await reader.ReadToEndAsync();
         
         response.Should().Contain("database");
@@ -139,7 +139,7 @@ public class HealthCheckResponseWriterTests
 
         // Assert
         responseBody.Position = 0;
-        var reader = new StreamReader(responseBody);
+        using var reader = new StreamReader(responseBody);
         var response = await reader.ReadToEndAsync();
         
         response.Should().Contain("Degraded");
@@ -176,7 +176,7 @@ public class HealthCheckResponseWriterTests
 
         // Assert
         responseBody.Position = 0;
-        var reader = new StreamReader(responseBody);
+        using var reader = new StreamReader(responseBody);
         var response = await reader.ReadToEndAsync();
         
         response.Should().Contain("ConnectionString");
