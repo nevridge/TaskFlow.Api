@@ -75,6 +75,8 @@ packages/
 *.trx
 *.coverage
 coverage/
+coveragereport/
+*.cobertura.xml
 
 # NUnit
 *.VisualState.xml
