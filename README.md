@@ -643,10 +643,24 @@ app.MapHealthChecks("/health/live", new HealthCheckOptions
 
 ### Configuring health checks for container orchestrators
 
-#### Docker Compose health check
-Add to `docker-compose.yml`:
+#### Why initial delays are important
 
-**Note**: The health check runs inside the container. The example below uses `curl`, which should be installed in your container image. Our Dockerfiles use ASP.NET base images that include `curl`. If using a minimal base image, you may need to install `curl` or use an alternative health check method.
+When TaskFlow.Api starts, it automatically applies database migrations (when `Database__MigrateOnStartup=true` or in Development mode). Depending on the database state and migration complexity, this process can take several seconds to complete. If health checks are configured too aggressively (without sufficient initial delay), orchestrators may mark the service as unhealthy and restart the container before migrations finish, causing:
+- Failed startups
+- Restart loops
+- Migration interruptions
+- Service unavailability
+
+**Recommended initial delay values:**
+- **Docker Compose**: `start_period: 40s` - Allows migrations to complete before health checks begin affecting container status
+- **Kubernetes**: `initialDelaySeconds: 45-60s` for readiness probe, `60s` for liveness probe
+- **Azure App Service**: Built-in startup grace period, but verify with health check endpoint monitoring
+
+These values are conservative to accommodate typical SQLite migrations. Adjust based on your specific migration complexity and database performance.
+
+#### Docker Compose health check
+
+The `docker-compose.yml` includes a pre-configured healthcheck with appropriate startup delays:
 
 ```yaml
 services:
@@ -654,14 +668,20 @@ services:
     # ... other configuration
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 40s
+      interval: 30s        # Check every 30 seconds after start_period
+      timeout: 10s         # Allow 10 seconds for health check to respond
+      retries: 3           # Mark unhealthy after 3 consecutive failures
+      start_period: 40s    # Grace period for startup and migrations
 ```
 
+**Note**: The health check runs inside the container using `curl`, which is included in the ASP.NET base images. If using a minimal base image, you may need to install `curl` or use an alternative health check method.
+
+The `start_period` parameter is critical: it gives the container 40 seconds to complete startup and migrations before health check failures count toward the `retries` limit. During this period, failed health checks won't mark the container as unhealthy.
+
 #### Kubernetes probes
-Add to your Kubernetes deployment manifest:
+
+An example Kubernetes deployment manifest with appropriate probe configurations is provided in `k8s/deployment.yaml`:
+
 ```yaml
 apiVersion: apps/v1
 kind: Deployment
@@ -677,33 +697,45 @@ spec:
           httpGet:
             path: /health/live
             port: 8080
-          initialDelaySeconds: 30
-          periodSeconds: 10
-          timeoutSeconds: 5
-          failureThreshold: 3
+          initialDelaySeconds: 60    # Wait 60s before first liveness check
+          periodSeconds: 10           # Check every 10 seconds
+          timeoutSeconds: 5           # Timeout after 5 seconds
+          failureThreshold: 3         # Restart after 3 failures
         readinessProbe:
           httpGet:
             path: /health/ready
             port: 8080
-          initialDelaySeconds: 20
-          periodSeconds: 5
-          timeoutSeconds: 3
-          failureThreshold: 3
+          initialDelaySeconds: 45    # Wait 45s before first readiness check
+          periodSeconds: 5            # Check every 5 seconds
+          timeoutSeconds: 3           # Timeout after 3 seconds
+          failureThreshold: 3         # Remove from service after 3 failures
 ```
+
+**Key settings explained:**
+- **Liveness probe** (`initialDelaySeconds: 60s`): Waits a full minute before checking if the application is alive. This prevents Kubernetes from restarting the pod during migration. Uses `/health/live` which doesn't check database connectivity.
+- **Readiness probe** (`initialDelaySeconds: 45s`): Waits 45 seconds before checking if the application is ready to serve traffic. Uses `/health/ready` which includes database connectivity validation.
+- The liveness delay is longer than readiness because we want to ensure the app is fully initialized before considering restart decisions.
+
+For production deployments, test with your actual migration scenarios and adjust timing as needed.
 
 #### Azure App Service health check
-Configure in Azure Portal or via ARM template:
-```json
-{
-  "properties": {
-    "siteConfig": {
-      "healthCheckPath": "/health"
-    }
-  }
-}
+
+Azure App Service health checks are configured in the deployment workflow (`.github/workflows/deploy.yaml`):
+
+```bash
+az webapp config set \
+  --resource-group $RESOURCE_GROUP \
+  --name $WEBAPP_NAME \
+  --generic-configurations '{"healthCheckPath": "/health"}'
 ```
 
-Or via Azure CLI:
+**Azure App Service specifics:**
+- Azure automatically provides a startup grace period before enforcing health checks
+- Health checks ping the configured path (`/health`) at regular intervals
+- Failed health checks can trigger automatic instance recycling
+- The deployment workflow includes a verification step that waits 30 seconds after restart, then retries health checks for up to 50 seconds (10 attempts × 5s interval)
+
+To configure manually via Azure CLI:
 
 **Bash:**
 ```bash
@@ -721,14 +753,20 @@ az webapp config set `
   --generic-configurations '{\"healthCheckPath\": \"/health\"}'
 ```
 
+Or configure via Azure Portal:
+1. Navigate to your App Service
+2. Go to **Health check** under Monitoring
+3. Enable health check and set path to `/health`
+
 ### Health check best practices
 
-1. **Separate concerns**: Use `/health/live` for process health, `/health/ready` for dependencies
-2. **Fail fast**: Health checks should complete quickly (< 5 seconds)
-3. **Database checks**: Only include database in readiness, not liveness
-4. **Startup time**: Configure appropriate `initialDelaySeconds` to allow for migrations
-5. **Monitoring**: Set up alerts on repeated health check failures
-6. **Logging**: Health check failures are logged by Serilog for troubleshooting
+1. **Allow for migrations**: Always configure `initialDelaySeconds` (Kubernetes) or `start_period` (Docker) sufficient for database migrations to complete
+2. **Separate concerns**: Use `/health/live` for process health (lightweight), `/health/ready` for dependencies (includes database)
+3. **Fail fast for checks**: Individual health checks should complete quickly (< 5 seconds), but initial delays should be generous
+4. **Database checks**: Only include database in readiness, not liveness, to avoid restart loops from transient DB issues
+5. **Test with clean databases**: Simulate worst-case startup scenarios with empty databases requiring full migration runs
+6. **Monitoring**: Set up alerts on repeated health check failures to detect persistent issues
+7. **Logging**: Health check failures are logged by Serilog for troubleshooting; check logs if experiencing startup issues
 
 ### Extending health checks
 

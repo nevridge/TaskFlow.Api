@@ -134,6 +134,13 @@ jobs:
             --container-image-name ${{ env.ACR_NAME }}.azurecr.io/${{ env.ACR_IMAGE_NAME }}:latest \
             --container-registry-url https://${{ env.ACR_NAME }}.azurecr.io
 
+      - name: Configure health check path
+        run: |
+          az webapp config set \
+            --resource-group ${{ env.RESOURCE_GROUP }} \
+            --name ${{ env.WEBAPP_NAME }} \
+            --generic-configurations '{"healthCheckPath": "/health"}'
+
       - name: Restart webapp
         run: |
           az webapp restart \
