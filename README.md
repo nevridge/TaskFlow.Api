@@ -562,7 +562,7 @@ app.MapHealthChecks("/health/live", new HealthCheckOptions
 #### Docker Compose health check
 Add to `docker-compose.yml`:
 
-**Note**: The example below uses `curl` which is available in most Linux containers. For Windows containers, you may need to use PowerShell or install curl.
+**Note**: The health check runs inside the container. The example below uses `curl`, which should be installed in your container image. Our Dockerfiles use ASP.NET base images that include `curl`. If using a minimal base image, you may need to install `curl` or use an alternative health check method.
 
 ```yaml
 services:
