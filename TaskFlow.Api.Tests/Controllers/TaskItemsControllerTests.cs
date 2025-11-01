@@ -171,7 +171,7 @@ public class TaskItemsControllerTests
             t.Id == 1 && 
             t.Title == "Updated Task" && 
             t.Description == "Updated Description" && 
-            t.IsComplete == true)), Times.Once);
+            t.IsComplete)), Times.Once);
     }
 
     [Fact]
