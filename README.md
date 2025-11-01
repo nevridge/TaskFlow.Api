@@ -382,7 +382,7 @@ If deployment fails:
 5. **Container logs**: View logs via Azure CLI:
    
    **Bash/PowerShell:**
-   ```bash
+   ```shell
    az webapp log tail --name {WEBAPP_NAME} --resource-group {RESOURCE_GROUP}
    ```
 
