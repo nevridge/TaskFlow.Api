@@ -162,8 +162,8 @@ kubectl set env deployment/taskflow-api ConnectionStrings__DefaultConnection="in
 1. **Verify health check configuration**:
    ```bash
    az webapp config show \
-     --resource-group TaskFlowRG \
-     --name taskflowapi2074394909 \
+     --resource-group <your-resource-group> \
+     --name <your-webapp-name> \
      --query 'healthCheckPath'
    ```
    **Expected output**: `"/health"`
@@ -180,7 +180,7 @@ kubectl set env deployment/taskflow-api ConnectionStrings__DefaultConnection="in
 
 4. **Manual health check**:
    ```bash
-   curl https://taskflowapi2074394909.azurewebsites.net/health
+   curl https://<your-webapp-name>.azurewebsites.net/health
    ```
 
 ### Test Scenarios
@@ -197,7 +197,7 @@ git push origin v1.0.1
 #### Scenario 2: Monitor continuous health checks
 ```bash
 # Continuously monitor health endpoint
-watch -n 5 'curl -s -o /dev/null -w "%{http_code}\n" https://taskflowapi2074394909.azurewebsites.net/health'
+watch -n 5 'curl -s -o /dev/null -w "%{http_code}\n" https://<your-webapp-name>.azurewebsites.net/health'
 ```
 **Expected**: Should return 200 consistently after initial startup period
 
