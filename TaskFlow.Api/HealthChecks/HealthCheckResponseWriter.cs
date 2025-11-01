@@ -8,7 +8,7 @@ namespace TaskFlow.Api.HealthChecks;
 /// </summary>
 public static class HealthCheckResponseWriter
 {
-    public static Task WriteHealthCheckResponse(HttpContext context, HealthReport report)
+    public static async Task WriteHealthCheckResponse(HttpContext context, HealthReport report)
     {
         context.Response.ContentType = "application/json; charset=utf-8";
 
@@ -18,22 +18,31 @@ public static class HealthCheckResponseWriter
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase
         };
 
-        var result = new
+        try
         {
-            status = report.Status.ToString(),
-            totalDuration = report.TotalDuration.TotalMilliseconds,
-            results = report.Entries.Select(entry => new
+            var result = new
             {
-                name = entry.Key,
-                status = entry.Value.Status.ToString(),
-                description = entry.Value.Description ?? string.Empty,
-                duration = entry.Value.Duration.TotalMilliseconds,
-                exception = entry.Value.Exception?.Message,
-                data = entry.Value.Data.Count > 0 ? entry.Value.Data : null
-            })
-        };
+                status = report.Status.ToString(),
+                totalDuration = report.TotalDuration.TotalMilliseconds,
+                results = report.Entries.Select(entry => new
+                {
+                    name = entry.Key,
+                    status = entry.Value.Status.ToString(),
+                    description = entry.Value.Description ?? string.Empty,
+                    duration = entry.Value.Duration.TotalMilliseconds,
+                    exception = entry.Value.Exception?.Message,
+                    data = entry.Value.Data.Count > 0 ? entry.Value.Data : null
+                })
+            };
 
-        return context.Response.WriteAsync(
-            JsonSerializer.Serialize(result, options));
+            await context.Response.WriteAsync(
+                JsonSerializer.Serialize(result, options));
+        }
+        catch (Exception ex)
+        {
+            // Fallback to simple error response if serialization fails
+            var errorResponse = $"{{\"status\":\"Unhealthy\",\"error\":\"Failed to serialize health check response: {ex.Message}\"}}";
+            await context.Response.WriteAsync(errorResponse);
+        }
     }
 }
