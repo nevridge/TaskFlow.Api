@@ -60,7 +60,7 @@ For command-line or non-Visual Studio users:
 1. **Start the containers**:
    
    **Bash/PowerShell:**
-   ```bash
+   ```shell
    docker-compose up
    ```
    
@@ -72,14 +72,14 @@ For command-line or non-Visual Studio users:
 2. **Stop the containers**:
    
    **Bash/PowerShell:**
-   ```bash
+   ```shell
    docker-compose down
    ```
 
 3. **View logs**:
    
    **Bash/PowerShell:**
-   ```bash
+   ```shell
    docker-compose logs -f
    ```
 
@@ -109,7 +109,7 @@ The `docker-compose.yml` defines the following service:
 Using Docker directly without compose:
 
 **Bash/PowerShell:**
-```bash
+```shell
 cd TaskFlow.Api
 docker build -f Dockerfile.dev -t taskflow-api:dev .
 docker run -p 8080:8080 -e ASPNETCORE_ENVIRONMENT=Development -e Database__MigrateOnStartup=true taskflow-api:dev
@@ -121,7 +121,7 @@ docker run -p 8080:8080 -e ASPNETCORE_ENVIRONMENT=Development -e Database__Migra
 From the repository root (where `docker-compose.yml` is located):
 
 **Bash/PowerShell:**
-```bash
+```shell
 docker build -f TaskFlow.Api/Dockerfile -t taskflow-api:latest .
 ```
 
