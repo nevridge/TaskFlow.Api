@@ -38,10 +38,16 @@ public static class HealthCheckResponseWriter
             await context.Response.WriteAsync(
                 JsonSerializer.Serialize(result, options));
         }
-        catch (Exception ex)
+        catch (JsonException ex)
         {
             // Fallback to simple error response if serialization fails
-            var errorResponse = "{\"status\":\"Unhealthy\",\"error\":\"Failed to serialize health check response.\"}";
+            var errorResponse = $"{{\"status\":\"Unhealthy\",\"error\":\"Failed to serialize health check response: {ex.Message}\"}}";
+            await context.Response.WriteAsync(errorResponse);
+        }
+        catch (InvalidOperationException ex)
+        {
+            // Fallback to simple error response if serialization fails
+            var errorResponse = $"{{\"status\":\"Unhealthy\",\"error\":\"Failed to serialize health check response: {ex.Message}\"}}";
             await context.Response.WriteAsync(errorResponse);
         }
     }
