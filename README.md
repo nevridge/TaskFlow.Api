@@ -83,7 +83,7 @@ The `docker-compose.yml` defines the following service:
   - **Ports**: Maps host port `8080` to container port `8080`
   - **Volumes**: 
     - `./data:/app/data` - Persists the SQLite database
-    - `./logs:/app/logs` - Persists application logs
+    - `./logs:/app/logs` - Mount point for logs (Note: logs are written to `/home/logs` by default in the application)
   - **Environment Variables**:
     - `ASPNETCORE_ENVIRONMENT=Development` - Runs in development mode
     - `ASPNETCORE_URLS=http://+:8080` - Configures Kestrel to listen on port 8080
@@ -92,9 +92,9 @@ The `docker-compose.yml` defines the following service:
     - `DOTNET_RUNNING_IN_CONTAINER=true` - Indicates running in container
 
 **Important Notes:**
-- The `./data` and `./logs` directories will be created automatically on first run
-- Database file is stored at `./data/tasks.dev.db` (configured in `appsettings.Development.json`)
-- Logs are written to `./logs/` directory
+- The `./data` directory will be created automatically on first run
+- Database file is stored at `/app/data/tasks.dev.db` (configured in `appsettings.Development.json`) and persisted via the `./data` volume mount
+- Application logs are written to `/home/logs/` by default (configured in `Program.cs`). The docker-compose mounts `./logs:/app/logs` but logs won't appear there unless you override the log path via Serilog configuration
 - Ensure these directories are excluded from version control (they're in `.gitignore`)
 
 #### Option 3: Docker CLI (Alternative)
@@ -118,16 +118,17 @@ Note: The production `Dockerfile` uses a multi-stage build with the repository r
 
 #### Running the container
 ```bash
-# For persistent database storage, mount a host directory to /home (where tasks.db is stored):
+# For persistent database storage, mount a host directory to /home
+# The database will be stored at /home/tasks.db (inside the container)
 docker run -d -p 8080:8080 -v $(pwd)/data:/home --name taskflow-api taskflow-api:latest
 # Without the -v option, all data will be lost when the container is removed.
 ```
 
-**Important**: In production, the database defaults to `/home/tasks.db`. To use a custom path, override the connection string:
+**Important**: In production, the database defaults to `/home/tasks.db` (configured in `appsettings.json`). When you mount `$(pwd)/data:/home`, the database file will be created as `./data/tasks.db` on your host. To use a different path, override the connection string:
 ```bash
 docker run -d -p 8080:8080 \
-  -e ConnectionStrings__DefaultConnection="Data Source=/home/tasks.db" \
-  -v $(pwd)/data:/home \
+  -e ConnectionStrings__DefaultConnection="Data Source=/home/mydb/tasks.db" \
+  -v $(pwd)/data:/home/mydb \
   --name taskflow-api taskflow-api:latest
 ```
 
