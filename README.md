@@ -289,7 +289,7 @@ The workflow is configured with the following Azure resources (in `.github/workf
 **Option 1: Tag-based deployment (recommended)**
 
 **Bash/PowerShell:**
-```bash
+```shell
 git tag -a v1.0.0 -m "Release version 1.0.0"
 git push origin v1.0.0
 ```
