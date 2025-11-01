@@ -58,21 +58,28 @@ If you have Visual Studio 2022 with the "Container Development Tools" workload i
 For command-line or non-Visual Studio users:
 
 1. **Start the containers**:
-   ```bash
+   
+   **Bash/PowerShell:**
+   ```shell
    docker-compose up
    ```
+   
    The API will be available at `http://localhost:8080`. The development configuration automatically:
    - Runs in Development mode
    - Auto-applies database migrations
    - Persists the SQLite database in a Docker volume
 
 2. **Stop the containers**:
-   ```bash
+   
+   **Bash/PowerShell:**
+   ```shell
    docker-compose down
    ```
 
 3. **View logs**:
-   ```bash
+   
+   **Bash/PowerShell:**
+   ```shell
    docker-compose logs -f
    ```
 
@@ -101,7 +108,8 @@ The `docker-compose.yml` defines the following service:
 #### Option 3: Docker CLI (Alternative)
 Using Docker directly without compose:
 
-```bash
+**Bash/PowerShell:**
+```shell
 cd TaskFlow.Api
 docker build -f Dockerfile.dev -t taskflow-api:dev .
 docker run -p 8080:8080 -e ASPNETCORE_ENVIRONMENT=Development -e Database__MigrateOnStartup=true taskflow-api:dev
@@ -111,13 +119,17 @@ docker run -p 8080:8080 -e ASPNETCORE_ENVIRONMENT=Development -e Database__Migra
 
 #### Building the Docker image
 From the repository root (where `docker-compose.yml` is located):
-```bash
+
+**Bash/PowerShell:**
+```shell
 docker build -f TaskFlow.Api/Dockerfile -t taskflow-api:latest .
 ```
 
 Note: The production `Dockerfile` uses a multi-stage build with the repository root as context.
 
 #### Running the container
+
+**Bash:**
 ```bash
 # For persistent database and log storage, mount host directories
 docker run -d -p 8080:8080 \
@@ -127,13 +139,35 @@ docker run -d -p 8080:8080 \
 # Without the -v options, all data and logs will be lost when the container is removed.
 ```
 
+**PowerShell:**
+```powershell
+# For persistent database and log storage, mount host directories
+docker run -d -p 8080:8080 `
+  -v ${PWD}/data:/app/data `
+  -v ${PWD}/logs:/app/logs `
+  --name taskflow-api taskflow-api:latest
+# Without the -v options, all data and logs will be lost when the container is removed.
+```
+
 **Important**: The application uses `/app/data/tasks.db` for the database and `/app/logs/log.txt` for logs by default. To use custom paths, override via environment variables:
+
+**Bash:**
 ```bash
 docker run -d -p 8080:8080 \
   -e ConnectionStrings__DefaultConnection="Data Source=/app/data/production.db" \
   -e LOG_PATH=/app/logs/taskflow.log \
   -v $(pwd)/data:/app/data \
   -v $(pwd)/logs:/app/logs \
+  --name taskflow-api taskflow-api:latest
+```
+
+**PowerShell:**
+```powershell
+docker run -d -p 8080:8080 `
+  -e ConnectionStrings__DefaultConnection="Data Source=/app/data/production.db" `
+  -e LOG_PATH=/app/logs/taskflow.log `
+  -v ${PWD}/data:/app/data `
+  -v ${PWD}/logs:/app/logs `
   --name taskflow-api taskflow-api:latest
 ```
 
@@ -190,11 +224,21 @@ The production deployment workflow (`.github/workflows/deploy.yaml`) automatical
 
 **Note**: The workflows currently use the legacy `--sdk-auth` format. While this format still works, it's deprecated. Here's the command:
 
+**Bash:**
 ```bash
 az ad sp create-for-rbac \
   --name "TaskFlowDeployment" \
   --role contributor \
   --scopes /subscriptions/{subscription-id} \
+  --sdk-auth
+```
+
+**PowerShell:**
+```powershell
+az ad sp create-for-rbac `
+  --name "TaskFlowDeployment" `
+  --role contributor `
+  --scopes /subscriptions/{subscription-id} `
   --sdk-auth
 ```
 
@@ -204,11 +248,25 @@ Copy the output JSON and add it as a repository secret named `AZURE_CREDENTIALS`
 - Value: Paste the entire JSON output from the command above
 
 **Modern alternative**: For new deployments, consider migrating to OpenID Connect (OIDC) authentication which doesn't require storing credentials:
+
+**Bash:**
 ```bash
 # Create the service principal (without --sdk-auth)
 az ad sp create-for-rbac \
   --name "TaskFlowDeployment" \
   --role contributor \
+  --scopes /subscriptions/{subscription-id}
+
+# Then configure federated credentials for GitHub Actions
+# See: https://docs.github.com/en/actions/deployment/security-hardening-your-deployments/configuring-openid-connect-in-azure
+```
+
+**PowerShell:**
+```powershell
+# Create the service principal (without --sdk-auth)
+az ad sp create-for-rbac `
+  --name "TaskFlowDeployment" `
+  --role contributor `
   --scopes /subscriptions/{subscription-id}
 
 # Then configure federated credentials for GitHub Actions
@@ -229,7 +287,9 @@ The workflow is configured with the following Azure resources (in `.github/workf
 #### Triggering a deployment
 
 **Option 1: Tag-based deployment (recommended)**
-```bash
+
+**Bash/PowerShell:**
+```shell
 git tag -a v1.0.0 -m "Release version 1.0.0"
 git push origin v1.0.0
 ```
@@ -320,7 +380,9 @@ If deployment fails:
 3. **Check resource quotas**: Ensure your subscription has available quota
 4. **Health check failures**: Check App Service logs in Azure Portal
 5. **Container logs**: View logs via Azure CLI:
-   ```bash
+   
+   **Bash/PowerShell:**
+   ```shell
    az webapp log tail --name {WEBAPP_NAME} --resource-group {RESOURCE_GROUP}
    ```
 
@@ -418,8 +480,15 @@ The API includes comprehensive health check endpoints for monitoring and contain
 - **Use case**: General health monitoring, load balancer health checks
 
 **Example request**:
+
+**Bash:**
 ```bash
 curl http://localhost:8080/health
+```
+
+**PowerShell:**
+```powershell
+Invoke-RestMethod -Uri http://localhost:8080/health
 ```
 
 **Healthy response** (HTTP 200):
@@ -492,6 +561,9 @@ app.MapHealthChecks("/health/live", new HealthCheckOptions
 
 #### Docker Compose health check
 Add to `docker-compose.yml`:
+
+**Note**: The health check runs inside the container. The example below uses `curl`, which should be installed in your container image. Our Dockerfiles use ASP.NET base images that include `curl`. If using a minimal base image, you may need to install `curl` or use an alternative health check method.
+
 ```yaml
 services:
   taskflow-api:
@@ -548,11 +620,21 @@ Configure in Azure Portal or via ARM template:
 ```
 
 Or via Azure CLI:
+
+**Bash:**
 ```bash
 az webapp config set \
   --resource-group TaskFlowRG \
   --name taskflowapi2074394909 \
   --generic-configurations '{"healthCheckPath": "/health"}'
+```
+
+**PowerShell:**
+```powershell
+az webapp config set `
+  --resource-group TaskFlowRG `
+  --name taskflowapi2074394909 `
+  --generic-configurations '{\"healthCheckPath\": \"/health\"}'
 ```
 
 ### Health check best practices
@@ -620,7 +702,12 @@ builder.Services.AddHealthChecks()
   - `logs/`
   - `*.db`, `*.sqlite`, `*.sqlite3`, and DB journal files `*-wal`, `*-shm`
 - If `tasks.db` was accidentally committed, remove it from tracking but keep it locally:
-  - `git rm --cached TaskFlow.Api/tasks.db TaskFlow.Api/tasks.db-shm TaskFlow.Api/tasks.db-wal`
+  
+  **Bash/PowerShell:**
+  ```shell
+  git rm --cached TaskFlow.Api/tasks.db TaskFlow.Api/tasks.db-shm TaskFlow.Api/tasks.db-wal
+  ```
+  
   - Commit the change and add the `.gitignore` entry.
 
 ## Helpful files
