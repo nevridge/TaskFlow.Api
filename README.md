@@ -704,7 +704,7 @@ builder.Services.AddHealthChecks()
 - If `tasks.db` was accidentally committed, remove it from tracking but keep it locally:
   
   **Bash/PowerShell:**
-  ```bash
+  ```shell
   git rm --cached TaskFlow.Api/tasks.db TaskFlow.Api/tasks.db-shm TaskFlow.Api/tasks.db-wal
   ```
   
