@@ -94,7 +94,9 @@ The `docker-compose.yml` defines the following service:
 **Important Notes:**
 - The `./data` directory will be created automatically on first run
 - Database file is stored at `/app/data/tasks.dev.db` (configured in `appsettings.Development.json`) and persisted via the `./data` volume mount
-- Application logs are written to `/home/logs/` by default (configured in `Program.cs`). The docker-compose mounts `./logs:/app/logs` but logs won't appear there unless you override the log path via Serilog configuration
+- **Log path mismatch**: Application logs are written to `/home/logs/` by default (configured in `Program.cs`). The docker-compose mounts `./logs:/app/logs` but logs won't appear there. To fix this, either:
+  - Change the volume mount to `./logs:/home/logs` in `docker-compose.yml`, OR
+  - Override the log path by modifying the Serilog configuration in `Program.cs` to use `/app/logs/log.txt`
 - Ensure these directories are excluded from version control (they're in `.gitignore`)
 
 #### Option 3: Docker CLI (Alternative)
@@ -179,6 +181,9 @@ The production deployment workflow (`.github/workflows/deploy.yaml`) automatical
 3. **GitHub repository secret** named `AZURE_CREDENTIALS` containing service principal JSON
 
 #### Creating the Azure service principal
+
+**Note**: The workflows currently use the legacy `--sdk-auth` format. While this format still works, it's deprecated. Here's the command:
+
 ```bash
 az ad sp create-for-rbac \
   --name "TaskFlowDeployment" \
@@ -191,6 +196,18 @@ Copy the output JSON and add it as a repository secret named `AZURE_CREDENTIALS`
 - Go to **Settings → Secrets and variables → Actions → New repository secret**
 - Name: `AZURE_CREDENTIALS`
 - Value: Paste the entire JSON output from the command above
+
+**Modern alternative**: For new deployments, consider migrating to OpenID Connect (OIDC) authentication which doesn't require storing credentials:
+```bash
+# Create the service principal (without --sdk-auth)
+az ad sp create-for-rbac \
+  --name "TaskFlowDeployment" \
+  --role contributor \
+  --scopes /subscriptions/{subscription-id}
+
+# Then configure federated credentials for GitHub Actions
+# See: https://docs.github.com/en/actions/deployment/security-hardening-your-deployments/configuring-openid-connect-in-azure
+```
 
 #### Deployment workflow configuration
 
