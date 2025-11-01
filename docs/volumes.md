@@ -74,7 +74,12 @@ Both `Dockerfile` and `Dockerfile.dev` create the necessary directories during t
 RUN mkdir -p /app/logs /app/data && chmod 777 /app/logs /app/data
 ```
 
-The directories are created with `777` permissions to ensure the application can write to them regardless of the user context in which the container runs.
+The directories are created with `777` permissions to ensure the application can write to them regardless of the user context in which the container runs. While `777` is overly permissive, it's acceptable for these specific directories in a containerized environment where:
+- The container filesystem is isolated from the host
+- These directories are explicitly intended for runtime data
+- The application runs as a non-privileged user by default in the ASP.NET runtime image
+
+For production deployments with stricter security requirements, consider using a non-root user and more restrictive permissions (e.g., `755` or `775`) by modifying the Dockerfile.
 
 ### docker-compose.yml
 
@@ -205,9 +210,19 @@ The default `/app/data` and `/app/logs` paths will work, but data will only pers
      taskflow-logs:
    ```
 
-2. **Backup database regularly**: The SQLite database file can be backed up by copying it:
+2. **Backup database regularly**: The SQLite database file can be backed up using various methods:
    ```bash
-   docker exec taskflow-api sqlite3 /app/data/tasks.db ".backup '/app/data/backup.db'"
+   # Method 1: Copy the database file from the container to the host
+   docker cp taskflow-api:/app/data/tasks.db ./backups/tasks-$(date +%Y%m%d).db
+   
+   # Method 2: Use SQLite's backup command (backs up to a different volume)
+   docker exec taskflow-api sqlite3 /app/data/tasks.db ".backup '/tmp/backup.db'"
+   docker cp taskflow-api:/tmp/backup.db ./backups/tasks-$(date +%Y%m%d).db
+   
+   # Method 3: Create backups directly to a mounted backup volume
+   docker run -v $(pwd)/data:/app/data -v $(pwd)/backups:/backups \
+     --rm mcr.microsoft.com/dotnet/aspnet:9.0 \
+     sh -c "cp /app/data/tasks.db /backups/tasks-$(date +%Y%m%d).db"
    ```
 
 3. **Log rotation**: Serilog is configured with daily rolling logs. Old logs are automatically archived with date suffixes (e.g., `log20231201.txt`).

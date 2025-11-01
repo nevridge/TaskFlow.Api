@@ -10,7 +10,8 @@ using TaskFlow.Api.Validators;
 
 // Configure Serilog with safe paths for containers
 // LOG_PATH can be overridden via environment variable for flexibility
-var logPath = Environment.GetEnvironmentVariable("LOG_PATH") ?? "/app/logs/log.txt";
+const string DefaultLogPath = "/app/logs/log.txt";
+var logPath = Environment.GetEnvironmentVariable("LOG_PATH") ?? DefaultLogPath;
 Log.Logger = new LoggerConfiguration()
     .WriteTo.Console()
     .WriteTo.File(
