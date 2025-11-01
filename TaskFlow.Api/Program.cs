@@ -114,8 +114,14 @@ try
 
     // Map health check endpoints
     app.MapHealthChecks("/health");           // Overall health (all checks)
-    app.MapHealthChecks("/health/ready");     // Readiness probe
-    app.MapHealthChecks("/health/live");      // Liveness probe
+    app.MapHealthChecks("/health/ready", new Microsoft.AspNetCore.Diagnostics.HealthChecks.HealthCheckOptions
+    {
+        Predicate = (check) => check.Tags.Contains("ready")
+    });     // Readiness probe (includes database)
+    app.MapHealthChecks("/health/live", new Microsoft.AspNetCore.Diagnostics.HealthChecks.HealthCheckOptions
+    {
+        Predicate = (check) => check.Tags.Contains("live")
+    });      // Liveness probe (no database)
 
     Log.Information("Starting web host on port {Port}", Environment.GetEnvironmentVariable("ASPNETCORE_HTTP_PORTS") ?? "8080");
     app.Run();
