@@ -1,8 +1,10 @@
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.OpenApi.Models;
 using Serilog;
 using TaskFlow.Api.Data;
+using TaskFlow.Api.HealthChecks;
 using TaskFlow.Api.Middleware;
 using TaskFlow.Api.Repositories;
 using TaskFlow.Api.Services;
@@ -56,7 +58,13 @@ try
 
     // Add health checks with database connectivity validation
     builder.Services.AddHealthChecks()
-        .AddDbContextCheck<TaskDbContext>();
+        .AddDbContextCheck<TaskDbContext>(
+            name: "database",
+            tags: new[] { "ready" })
+        .AddCheck(
+            name: "self",
+            check: () => HealthCheckResult.Healthy("Application is running"),
+            tags: new[] { "live" });
 
     var app = builder.Build();
 
@@ -115,16 +123,21 @@ try
     
     app.MapControllers();
 
-    // Map health check endpoints
-    app.MapHealthChecks("/health");           // Overall health (all checks)
+    // Map health check endpoints with custom JSON response writer
+    app.MapHealthChecks("/health", new Microsoft.AspNetCore.Diagnostics.HealthChecks.HealthCheckOptions
+    {
+        ResponseWriter = HealthCheckResponseWriter.WriteHealthCheckResponse
+    });
     app.MapHealthChecks("/health/ready", new Microsoft.AspNetCore.Diagnostics.HealthChecks.HealthCheckOptions
     {
-        Predicate = (check) => check.Tags.Contains("ready")
-    });     // Readiness probe (includes database)
+        Predicate = (check) => check.Tags.Contains("ready"),
+        ResponseWriter = HealthCheckResponseWriter.WriteHealthCheckResponse
+    });
     app.MapHealthChecks("/health/live", new Microsoft.AspNetCore.Diagnostics.HealthChecks.HealthCheckOptions
     {
-        Predicate = (check) => check.Tags.Contains("live")
-    });      // Liveness probe (no database)
+        Predicate = (check) => check.Tags.Contains("live"),
+        ResponseWriter = HealthCheckResponseWriter.WriteHealthCheckResponse
+    });
 
     Log.Information("Starting web host on port {Port}", Environment.GetEnvironmentVariable("ASPNETCORE_HTTP_PORTS") ?? "8080");
     app.Run();

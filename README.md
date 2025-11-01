@@ -557,10 +557,10 @@ The API includes comprehensive health check endpoints for monitoring and contain
 ### Health check endpoints
 
 #### 1. Overall health check: `/health`
-- **Purpose**: Returns the overall health status of the application
-- **Checks**: Validates database connectivity via EF Core DbContext
+- **Purpose**: Returns the overall health status of the application including all registered health checks
+- **Checks**: Database connectivity and self-check (application running)
 - **Response**: HTTP 200 (Healthy) or HTTP 503 (Unhealthy)
-- **Response format**: JSON with detailed status
+- **Response format**: JSON with detailed status, duration metrics, and individual check results
 - **Use case**: General health monitoring, load balancer health checks
 
 **Example request**:
@@ -579,11 +579,25 @@ Invoke-RestMethod -Uri http://localhost:8080/health
 ```json
 {
   "status": "Healthy",
-  "results": {
-    "TaskDbContext": {
-      "status": "Healthy"
+  "totalDuration": 25.4551,
+  "results": [
+    {
+      "name": "database",
+      "status": "Healthy",
+      "description": "",
+      "duration": 20.355,
+      "exception": null,
+      "data": null
+    },
+    {
+      "name": "self",
+      "status": "Healthy",
+      "description": "Application is running",
+      "duration": 1.0933,
+      "exception": null,
+      "data": null
     }
-  }
+  ]
 }
 ```
 
@@ -591,55 +605,161 @@ Invoke-RestMethod -Uri http://localhost:8080/health
 ```json
 {
   "status": "Unhealthy",
-  "results": {
-    "TaskDbContext": {
+  "totalDuration": 5032.1234,
+  "results": [
+    {
+      "name": "database",
       "status": "Unhealthy",
-      "description": "Database connection failed"
+      "description": "Database connection failed",
+      "duration": 5000.5678,
+      "exception": "Unable to connect to database",
+      "data": null
+    },
+    {
+      "name": "self",
+      "status": "Healthy",
+      "description": "Application is running",
+      "duration": 0.0234,
+      "exception": null,
+      "data": null
     }
-  }
+  ]
 }
 ```
 
 #### 2. Readiness check: `/health/ready`
 - **Purpose**: Indicates if the application is ready to receive traffic
-- **Checks**: Database connectivity and any checks tagged with "ready"
+- **Checks**: Database connectivity (tagged with "ready")
 - **Response**: HTTP 200 (Ready) or HTTP 503 (Not ready)
+- **Response format**: JSON with detailed status including only readiness checks
 - **Use case**: Kubernetes readiness probes, load balancer registration
 
-**Note**: Currently configured but filtering for "ready" tag. To add readiness-specific checks, tag them during registration:
-```csharp
-builder.Services.AddHealthChecks()
-    .AddDbContextCheck<TaskDbContext>(tags: new[] { "ready" });
+**Example request**:
+
+**Bash:**
+```bash
+curl http://localhost:8080/health/ready
+```
+
+**PowerShell:**
+```powershell
+Invoke-RestMethod -Uri http://localhost:8080/health/ready
+```
+
+**Ready response** (HTTP 200):
+```json
+{
+  "status": "Healthy",
+  "totalDuration": 43.2066,
+  "results": [
+    {
+      "name": "database",
+      "status": "Healthy",
+      "description": "",
+      "duration": 40.8122,
+      "exception": null,
+      "data": null
+    }
+  ]
+}
+```
+
+**Not ready response** (HTTP 503):
+```json
+{
+  "status": "Unhealthy",
+  "totalDuration": 5001.234,
+  "results": [
+    {
+      "name": "database",
+      "status": "Unhealthy",
+      "description": "Database connection failed",
+      "duration": 5000.123,
+      "exception": "Unable to open connection",
+      "data": null
+    }
+  ]
+}
 ```
 
 #### 3. Liveness check: `/health/live`
 - **Purpose**: Indicates if the application is running and not deadlocked
-- **Checks**: Only checks tagged with "live" (currently none - returns healthy by default)
+- **Checks**: Self-check (tagged with "live") - verifies application process is responsive
 - **Response**: HTTP 200 (Alive) or HTTP 503 (Dead)
+- **Response format**: JSON with detailed status including only liveness checks
 - **Use case**: Kubernetes liveness probes, restart decisions
 
-**Note**: Currently returns healthy as no checks are tagged with "live". Liveness checks should be lightweight and not depend on external services.
+**Example request**:
+
+**Bash:**
+```bash
+curl http://localhost:8080/health/live
+```
+
+**PowerShell:**
+```powershell
+Invoke-RestMethod -Uri http://localhost:8080/health/live
+```
+
+**Alive response** (HTTP 200):
+```json
+{
+  "status": "Healthy",
+  "totalDuration": 0.1649,
+  "results": [
+    {
+      "name": "self",
+      "status": "Healthy",
+      "description": "Application is running",
+      "duration": 0.0911,
+      "exception": null,
+      "data": null
+    }
+  ]
+}
+```
+
+**Note**: The liveness check is lightweight and does not depend on external services like the database. This prevents restart loops caused by transient infrastructure issues. If the liveness check fails, the application is truly deadlocked and should be restarted.
 
 ### Health check implementation
 
 The health checks are configured in `Program.cs`:
 
 ```csharp
-// Register health checks with database connectivity validation
+// Register health checks with proper tagging
 builder.Services.AddHealthChecks()
-    .AddDbContextCheck<TaskDbContext>();
+    .AddDbContextCheck<TaskDbContext>(
+        name: "database",
+        tags: new[] { "ready" })
+    .AddCheck(
+        name: "self",
+        check: () => HealthCheckResult.Healthy("Application is running"),
+        tags: new[] { "live" });
 
-// Map health check endpoints
-app.MapHealthChecks("/health");           // Overall health
+// Map health check endpoints with custom JSON response writer
+app.MapHealthChecks("/health", new HealthCheckOptions
+{
+    ResponseWriter = HealthCheckResponseWriter.WriteHealthCheckResponse
+});
 app.MapHealthChecks("/health/ready", new HealthCheckOptions
 {
-    Predicate = (check) => check.Tags.Contains("ready")
+    Predicate = (check) => check.Tags.Contains("ready"),
+    ResponseWriter = HealthCheckResponseWriter.WriteHealthCheckResponse
 });
 app.MapHealthChecks("/health/live", new HealthCheckOptions
 {
-    Predicate = (check) => check.Tags.Contains("live")
+    Predicate = (check) => check.Tags.Contains("live"),
+    ResponseWriter = HealthCheckResponseWriter.WriteHealthCheckResponse
 });
 ```
+
+**Key implementation details:**
+
+1. **Tagged checks**: Health checks are tagged with "ready" or "live" to allow filtering for specific probe types
+2. **Database check**: Tagged with "ready" - verifies database connectivity before accepting traffic
+3. **Self-check**: Tagged with "live" - lightweight check that confirms the application process is responsive
+4. **Custom response writer**: Provides detailed JSON responses with status, duration, and individual check results
+5. **Status codes**: Returns HTTP 200 for healthy, HTTP 503 for unhealthy (automatically handled by ASP.NET Core)
 
 ### Configuring health checks for container orchestrators
 
@@ -768,19 +888,74 @@ Or configure via Azure Portal:
 6. **Monitoring**: Set up alerts on repeated health check failures to detect persistent issues
 7. **Logging**: Health check failures are logged by Serilog for troubleshooting; check logs if experiencing startup issues
 
+### Response format details
+
+All health check endpoints return JSON with the following structure:
+
+```json
+{
+  "status": "Healthy|Degraded|Unhealthy",
+  "totalDuration": 25.4551,
+  "results": [
+    {
+      "name": "check-name",
+      "status": "Healthy|Degraded|Unhealthy",
+      "description": "Human-readable description",
+      "duration": 20.355,
+      "exception": "Error message if failed",
+      "data": { "key": "value" }
+    }
+  ]
+}
+```
+
+**Field descriptions:**
+- **status**: Overall health status aggregated from all checks
+- **totalDuration**: Total time in milliseconds to execute all checks
+- **results**: Array of individual check results
+  - **name**: Unique identifier for the check
+  - **status**: Health status of this specific check
+  - **description**: Optional human-readable description
+  - **duration**: Time in milliseconds for this specific check
+  - **exception**: Error message if the check failed (null if successful)
+  - **data**: Optional additional data provided by the check (null if none)
+
 ### Extending health checks
 
-To add custom health checks:
+To add custom health checks, modify the health check registration in `Program.cs`:
 
 ```csharp
-// Example: Add custom checks
+// Example: Add custom checks for external dependencies
 builder.Services.AddHealthChecks()
-    .AddDbContextCheck<TaskDbContext>(tags: new[] { "ready" })
-    .AddCheck("self", () => HealthCheckResult.Healthy(), tags: new[] { "live" })
-    .AddUrlGroup(new Uri("https://api.external.com/status"), 
-                 name: "external-api", 
-                 tags: new[] { "ready" });
+    .AddDbContextCheck<TaskDbContext>(
+        name: "database",
+        tags: new[] { "ready" })
+    .AddCheck(
+        name: "self",
+        check: () => HealthCheckResult.Healthy("Application is running"),
+        tags: new[] { "live" })
+    .AddUrlGroup(
+        new Uri("https://api.external.com/status"), 
+        name: "external-api", 
+        tags: new[] { "ready" })
+    .AddCheck(
+        name: "disk-space",
+        check: () => {
+            var drive = new DriveInfo("/app/data");
+            var freeSpaceGB = drive.AvailableFreeSpace / (1024.0 * 1024 * 1024);
+            return freeSpaceGB > 1 
+                ? HealthCheckResult.Healthy($"{freeSpaceGB:F2} GB free")
+                : HealthCheckResult.Unhealthy($"Low disk space: {freeSpaceGB:F2} GB free");
+        },
+        tags: new[] { "ready" });
 ```
+
+**Tag guidelines:**
+- Use `"ready"` tag for checks that must pass before accepting traffic (database, external APIs, disk space)
+- Use `"live"` tag for lightweight checks that verify the process is responsive (self-check, memory check)
+- Checks can have multiple tags if needed
+- Liveness checks should complete in < 1 second
+- Readiness checks can take longer but should complete in < 5 seconds
 
 ## Testing
 - Use the built-in Swagger UI to exercise the API in Development.
