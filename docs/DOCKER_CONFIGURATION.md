@@ -163,8 +163,8 @@ docker-compose -f docker-compose.prod.yml up
 # Option 1: Use dotnet CLI (if .NET 9 SDK installed locally)
 dotnet ef database update --project TaskFlow.Api
 
-# Option 2: Enable migrations for first run only
-docker-compose -f docker-compose.prod.yml up -e Database__MigrateOnStartup=true
+# Option 2: Run container with migrations enabled for first run
+docker compose -f docker-compose.prod.yml run --rm -e Database__MigrateOnStartup=true taskflow-api
 ```
 
 **Characteristics:**
@@ -327,8 +327,8 @@ docker-compose -f docker-compose.prod.yml down
 
 **Solution**:
 ```bash
-# Option 1: Enable migrations temporarily
-docker-compose -f docker-compose.prod.yml run --rm \
+# Option 1: Run container with migrations enabled
+docker compose -f docker-compose.prod.yml run --rm \
   -e Database__MigrateOnStartup=true taskflow-api
 
 # Option 2: Run migrations via dotnet CLI

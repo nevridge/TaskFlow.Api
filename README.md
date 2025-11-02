@@ -139,8 +139,8 @@ This configuration:
 # Option 1: Use dotnet CLI (if .NET 9 SDK installed locally)
 dotnet ef database update --project TaskFlow.Api
 
-# Option 2: Enable migrations for first run only
-docker-compose -f docker-compose.prod.yml run --rm -e Database__MigrateOnStartup=true taskflow-api
+# Option 2: Run container with migrations enabled for first run
+docker compose -f docker-compose.prod.yml run --rm -e Database__MigrateOnStartup=true taskflow-api
 ```
 
 **Stop the containers:**
