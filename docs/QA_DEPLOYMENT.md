@@ -9,6 +9,16 @@ The ephemeral QA deployment workflow creates a predictable test environment usin
 ## Key Features
 
 ### Fixed DNS Name
+
+The QA environment uses a **standardized naming convention** for all Azure resources. See [deploy.md](./deploy.md) for complete details.
+
+**QA Resource Names**:
+- **Resource Group**: `nevridge-taskflow-qa-rg`
+- **Container Registry**: `nevridgetaskflowqaacr`
+- **ACI Container**: `nevridge-taskflow-qa-aci`
+- **DNS Name Label**: `taskflow-qa`
+
+**QA Endpoint Details**:
 - **DNS Name Label**: `taskflow-qa`
 - **Full DNS Format**: `taskflow-qa.{region}.azurecontainer.io`
 - **Port**: 8080
@@ -43,21 +53,25 @@ Manual trigger via GitHub Actions workflow_dispatch
 | Parameter | Description | Required | Default |
 |-----------|-------------|----------|---------|
 | `action` | Deploy or teardown the environment | Yes | `deploy` |
-| `resource_group` | Azure resource group name | No | `TaskFlowRG` |
+| `resource_group` | Azure resource group name (overrides computed name) | No | `nevridge-taskflow-qa-rg` (computed) |
 | `location` | Azure region for deployment | No | `eastus` |
-| `acr_name` | Azure Container Registry name | No | `taskflowregistry` |
+| `acr_name` | Azure Container Registry name (overrides computed name) | No | `nevridgetaskflowqaacr` (computed) |
 | `image_tag` | Docker image tag to deploy | No | `latest` |
 
 ### Environment Variables Set by Workflow
 
-| Variable | Value | Description |
-|----------|-------|-------------|
-| `ACI_NAME` | `taskflow-qa` | Fixed container name |
-| `DNS_NAME_LABEL` | `taskflow-qa` | Fixed DNS label |
-| `RESOURCE_GROUP` | User input or default | Resource group name |
-| `LOCATION` | User input or default | Azure region |
-| `ACR_NAME` | User input or default | ACR name |
-| `IMAGE_TAG` | User input or default | Image tag |
+The workflow follows the [Resource Naming Convention](./deploy.md) and computes resource names automatically.
+
+| Variable | Computed Value | Description |
+|----------|----------------|-------------|
+| `RG_NAME` | `nevridge-taskflow-qa-rg` | Resource group name (can be overridden by input) |
+| `ACR_NAME` | `nevridgetaskflowqaacr` | Container registry name (can be overridden by input) |
+| `ACI_NAME` | `nevridge-taskflow-qa-aci` | Container instance name (fixed) |
+| `DNS_NAME_LABEL` | `taskflow-qa` | DNS label for predictable endpoint (fixed) |
+| `LOCATION` | `eastus` | Azure region (from input or default) |
+| `IMAGE_TAG` | `latest` | Image tag (from input or default) |
+
+**Note**: Input parameters allow overriding computed names for testing purposes, but standard deployments should use the computed names for consistency.
 
 ## Deployment Process
 
@@ -270,17 +284,17 @@ The DNS name varies by Azure region. Common regions:
 **Solutions**:
 1. Verify the container is running:
    ```bash
-   az container show -g TaskFlowRG -n taskflow-qa --query provisioningState -o tsv
+   az container show -g nevridge-taskflow-qa-rg -n nevridge-taskflow-qa-aci --query provisioningState -o tsv
    ```
 
 2. Check the FQDN:
    ```bash
-   az container show -g TaskFlowRG -n taskflow-qa --query ipAddress.fqdn -o tsv
+   az container show -g nevridge-taskflow-qa-rg -n nevridge-taskflow-qa-aci --query ipAddress.fqdn -o tsv
    ```
 
 3. View container logs:
    ```bash
-   az container logs -g TaskFlowRG -n taskflow-qa
+   az container logs -g nevridge-taskflow-qa-rg -n nevridge-taskflow-qa-aci
    ```
 
 4. Check the workflow run logs in GitHub Actions for deployment errors
@@ -296,7 +310,7 @@ The workflow should automatically handle this, but if it doesn't:
 
 1. Manually delete the existing container:
    ```bash
-   az container delete -g TaskFlowRG -n taskflow-qa --yes
+   az container delete -g nevridge-taskflow-qa-rg -n nevridge-taskflow-qa-aci --yes
    ```
 
 2. Wait a few seconds for Azure to release the DNS name
@@ -312,12 +326,12 @@ The workflow should automatically handle this, but if it doesn't:
 **Solutions**:
 1. Check container logs for application errors:
    ```bash
-   az container logs -g TaskFlowRG -n taskflow-qa --tail 100
+   az container logs -g nevridge-taskflow-qa-rg -n nevridge-taskflow-qa-aci --tail 100
    ```
 
 2. Verify the container is running:
    ```bash
-   az container show -g TaskFlowRG -n taskflow-qa --query instanceView.state -o tsv
+   az container show -g nevridge-taskflow-qa-rg -n nevridge-taskflow-qa-aci --query instanceView.state -o tsv
    ```
 
 3. Check if database migrations completed successfully
@@ -380,13 +394,20 @@ The workflow should automatically handle this, but if it doesn't:
 To use a different DNS name (e.g., `taskflow-staging`):
 
 1. Edit `.github/workflows/ephemeral-deploy.yaml`
-2. Update lines 94-95:
+2. Update the `ENV` variable at the top:
    ```yaml
-   ACI_NAME="taskflow-staging"
-   DNS_NAME_LABEL="taskflow-staging"
+   env:
+     ORG_NAME: nevridge
+     APP_NAME: taskflow
+     ENV: staging  # Changed from 'qa' to 'staging'
    ```
-3. Update documentation references
-4. Update test configurations
+3. The workflow will automatically compute:
+   - ACI Name: `nevridge-taskflow-staging-aci`
+   - DNS Label: `taskflow-staging`
+4. Update documentation references
+5. Update test configurations
+
+See [deploy.md](./deploy.md) for details on the naming convention.
 
 ### Deploying to Multiple Regions
 
