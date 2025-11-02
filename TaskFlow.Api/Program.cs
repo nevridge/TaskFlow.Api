@@ -9,8 +9,6 @@ using TaskFlow.Api.Middleware;
 using TaskFlow.Api.Repositories;
 using TaskFlow.Api.Services;
 using TaskFlow.Api.Validators;
-using System.Text.Json;
-using Microsoft.AspNetCore.Mvc;
 using TaskFlow.Api.Configuration;
 
 // Configure Serilog with safe paths for containers
