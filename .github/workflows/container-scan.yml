@@ -1,0 +1,54 @@
+name: Container Scan
+
+on:
+  pull_request:
+    paths:
+      - 'TaskFlow.Api/Dockerfile'
+      - 'TaskFlow.Api/Dockerfile.dev'
+
+jobs:
+  scan:
+    name: Scan Dockerfile for Issues
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+      pull-requests: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Scan Dockerfile for misconfigurations
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          scan-ref: 'TaskFlow.Api/Dockerfile'
+          format: 'table'
+          exit-code: '1'
+          severity: 'CRITICAL,HIGH'
+
+      - name: Scan Dockerfile for misconfigurations (SARIF output)
+        uses: aquasecurity/trivy-action@master
+        if: always()
+        with:
+          scan-type: 'fs'
+          scan-ref: 'TaskFlow.Api/Dockerfile'
+          format: 'sarif'
+          output: 'trivy-dockerfile-results.sarif'
+          severity: 'CRITICAL,HIGH,MEDIUM,LOW'
+
+      - name: Upload Trivy results to GitHub Security tab
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: 'trivy-dockerfile-results.sarif'
+          category: 'trivy-dockerfile-scan'
+
+      - name: Upload scan results as artifact
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: dockerfile-scan-results
+          path: trivy-dockerfile-results.sarif
+          retention-days: 30
