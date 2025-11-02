@@ -90,8 +90,8 @@ The `docker-compose.yml` defines the following service:
   - **Image**: Built from `Dockerfile.dev`
   - **Ports**: Maps host port `8080` to container port `8080`
   - **Volumes**: 
-    - `./data:/app/data` - Persists the SQLite database
-    - `./logs:/app/logs` - Persists application logs
+    - `taskflow-data:/app/data` - Docker named volume for SQLite database
+    - `taskflow-logs:/app/logs` - Docker named volume for application logs
   - **Environment Variables**:
     - `ASPNETCORE_ENVIRONMENT=Development` - Runs in development mode
     - `ASPNETCORE_URLS=http://+:8080` - Configures Kestrel to listen on port 8080
@@ -100,11 +100,12 @@ The `docker-compose.yml` defines the following service:
     - `DOTNET_RUNNING_IN_CONTAINER=true` - Indicates running in container
 
 **Important Notes:**
-- The `./data` and `./logs` directories will be created automatically on first run
-- Database file is stored at `/app/data/tasks.dev.db` (configured in `appsettings.Development.json`) and persisted via the `./data` volume mount
-- Application logs are written to `/app/logs/log.txt` and persisted via the `./logs` volume mount
-- Ensure these directories are excluded from version control (they're in `.gitignore`)
-- For detailed volume configuration, see [docs/volumes.md](docs/volumes.md)
+- Docker named volumes (`taskflow-data` and `taskflow-logs`) are automatically created on first run
+- Data persists across container removal and recreation - volumes remain until explicitly deleted
+- Database file is stored at `/app/data/tasks.dev.db` (configured in `appsettings.Development.json`)
+- Application logs are written to `/app/logs/log.txt`
+- Volumes are managed by Docker and stored in Docker's volume directory (typically `/var/lib/docker/volumes/` on Linux)
+- For detailed volume configuration, management commands, and troubleshooting, see [docs/volumes.md](docs/volumes.md)
 
 #### Option 3: Docker CLI (Alternative)
 Using Docker directly without compose:
@@ -113,8 +114,19 @@ Using Docker directly without compose:
 ```shell
 cd TaskFlow.Api
 docker build -f Dockerfile.dev -t taskflow-api:dev .
-docker run -p 8080:8080 -e ASPNETCORE_ENVIRONMENT=Development -e Database__MigrateOnStartup=true taskflow-api:dev
+# Create named volumes (optional - Docker will create them automatically if they don't exist)
+docker volume create taskflow-data
+docker volume create taskflow-logs
+# Run container with named volumes
+docker run -p 8080:8080 \
+  -v taskflow-data:/app/data \
+  -v taskflow-logs:/app/logs \
+  -e ASPNETCORE_ENVIRONMENT=Development \
+  -e Database__MigrateOnStartup=true \
+  taskflow-api:dev
 ```
+
+**Note:** Without the `-v` volume options, data and logs will be lost when the container is removed.
 
 ### Production deployment
 
@@ -130,35 +142,66 @@ Note: The production `Dockerfile` uses a multi-stage build with the repository r
 
 #### Running the container
 
+**Option 1: Using Docker named volumes (recommended):**
+
 **Bash:**
 ```bash
-# For persistent database and log storage, mount host directories
+# Create named volumes (optional - Docker creates them automatically)
+docker volume create taskflow-prod-data
+docker volume create taskflow-prod-logs
+
+# Run with Docker named volumes for persistence
 docker run -d -p 8080:8080 \
-  -v $(pwd)/data:/app/data \
-  -v $(pwd)/logs:/app/logs \
+  -v taskflow-prod-data:/app/data \
+  -v taskflow-prod-logs:/app/logs \
   --name taskflow-api taskflow-api:latest
-# Without the -v options, all data and logs will be lost when the container is removed.
 ```
 
 **PowerShell:**
 ```powershell
-# For persistent database and log storage, mount host directories
+# Create named volumes (optional - Docker creates them automatically)
+docker volume create taskflow-prod-data
+docker volume create taskflow-prod-logs
+
+# Run with Docker named volumes for persistence
+docker run -d -p 8080:8080 `
+  -v taskflow-prod-data:/app/data `
+  -v taskflow-prod-logs:/app/logs `
+  --name taskflow-api taskflow-api:latest
+```
+
+**Option 2: Using bind mounts (host directories):**
+
+**Bash:**
+```bash
+# For persistent storage using host directories
+docker run -d -p 8080:8080 \
+  -v $(pwd)/data:/app/data \
+  -v $(pwd)/logs:/app/logs \
+  --name taskflow-api taskflow-api:latest
+```
+
+**PowerShell:**
+```powershell
+# For persistent storage using host directories
 docker run -d -p 8080:8080 `
   -v ${PWD}/data:/app/data `
   -v ${PWD}/logs:/app/logs `
   --name taskflow-api taskflow-api:latest
-# Without the -v options, all data and logs will be lost when the container is removed.
 ```
 
-**Important**: The application uses `/app/data/tasks.db` for the database and `/app/logs/log.txt` for logs by default. To use custom paths, override via environment variables:
+**⚠️ Important:** Without volume mounts, all data and logs will be lost when the container is removed.
+
+**Customizing paths:**
+The application uses `/app/data/tasks.db` for the database and `/app/logs/log.txt` for logs by default. To use custom paths, override via environment variables:
 
 **Bash:**
 ```bash
 docker run -d -p 8080:8080 \
   -e ConnectionStrings__DefaultConnection="Data Source=/app/data/production.db" \
   -e LOG_PATH=/app/logs/taskflow.log \
-  -v $(pwd)/data:/app/data \
-  -v $(pwd)/logs:/app/logs \
+  -v taskflow-prod-data:/app/data \
+  -v taskflow-prod-logs:/app/logs \
   --name taskflow-api taskflow-api:latest
 ```
 
@@ -167,8 +210,8 @@ docker run -d -p 8080:8080 \
 docker run -d -p 8080:8080 `
   -e ConnectionStrings__DefaultConnection="Data Source=/app/data/production.db" `
   -e LOG_PATH=/app/logs/taskflow.log `
-  -v ${PWD}/data:/app/data `
-  -v ${PWD}/logs:/app/logs `
+  -v taskflow-prod-data:/app/data `
+  -v taskflow-prod-logs:/app/logs `
   --name taskflow-api taskflow-api:latest
 ```
 
@@ -188,8 +231,8 @@ docker run -d -p 8080:8080 `
 
 - **docker-compose.yml**:
   - Builds using `Dockerfile.dev` from the `TaskFlow.Api` directory
-  - Mounts `./data:/app/data` for database persistence
-  - Mounts `./logs:/app/logs` for log persistence
+  - Uses Docker named volumes `taskflow-data` and `taskflow-logs` for persistence
+  - Volumes persist data across container removal and recreation
   - Configures development environment with automatic migrations
 
 - **Key environment variables**:
@@ -205,7 +248,9 @@ For detailed volume configuration and troubleshooting, see [docs/volumes.md](doc
 ### Docker notes
 - The `.dockerignore` file excludes build artifacts, dependencies, and unnecessary files from the build context
 - The container exposes port 8080 by default
-- **Persistence warning:** Without volume mounting, the SQLite database and logs will be lost when the container is removed
+- **Data Persistence:** Docker volumes ensure SQLite database and logs persist across container removal and recreation
+- **Volume Management:** Use `docker volume ls` to list volumes, `docker volume rm` to remove them, and `docker volume inspect` to view details
+- **⚠️ Persistence warning:** Without volume mounting, the SQLite database and logs will be lost when the container is removed
 - By default, the production Docker container runs in Production mode and migrations will **not** auto-apply. To enable automatic migrations, set either `ASPNETCORE_ENVIRONMENT=Development` or `Database__MigrateOnStartup=true` via environment variables when running the container.
 
 ## Azure deployment
