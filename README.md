@@ -531,6 +531,56 @@ If you deploy to different Azure regions, the DNS name will vary by region:
 
 Update your Postman environments and test configurations to match the region you deploy to.
 
+### Production teardown
+
+A separate workflow is available to tear down production Azure resources. This is useful for cleaning up after testing or when you want to completely remove the production deployment to avoid costs.
+
+**File**: `.github/workflows/production-teardown.yaml`
+
+#### Triggering production teardown
+
+⚠️ **WARNING**: This action is destructive and will permanently delete all production resources and data.
+
+1. Go to **Actions** tab in GitHub
+2. Select **Production Teardown** workflow
+3. Click **Run workflow**
+4. **Type "CONFIRM"** in the confirmation field (case-sensitive)
+5. Click **Run workflow**
+
+#### What gets deleted
+
+The workflow will delete the entire production resource group, which includes:
+- **Web App**: `nevridge-taskflow-prod-web`
+- **App Service Plan**: `nevridge-taskflow-prod-plan`
+- **Container Registry**: `nevridgetaskflowprodacr`
+- **All associated data, logs, and configurations**
+
+The deletion runs asynchronously in Azure. You can monitor progress via:
+
+**Bash/PowerShell:**
+```shell
+az group show -n nevridge-taskflow-prod-rg
+```
+
+Once the deletion completes, the command will return an error indicating the resource group no longer exists.
+
+#### Safety features
+
+The production teardown workflow includes several safety measures:
+1. **Separate workflow file**: Isolated from deployment workflow to prevent accidental execution
+2. **Manual trigger only**: Cannot be triggered automatically; requires explicit user action
+3. **Confirmation required**: Must type "CONFIRM" exactly to proceed
+4. **Production environment**: Uses GitHub environment protection if configured
+5. **Clear logging**: Displays all resources that will be deleted before proceeding
+
+#### Re-deploying after teardown
+
+After tearing down production resources, you can redeploy by:
+1. Pushing a new tag (e.g., `git tag v1.0.1 && git push origin v1.0.1`)
+2. Or manually triggering the **Deploy to Azure Production** workflow
+
+The deployment workflow will recreate all necessary resources automatically.
+
 ### Azure deployment best practices
 
 1. **Resource naming**: Customize resource names in workflow files before first deployment
@@ -626,7 +676,7 @@ The repository includes automated security scanning to identify vulnerabilities:
 
 ### Deployment Workflows
 
-The project includes two GitHub Actions workflows for continuous deployment:
+The project includes three GitHub Actions workflows for continuous deployment and teardown:
 
 ### Workflow: Deploy to Azure Production
 **File**: `.github/workflows/deploy.yaml`
@@ -669,6 +719,28 @@ The project includes two GitHub Actions workflows for continuous deployment:
 - Uses basic authentication for ACR (suitable for ephemeral scenarios)
 - Performs smoke testing on deployed instances
 - Generates unique resource names using GitHub run ID
+
+### Workflow: Production Teardown
+**File**: `.github/workflows/production-teardown.yaml`
+
+**Triggers**:
+- Manual trigger only via workflow_dispatch with confirmation
+
+**Required secrets**:
+- `AZURE_CREDENTIALS`: Service principal JSON with subscription access
+
+**Input parameters**:
+- `confirm`: Must type "CONFIRM" exactly to proceed with teardown
+
+**Key features**:
+- Safely deletes all production Azure resources
+- Requires explicit confirmation to prevent accidental execution
+- Separate workflow file for safety
+- Uses production environment protection (if configured)
+- Displays all resources to be deleted before proceeding
+- Runs deletion asynchronously in Azure
+
+**See also**: [Production Teardown](#production-teardown) section above for detailed usage instructions.
 
 ### Modifying workflows
 

@@ -1,0 +1,135 @@
+name: Production Teardown
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm:
+        description: 'Type "CONFIRM" to proceed with production teardown'
+        required: true
+        default: ''
+
+permissions:
+  id-token: write
+  contents: read
+
+env:
+  # Base naming components (must match deploy.yaml)
+  ORG_NAME: nevridge
+  APP_NAME: taskflow
+  ENV: prod
+  LOCATION: eastus
+
+jobs:
+  teardown-production:
+    runs-on: ubuntu-latest
+    environment: production
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Validate confirmation input
+        run: |
+          if [ "${{ github.event.inputs.confirm }}" != "CONFIRM" ]; then
+            echo "ERROR: Confirmation failed. You must type 'CONFIRM' to proceed with production teardown."
+            echo "Received: '${{ github.event.inputs.confirm }}'"
+            exit 1
+          fi
+          echo "✓ Confirmation validated. Proceeding with production teardown."
+
+      - name: Compute resource names
+        run: |
+          # Base components (must match deploy.yaml)
+          ORG="${{ env.ORG_NAME }}"
+          APP="${{ env.APP_NAME }}"
+          ENV="${{ env.ENV }}"
+          
+          # Computed names following naming convention: {org}-{app}-{env}-{type}
+          RG_NAME="${ORG}-${APP}-${ENV}-rg"
+          WEB_NAME="${ORG}-${APP}-${ENV}-web"
+          PLAN_NAME="${ORG}-${APP}-${ENV}-plan"
+          
+          # Special: ACR (no hyphens, alphanumeric only)
+          ACR_NAME="${ORG}${APP}${ENV}acr"
+          
+          # Export to environment
+          echo "RG_NAME=$RG_NAME" >> $GITHUB_ENV
+          echo "WEB_NAME=$WEB_NAME" >> $GITHUB_ENV
+          echo "PLAN_NAME=$PLAN_NAME" >> $GITHUB_ENV
+          echo "ACR_NAME=$ACR_NAME" >> $GITHUB_ENV
+          
+          # Log computed names for confirmation
+          echo "=========================================="
+          echo "Production Resources to Delete:"
+          echo "=========================================="
+          echo "Resource Group:     $RG_NAME"
+          echo "Web App:            $WEB_NAME"
+          echo "App Service Plan:   $PLAN_NAME"
+          echo "Container Registry: $ACR_NAME"
+          echo "Location:           ${{ env.LOCATION }}"
+          echo "=========================================="
+
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Verify and set subscription
+        run: |
+          az account show
+          SUB_ID=$(echo '${{ secrets.AZURE_CREDENTIALS }}' | jq -r '.subscriptionId // empty')
+          if [ -n "$SUB_ID" ]; then
+            echo "Setting subscription to $SUB_ID"
+            az account set --subscription "$SUB_ID"
+            az account show
+          else
+            echo "No subscriptionId in AZURE_CREDENTIALS, using default"
+          fi
+
+      - name: Check if resource group exists
+        id: check_rg
+        run: |
+          if az group show -n ${{ env.RG_NAME }} >/dev/null 2>&1; then
+            echo "exists=true" >> $GITHUB_OUTPUT
+            echo "✓ Resource group ${{ env.RG_NAME }} exists"
+          else
+            echo "exists=false" >> $GITHUB_OUTPUT
+            echo "⚠ Resource group ${{ env.RG_NAME }} does not exist"
+          fi
+
+      - name: Delete production resource group
+        if: steps.check_rg.outputs.exists == 'true'
+        run: |
+          echo "=========================================="
+          echo "DELETING PRODUCTION RESOURCE GROUP"
+          echo "=========================================="
+          echo "Resource Group: ${{ env.RG_NAME }}"
+          echo ""
+          echo "This will delete ALL resources in the group:"
+          echo "  - Web App: ${{ env.WEB_NAME }}"
+          echo "  - App Service Plan: ${{ env.PLAN_NAME }}"
+          echo "  - Container Registry: ${{ env.ACR_NAME }}"
+          echo "  - All associated data and configurations"
+          echo ""
+          echo "Initiating deletion..."
+          az group delete -n ${{ env.RG_NAME }} --yes --no-wait
+          echo ""
+          echo "=========================================="
+          echo "Production Teardown Initiated"
+          echo "=========================================="
+          echo "Resource group deletion is running asynchronously."
+          echo "Monitor progress in Azure Portal or via Azure CLI:"
+          echo "  az group show -n ${{ env.RG_NAME }}"
+          echo ""
+          echo "Once complete, all production resources will be removed."
+          echo "=========================================="
+
+      - name: Skip deletion (resource group not found)
+        if: steps.check_rg.outputs.exists == 'false'
+        run: |
+          echo "=========================================="
+          echo "Nothing to Delete"
+          echo "=========================================="
+          echo "Resource group ${{ env.RG_NAME }} does not exist."
+          echo "No production resources found to tear down."
+          echo "=========================================="
