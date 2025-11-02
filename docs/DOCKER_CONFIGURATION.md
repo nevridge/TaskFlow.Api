@@ -163,6 +163,7 @@ docker-compose -f docker-compose.prod.yml up
 **Before first run, apply migrations manually:**
 ```bash
 # Option 1: Use dotnet CLI (if .NET 9 SDK installed locally)
+# From repository root
 dotnet ef database update --project TaskFlow.Api
 
 # Option 2: Run container with migrations enabled for first run
