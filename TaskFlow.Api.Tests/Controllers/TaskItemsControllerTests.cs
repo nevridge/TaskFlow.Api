@@ -167,10 +167,10 @@ public class TaskItemsControllerTests
         // Assert
         result.Should().BeOfType<NoContentResult>();
         _mockService.Verify(s => s.GetTaskAsync(1), Times.Once);
-        _mockService.Verify(s => s.UpdateTaskAsync(It.Is<TaskItem>(t => 
-            t.Id == 1 && 
-            t.Title == "Updated Task" && 
-            t.Description == "Updated Description" && 
+        _mockService.Verify(s => s.UpdateTaskAsync(It.Is<TaskItem>(t =>
+            t.Id == 1 &&
+            t.Title == "Updated Task" &&
+            t.Description == "Updated Description" &&
             t.IsComplete)), Times.Once);
     }
 

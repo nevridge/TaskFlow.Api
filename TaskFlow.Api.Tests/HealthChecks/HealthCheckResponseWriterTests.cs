@@ -58,7 +58,7 @@ public class HealthCheckResponseWriterTests
         responseBody.Position = 0;
         using var reader = new StreamReader(responseBody);
         var response = await reader.ReadToEndAsync();
-        
+
         response.Should().NotBeNullOrEmpty();
         response.Should().Contain("Healthy");
         response.Should().Contain("database");
@@ -92,7 +92,7 @@ public class HealthCheckResponseWriterTests
         responseBody.Position = 0;
         using var reader = new StreamReader(responseBody);
         var response = await reader.ReadToEndAsync();
-        
+
         response.Should().NotBeNullOrEmpty();
         response.Should().Contain("Unhealthy");
         response.Should().Contain("database");
@@ -132,7 +132,7 @@ public class HealthCheckResponseWriterTests
         responseBody.Position = 0;
         using var reader = new StreamReader(responseBody);
         var response = await reader.ReadToEndAsync();
-        
+
         response.Should().Contain("database");
         response.Should().Contain("api");
     }
@@ -164,7 +164,7 @@ public class HealthCheckResponseWriterTests
         responseBody.Position = 0;
         using var reader = new StreamReader(responseBody);
         var response = await reader.ReadToEndAsync();
-        
+
         response.Should().Contain("Degraded");
     }
 
@@ -201,7 +201,7 @@ public class HealthCheckResponseWriterTests
         responseBody.Position = 0;
         using var reader = new StreamReader(responseBody);
         var response = await reader.ReadToEndAsync();
-        
+
         response.Should().Contain("ConnectionString");
         response.Should().Contain("Version");
     }

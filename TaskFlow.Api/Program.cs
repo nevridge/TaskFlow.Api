@@ -84,7 +84,7 @@ try
         {
             Log.Information("Applying EF Core migrations on startup (Environment: {Env})", env.EnvironmentName);
             var db = scope.ServiceProvider.GetRequiredService<TaskDbContext>();
-            
+
             // Ensure the directory exists for SQLite
             var dbPath = db.Database.GetConnectionString();
             if (!string.IsNullOrEmpty(dbPath) && dbPath.StartsWith("Data Source="))
@@ -97,7 +97,7 @@ try
                     Log.Information("Created database directory: {Directory}", directory);
                 }
             }
-            
+
             db.Database.Migrate();
         }
         else
@@ -120,12 +120,12 @@ try
     app.UseMiddleware<ValidationMiddleware>();
 
     // Skip HTTPS redirection in containers
-    if (!app.Environment.IsEnvironment("Container") && 
+    if (!app.Environment.IsEnvironment("Container") &&
         string.IsNullOrEmpty(Environment.GetEnvironmentVariable("DOTNET_RUNNING_IN_CONTAINER")))
     {
         app.UseHttpsRedirection();
     }
-    
+
     app.MapControllers();
 
     // Map health check endpoints with custom JSON response writer
