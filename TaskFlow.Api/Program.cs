@@ -69,18 +69,6 @@ try
             check: () => HealthCheckResult.Healthy("Application is running"),
             tags: ["live"]);
 
-    builder.Services.ConfigureHttpJsonOptions(options =>
-    {
-        options.SerializerOptions.WriteIndented = true;
-        options.SerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
-    });
-
-    builder.Services.Configure<JsonOptions>(options =>
-    {
-        options.JsonSerializerOptions.WriteIndented = true;
-        options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
-    });
-
     builder.Services.ConfigureJsonSerialization();
 
     var app = builder.Build();
