@@ -1,18 +1,40 @@
-using System.Text.Json;
 using FluentAssertions;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.Json;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
+using TaskFlow.Api.Configuration;
 using TaskFlow.Api.HealthChecks;
 
 namespace TaskFlow.Api.Tests.HealthChecks;
 
 public class HealthCheckResponseWriterTests
 {
+    private static DefaultHttpContext CreateHttpContextWithServices()
+    {
+        var services = new ServiceCollection();
+
+        // Configure JsonOptions using the shared configuration
+        services.Configure<JsonOptions>(options =>
+        {
+            JsonSerializerOptionsProvider.ConfigureOptions(options.SerializerOptions);
+        });
+
+        var serviceProvider = services.BuildServiceProvider();
+
+        var context = new DefaultHttpContext
+        {
+            RequestServices = serviceProvider
+        };
+
+        return context;
+    }
+
     [Fact]
     public async Task WriteHealthCheckResponse_ShouldWriteHealthyStatus()
     {
         // Arrange
-        var context = new DefaultHttpContext();
+        var context = CreateHttpContextWithServices();
         var responseBody = new MemoryStream();
         context.Response.Body = responseBody;
 
@@ -46,7 +68,7 @@ public class HealthCheckResponseWriterTests
     public async Task WriteHealthCheckResponse_ShouldWriteUnhealthyStatus()
     {
         // Arrange
-        var context = new DefaultHttpContext();
+        var context = CreateHttpContextWithServices();
         var responseBody = new MemoryStream();
         context.Response.Body = responseBody;
 
@@ -80,7 +102,7 @@ public class HealthCheckResponseWriterTests
     public async Task WriteHealthCheckResponse_ShouldIncludeMultipleEntries()
     {
         // Arrange
-        var context = new DefaultHttpContext();
+        var context = CreateHttpContextWithServices();
         var responseBody = new MemoryStream();
         context.Response.Body = responseBody;
 
@@ -118,7 +140,7 @@ public class HealthCheckResponseWriterTests
     public async Task WriteHealthCheckResponse_ShouldHandleDegradedStatus()
     {
         // Arrange
-        var context = new DefaultHttpContext();
+        var context = CreateHttpContextWithServices();
         var responseBody = new MemoryStream();
         context.Response.Body = responseBody;
 
@@ -149,7 +171,7 @@ public class HealthCheckResponseWriterTests
     public async Task WriteHealthCheckResponse_ShouldIncludeCustomData()
     {
         // Arrange
-        var context = new DefaultHttpContext();
+        var context = CreateHttpContextWithServices();
         var responseBody = new MemoryStream();
         context.Response.Body = responseBody;
 

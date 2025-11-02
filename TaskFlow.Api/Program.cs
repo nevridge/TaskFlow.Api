@@ -9,6 +9,7 @@ using TaskFlow.Api.Middleware;
 using TaskFlow.Api.Repositories;
 using TaskFlow.Api.Services;
 using TaskFlow.Api.Validators;
+using TaskFlow.Api.Configuration;
 
 // Configure Serilog with safe paths for containers
 // LOG_PATH can be overridden via environment variable for flexibility
@@ -60,11 +61,13 @@ try
     builder.Services.AddHealthChecks()
         .AddDbContextCheck<TaskDbContext>(
             name: "database",
-            tags: new[] { "ready" })
+            tags: ["ready"])
         .AddCheck(
             name: "self",
             check: () => HealthCheckResult.Healthy("Application is running"),
-            tags: new[] { "live" });
+            tags: ["live"]);
+
+    builder.Services.ConfigureJsonSerialization();
 
     var app = builder.Build();
 

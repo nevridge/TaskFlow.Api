@@ -1,5 +1,8 @@
 using System.Text.Json;
+using Microsoft.AspNetCore.Http.Json;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
+using Microsoft.Extensions.Options;
+using TaskFlow.Api.Configuration;
 
 namespace TaskFlow.Api.HealthChecks;
 
@@ -12,11 +15,10 @@ public static class HealthCheckResponseWriter
     {
         context.Response.ContentType = "application/json; charset=utf-8";
 
-        var options = new JsonSerializerOptions
-        {
-            WriteIndented = true,
-            PropertyNamingPolicy = JsonNamingPolicy.CamelCase
-        };
+        // Retrieve options from DI container
+        var options = context.RequestServices
+            .GetService<IOptions<JsonOptions>>()?.Value?.SerializerOptions
+            ?? JsonSerializerOptionsProvider.Default;
 
         try
         {
