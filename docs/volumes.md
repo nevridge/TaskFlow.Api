@@ -425,9 +425,16 @@ docker inspect taskflow-api | grep -A 10 Mounts
 ```
 
 **Solutions:**
-- Ensure `./data:/app/data` volume mount is present
+- Ensure `taskflow-data:/app/data` volume mount is present in docker-compose.yml
 - Verify the connection string points to `/app/data/tasks.db`
-- Check that the database file exists on the host: `ls -la ./data/`
+- Check that the database file exists in the volume:
+  ```bash
+  # Using running container
+  docker compose exec taskflow-api ls -la /app/data
+  
+  # Or inspect volume contents directly
+  docker run --rm -v taskflowapi_taskflow-data:/data alpine ls -la /data
+  ```
 
 ### Permission denied errors
 
