@@ -474,6 +474,34 @@ If deployment fails:
 
 The project includes GitHub Actions workflows for continuous integration, deployment, and security scanning:
 
+### Build and Test Workflow
+**File**: `.github/workflows/ci.yml`
+
+**Purpose**: Continuous integration pipeline that builds, tests, and enforces code quality standards
+
+**Triggers**:
+- Push to any branch
+- Pull requests
+
+**Jobs**:
+1. **lint**: Validates C# code formatting using `dotnet format`
+2. **build**: Compiles the solution in Release configuration
+3. **test**: Runs unit tests with code coverage and enforces minimum coverage threshold
+
+**Code Coverage Gating**:
+The test job enforces a minimum line coverage threshold of 58% using Coverlet. The build will fail if coverage drops below this threshold, ensuring code quality is maintained. The workflow generates and displays a detailed coverage report including:
+- Line coverage percentage
+- Branch coverage percentage  
+- Method coverage percentage
+- Per-class coverage breakdown
+
+**Key features**:
+- Uses Coverlet for code coverage collection
+- Enforces minimum 58% line coverage threshold
+- Generates detailed coverage reports with ReportGenerator
+- Excludes test frameworks, Program.cs, and middleware from coverage calculations
+- Coverage threshold can be incrementally increased as test coverage improves
+
 ### Security Scanning Workflows
 
 The repository includes automated security scanning to identify vulnerabilities:
