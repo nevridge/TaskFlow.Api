@@ -84,9 +84,15 @@ The smoke test job performs the following checks:
    task_id=$(echo "$task_response" | jq -r '.id')
    echo "Created task with ID: $task_id"
    
-   get_response=$(curl -s http://localhost:8080/api/TaskItems/$task_id)
-   title=$(echo "$get_response" | jq -r '.title')
-   echo "Retrieved task title: $title"
+   # Validate that task_id is not empty or "null" before proceeding
+   if [ -z "$task_id" ] || [ "$task_id" = "null" ]; then
+     echo "Error: Failed to create task or extract valid task ID. Response: $task_response"
+     echo "Aborting GET request for task."
+   else
+     get_response=$(curl -s http://localhost:8080/api/TaskItems/$task_id)
+     title=$(echo "$get_response" | jq -r '.title')
+     echo "Retrieved task title: $title"
+   fi
    ```
 
 4. **Clean up**:
