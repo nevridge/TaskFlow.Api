@@ -13,9 +13,9 @@ services:
       - Database__MigrateOnStartup=true
       - DOTNET_RUNNING_IN_CONTAINER=true
     volumes:
-      # Mount host directories for data and logs persistence
-      - ./data:/app/data
-      - ./logs:/app/logs
+      # Use Docker named volumes for data and logs persistence
+      - taskflow-data:/app/data
+      - taskflow-logs:/app/logs
     container_name: taskflow-api
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
@@ -23,3 +23,9 @@ services:
       timeout: 10s
       retries: 3
       start_period: 40s
+
+volumes:
+  taskflow-data:
+    driver: local
+  taskflow-logs:
+    driver: local
