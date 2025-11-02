@@ -62,27 +62,34 @@ For command-line or non-Visual Studio users:
    
    **Bash/PowerShell:**
    ```shell
-   docker-compose up
+   docker compose up
    ```
    
    The API will be available at `http://localhost:8080`. The development configuration automatically:
    - Runs in Development mode
    - Auto-applies database migrations
-   - Persists the SQLite database in a Docker volume
+   - Persists the SQLite database in a Docker named volume
+   - Persists application logs in a Docker named volume
 
 2. **Stop the containers**:
    
    **Bash/PowerShell:**
    ```shell
-   docker-compose down
+   docker compose down
    ```
+   
+   **Note:** This preserves data in volumes. To remove data as well, use `docker compose down -v`.
 
 3. **View logs**:
    
    **Bash/PowerShell:**
    ```shell
-   docker-compose logs -f
+   docker compose logs -f
    ```
+
+4. **Test volume persistence** (optional):
+   
+   See [docs/VOLUME_TESTING.md](docs/VOLUME_TESTING.md) for comprehensive testing instructions to verify data persists across container recreation.
 
 **Docker Compose Services:**
 The `docker-compose.yml` defines the following service:
@@ -101,10 +108,11 @@ The `docker-compose.yml` defines the following service:
 
 **Important Notes:**
 - Docker named volumes (`taskflow-data` and `taskflow-logs`) are automatically created on first run
-- Data persists across container removal and recreation - volumes remain until explicitly deleted
+- **Data persists** across container removal and recreation - volumes remain until explicitly deleted with `-v` flag
 - Database file is stored at `/app/data/tasks.dev.db` (configured in `appsettings.Development.json`)
 - Application logs are written to `/app/logs/log.txt`
 - Volumes are managed by Docker and stored in Docker's volume directory (typically `/var/lib/docker/volumes/` on Linux)
+- To verify persistence works correctly, see [docs/VOLUME_TESTING.md](docs/VOLUME_TESTING.md)
 - For detailed volume configuration, management commands, and troubleshooting, see [docs/volumes.md](docs/volumes.md)
 
 #### Option 3: Docker CLI (Alternative)
