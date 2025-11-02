@@ -12,6 +12,7 @@ jobs:
           dotnet-version: '9.0.x'
       - run: dotnet format --verify-no-changes
   build:
+    needs: lint
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -22,6 +23,7 @@ jobs:
           dotnet-version: '9.0.x'
       - run: dotnet build --configuration Release
   test:
+    needs: lint
     runs-on: ubuntu-latest
     permissions:
       contents: read
