@@ -253,7 +253,7 @@ Configure GitHub Actions to authenticate using OIDC:
 
 **Bash:**
 ```bash
-APP_ID="your-app-id-from-step-1"
+APP_ID=$(az ad app list --display-name "TaskFlowDeployment" --query "[0].appId" -o tsv)
 
 # For main branch deployments
 az ad app federated-credential create \
