@@ -20,19 +20,19 @@ public static class ApplicationInsightsServiceExtensions
         {
             // Enable adaptive sampling to control telemetry volume and costs
             EnableAdaptiveSampling = true,
-            
+
             // Enable SQL dependency tracking
             EnableDependencyTrackingTelemetryModule = true,
-            
+
             // Enable performance counter collection (if available)
             EnablePerformanceCounterCollectionModule = true,
-            
+
             // Enable request tracking for all HTTP requests
             EnableRequestTrackingTelemetryModule = true,
-            
+
             // Enable event counter collection
             EnableEventCounterCollectionModule = true
-            
+
             // Connection string will be read from configuration (appsettings.json)
             // Priority: ConnectionString > InstrumentationKey
         };
