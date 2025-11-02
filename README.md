@@ -280,7 +280,7 @@ az ad app federated-credential create \
 
 Add these secrets in GitHub (**Settings → Secrets and variables → Actions**):
 - `AZURE_CLIENT_ID` - The `appId` from Step 1
-- `AZURE_TENANT_ID` - The `tenant` from Step 1  
+- `AZURE_TENANT_ID` - The `tenant` from Step 1
 - `AZURE_SUBSCRIPTION_ID` - Your Azure subscription ID
 
 **For detailed setup instructions and troubleshooting, see [Azure OIDC Authentication Guide](docs/AZURE_OIDC_AUTHENTICATION.md).**
