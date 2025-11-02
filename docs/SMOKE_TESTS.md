@@ -48,6 +48,7 @@ The smoke test job performs the following checks:
 
 2. **Wait for the application to be ready** (optional, but recommended):
    ```bash
+   # Wait up to 60 seconds (30 attempts x 2 second intervals)
    for i in {1..30}; do
      status=$(curl -s -o /dev/null -w '%{http_code}' http://localhost:8080/health || echo "000")
      echo "Attempt $i: Health check status: $status"
@@ -105,6 +106,7 @@ echo "Starting application..."
 docker compose up -d
 
 echo "Waiting for application to be ready..."
+# Wait up to 60 seconds (30 attempts x 2 second intervals)
 for i in {1..30}; do
   status=$(curl -s -o /dev/null -w '%{http_code}' http://localhost:8080/health || echo "000")
   echo "Attempt $i: Health check status: $status"
