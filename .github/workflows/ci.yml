@@ -106,6 +106,7 @@ jobs:
           echo "Created task with ID: $task_id"
           if [ -z "$task_id" ] || [ "$task_id" = "null" ]; then
             echo "ERROR: Failed to create task"
+            docker compose logs
             exit 1
           fi
           
