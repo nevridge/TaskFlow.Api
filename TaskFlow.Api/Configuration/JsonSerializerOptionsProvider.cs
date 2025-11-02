@@ -8,9 +8,7 @@ public static class JsonSerializerOptionsProvider
     private static readonly JsonSerializerOptions _defaultOptions = new()
     {
         WriteIndented = true,
-        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
-        PropertyNameCaseInsensitive = true
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase
     };
 
     public static JsonSerializerOptions Default => _defaultOptions;
