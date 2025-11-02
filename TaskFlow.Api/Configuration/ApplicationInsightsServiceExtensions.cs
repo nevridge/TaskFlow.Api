@@ -31,11 +31,10 @@ public static class ApplicationInsightsServiceExtensions
             EnableRequestTrackingTelemetryModule = true,
             
             // Enable event counter collection
-            EnableEventCounterCollectionModule = true,
+            EnableEventCounterCollectionModule = true
             
-            // Connection string is read from configuration
+            // Connection string will be read from configuration (appsettings.json)
             // Priority: ConnectionString > InstrumentationKey
-            ConnectionString = null // Will be read from appsettings.json
         };
 
         services.AddApplicationInsightsTelemetry(options);
