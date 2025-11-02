@@ -3,10 +3,8 @@ using TaskFlow.Api.Models;
 
 namespace TaskFlow.Api.Data;
 
-public class TaskDbContext : DbContext
+public class TaskDbContext(DbContextOptions<TaskDbContext> options) : DbContext(options)
 {
-    public TaskDbContext(DbContextOptions<TaskDbContext> options) : base(options) { }
-
     public DbSet<TaskItem> TaskItems => Set<TaskItem>();
 }
 
