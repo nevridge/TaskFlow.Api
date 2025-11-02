@@ -144,7 +144,7 @@ The Trivy workflow is configured to fail on CRITICAL and HIGH severity vulnerabi
 ### Example: Updating base image for Trivy alerts
 ```dockerfile
 # Before
-FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS final
+FROM mcr.microsoft.com/dotnet/aspnet:9.0.0 AS final
 
 # After (if newer patch version is available)
 FROM mcr.microsoft.com/dotnet/aspnet:9.0.1 AS final
