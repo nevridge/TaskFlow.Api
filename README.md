@@ -8,6 +8,7 @@ TaskFlow.Api is a small .NET 9 Web API for managing task items (CRUD). The proje
 - Persistence using Entity Framework Core with SQLite (`TaskDbContext`).
 - Migrations generated and tracked in `Migrations/` so schema changes are versioned.
 - Structured logging with Serilog (console + rolling file sink).
+- Application Insights telemetry integration for monitoring (optional, configured via connection string).
 - Configuration-driven connection strings and feature flags via `appsettings.json` and environment variables.
 - Swagger/OpenAPI support enabled in Development.
 
@@ -1042,6 +1043,7 @@ builder.Services.AddHealthChecks()
   - Example default: `Data Source=tasks.db`
   - Override via environment variable: `ConnectionStrings__DefaultConnection`
 - Automatic migration control: `Database:MigrateOnStartup` (boolean). By default the project will only auto-migrate in `Development`. Set `Database__MigrateOnStartup=true` to opt in on other environments (not recommended for production).
+- Application Insights: `ApplicationInsights:ConnectionString` (optional). Leave empty for local development or when you don't want to send telemetry. See the Application Insights section for details.
 
 ## Database & migrations
 - Migration C# files under `Migrations/` must be kept in source control — they define your schema.
@@ -1057,6 +1059,114 @@ builder.Services.AddHealthChecks()
 - Log configuration can be extended in `appsettings.json` (Serilog section) and via environment variables.
 - Ensure `logs/` is ignored in Git (see .gitignore recommendations below).
 - For Docker volume configuration, see [docs/volumes.md](docs/volumes.md).
+
+## Application Insights
+
+Application Insights is integrated for monitoring and telemetry. It provides insights into application performance, dependencies, exceptions, and user behavior.
+
+### Configuration
+
+Configure Application Insights by setting the connection string in `appsettings.json` or via environment variable:
+
+**appsettings.json:**
+```json
+{
+  "ApplicationInsights": {
+    "ConnectionString": "InstrumentationKey=00000000-0000-0000-0000-000000000000;IngestionEndpoint=https://..."
+  }
+}
+```
+
+**Environment variable:**
+```bash
+export ApplicationInsights__ConnectionString="InstrumentationKey=..."
+```
+
+**Docker:**
+```bash
+docker run -e ApplicationInsights__ConnectionString="InstrumentationKey=..." ...
+```
+
+### Features enabled
+
+The following telemetry is automatically collected:
+- **HTTP requests**: All API requests with response times, status codes, and URLs
+- **Dependencies**: Database queries (SQLite), external HTTP calls
+- **Exceptions**: Unhandled exceptions with stack traces
+- **Performance counters**: CPU, memory usage (when available)
+- **Event counters**: .NET runtime metrics
+- **Adaptive sampling**: Automatically enabled to control data volume and costs
+
+### Cost control
+
+**Zero cost when not configured**: Application Insights only charges for telemetry data ingested. If you don't provide a connection string, no data is sent and no costs are incurred.
+
+**Adaptive sampling**: Enabled by default. It automatically reduces telemetry volume during high-traffic periods while preserving statistical accuracy. This keeps costs predictable.
+
+**Sampling rate**: The default adaptive sampling targets 5 items/second. For most small to medium applications, this results in minimal costs (often within free tier limits of 5GB/month).
+
+**No infrastructure charges**: Application Insights resources in Azure don't have infrastructure costs—you only pay for data ingested and retained.
+
+### Setting up Application Insights in Azure
+
+1. **Create Application Insights resource** in Azure Portal:
+   - Navigate to **Create a resource** → **Application Insights**
+   - Choose a name, resource group, and region
+   - Select workspace-based mode (recommended)
+
+2. **Get the connection string**:
+   - In the Application Insights resource, go to **Overview**
+   - Copy the **Connection String** (not just the Instrumentation Key)
+
+3. **Configure the application**:
+   - Add the connection string to `appsettings.json` or as an environment variable
+   - Restart the application
+
+4. **Verify telemetry**:
+   - Open the Application Insights resource in Azure Portal
+   - Navigate to **Live Metrics** to see real-time telemetry
+   - Check **Transaction search** for recent requests
+
+### Local development
+
+For local development, you have several options:
+
+1. **No configuration** (recommended): Leave the connection string empty. The application will run normally without sending telemetry.
+
+2. **Use a development Application Insights resource**: Create a separate Application Insights resource for development to avoid mixing dev and production data.
+
+3. **Use local Application Insights emulator**: Not officially supported, but you can use connection string from a dev resource for testing.
+
+### Teardown and cost management
+
+**To stop all charges**:
+1. Remove the connection string from configuration (or set to empty string)
+2. Restart the application
+3. (Optional) Delete the Application Insights resource in Azure Portal to ensure no future charges
+
+**To reduce costs without removing**:
+- Adaptive sampling is already enabled by default
+- Configure shorter data retention (default is 90 days, minimum is 30 days)
+- Set daily cap in Application Insights resource (under **Usage and estimated costs**)
+
+**Monitoring costs**:
+- View costs in Azure Portal under **Cost Management**
+- Check ingestion volume in Application Insights → **Usage and estimated costs**
+- The first 5 GB/month is free (as of 2024)
+
+### Disabling Application Insights
+
+To completely disable Application Insights:
+
+1. **Remove or comment out** the service registration in `Program.cs`:
+   ```csharp
+   // builder.Services.AddApplicationInsights();
+   ```
+
+2. **Remove the NuGet package** (optional):
+   ```bash
+   dotnet remove package Microsoft.ApplicationInsights.AspNetCore
+   ```
 
 ## Security & production notes
 - Do not commit local runtime artifacts such as the SQLite DB file or log files.
@@ -1087,6 +1197,7 @@ TaskFlow.Api uses the **ServiceCollection Extension Pattern** for organizing dep
 - `ApplicationServiceExtensions` — Business logic services  
 - `ValidationServiceExtensions` — FluentValidation configuration
 - `HealthCheckServiceExtensions` — Health monitoring services
+- `ApplicationInsightsServiceExtensions` — Application Insights telemetry
 - `SwaggerServiceExtensions` — API documentation services
 - `LoggingServiceExtensions` — Serilog configuration
 - `JsonConfigurationExtensions` — JSON serialization options
