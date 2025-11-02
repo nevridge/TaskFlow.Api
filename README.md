@@ -472,6 +472,48 @@ If deployment fails:
 
 ## CI/CD workflows
 
+The project includes GitHub Actions workflows for continuous integration, deployment, and security scanning:
+
+### Security Scanning Workflows
+
+The repository includes automated security scanning to identify vulnerabilities:
+
+#### Workflow: CodeQL Security Analysis
+**File**: `.github/workflows/codeql.yml`
+
+**Purpose**: Static analysis of C# code to identify security vulnerabilities and code quality issues
+
+**Triggers**:
+- Push to `main` branch
+- Pull requests to `main`
+- Weekly schedule (Sundays at 4am UTC)
+
+**Key features**:
+- Buildless scanning (no compilation required for .NET 9)
+- Supports C# 12 and .NET 9
+- Results appear in GitHub Security > Code scanning alerts
+- Identifies SQL injection, XSS, and other security vulnerabilities
+
+#### Workflow: Docker Security Scan (Trivy)
+**File**: `.github/workflows/security-scan.yml`
+
+**Purpose**: Scans Docker images for OS and library vulnerabilities
+
+**Triggers**:
+- Push to `main` branch
+- Pull requests to `main`
+- Weekly schedule (Sundays at 5am UTC)
+
+**Key features**:
+- Scans for CRITICAL, HIGH, and MEDIUM severity vulnerabilities
+- Fails build on CRITICAL/HIGH findings
+- Uploads SARIF results to GitHub Security tab
+- Stores detailed scan reports as artifacts (30-day retention)
+
+**For detailed information**, see [docs/SECURITY_SCANNING.md](docs/SECURITY_SCANNING.md)
+
+### Deployment Workflows
+
 The project includes two GitHub Actions workflows for continuous deployment:
 
 ### Workflow: Deploy to Azure Production
