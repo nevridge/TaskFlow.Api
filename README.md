@@ -36,6 +36,8 @@ TaskFlow.Api is a small .NET 9 Web API for managing task items (CRUD). The proje
 ## Docker deployment
 The project includes Docker support for both development and production deployments.
 
+> **📖 For comprehensive Docker configuration details**, including configuration comparisons, troubleshooting, and best practices, see [Docker Configuration Guide](docs/DOCKER_CONFIGURATION.md).
+
 ### Local development with Docker
 
 #### Option 1: Visual Studio (Windows/Mac)
@@ -116,6 +118,38 @@ docker build -f Dockerfile.dev -t taskflow-api:dev .
 docker run -p 8080:8080 -e ASPNETCORE_ENVIRONMENT=Development -e Database__MigrateOnStartup=true taskflow-api:dev
 ```
 
+### Production-like local testing
+
+Test the production configuration locally before deployment using the production docker-compose file:
+
+**Bash/PowerShell:**
+```shell
+docker-compose -f docker-compose.prod.yml up
+```
+
+This configuration:
+- Uses the production Dockerfile with repository root as build context
+- Sets `ASPNETCORE_ENVIRONMENT=Production` (disables Swagger, uses production logging)
+- Sets `Database__MigrateOnStartup=false` (requires manual migrations)
+- Uses production database path `/app/data/tasks.db`
+- Includes same volume mounts and health checks as development
+
+**First-time setup** - Apply migrations before starting:
+```shell
+# Option 1: Use dotnet CLI (if .NET 9 SDK installed locally)
+dotnet ef database update --project TaskFlow.Api
+
+# Option 2: Run container with migrations enabled for first run
+docker-compose -f docker-compose.prod.yml run --rm -e Database__MigrateOnStartup=true taskflow-api
+```
+
+**Stop the containers:**
+```shell
+docker-compose -f docker-compose.prod.yml down
+```
+
+This approach ensures your local testing environment accurately mirrors production deployment behavior.
+
 ### Production deployment
 
 #### Building the Docker image
@@ -173,6 +207,8 @@ docker run -d -p 8080:8080 `
 ```
 
 ### Docker configuration summary
+
+#### Dockerfiles
 - **Development Dockerfile** (`Dockerfile.dev`):
   - Uses .NET 9 SDK and ASP.NET runtime
   - Build context is the `TaskFlow.Api` directory
@@ -186,13 +222,23 @@ docker run -d -p 8080:8080 `
   - Creates `/app/logs` and `/app/data` directories for persistence
   - Exposes port 8080
 
-- **docker-compose.yml**:
+#### Docker Compose Files
+- **docker-compose.yml** (Development):
   - Builds using `Dockerfile.dev` from the `TaskFlow.Api` directory
   - Mounts `./data:/app/data` for database persistence
   - Mounts `./logs:/app/logs` for log persistence
   - Configures development environment with automatic migrations
+  - Container name: `taskflow-api`
+  - Database: `/app/data/tasks.dev.db`
 
-- **Key environment variables**:
+- **docker-compose.prod.yml** (Production):
+  - Builds using `Dockerfile` from the repository root
+  - Same volume mounts as development
+  - Configures production environment with manual migration control
+  - Container name: `taskflow-api-prod`
+  - Database: `/app/data/tasks.db`
+
+#### Key environment variables
   - `ASPNETCORE_ENVIRONMENT`: Controls environment (Development/Production)
   - `ASPNETCORE_URLS` / `ASPNETCORE_HTTP_PORTS`: Configure Kestrel ports
   - `Database__MigrateOnStartup`: Enable/disable automatic migrations (true/false)
@@ -200,7 +246,16 @@ docker run -d -p 8080:8080 `
   - `LOG_PATH`: Override log file path (default: `/app/logs/log.txt`)
   - `DOTNET_RUNNING_IN_CONTAINER`: Signals container runtime
 
-For detailed volume configuration and troubleshooting, see [docs/volumes.md](docs/volumes.md).
+#### Configuration differences explained
+The intentional differences between development and production configurations are:
+- **Build context**: Development optimizes for rapid iteration, production supports multi-project solutions
+- **Environment variables**: Development enables Swagger and verbose logging, production uses optimized settings
+- **Migration strategy**: Development auto-applies migrations, production requires explicit control
+- **Database files**: Separate database files prevent mixing dev and production-like test data
+
+For comprehensive configuration details, comparisons, and troubleshooting, see [Docker Configuration Guide](docs/DOCKER_CONFIGURATION.md).
+
+For detailed volume configuration, see [docs/volumes.md](docs/volumes.md).
 
 ### Docker notes
 - The `.dockerignore` file excludes build artifacts, dependencies, and unnecessary files from the build context
