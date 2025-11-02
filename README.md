@@ -331,14 +331,21 @@ az ad sp create-for-rbac `
 
 #### Deployment workflow configuration
 
-The workflow is configured with the following Azure resources (in `.github/workflows/deploy.yaml`):
-- **Resource Group**: `TaskFlowRG` (location: `eastus`)
-- **Azure Container Registry (ACR)**: `taskflowregistry`
-- **App Service Plan**: `TaskFlowAppServicePlan` (Linux, B1 SKU)
-- **Web App**: `taskflowapi2074394909`
-- **ACR Image**: `taskflowapi9`
+The workflow uses a **standardized naming convention** for Azure resources. All resource names are computed automatically based on organization, application, and environment identifiers. See [docs/deploy.md](docs/deploy.md) for complete details.
 
-**Note**: You should customize these resource names in the workflow file to match your requirements.
+**Default production resource names** (in `.github/workflows/deploy.yaml`):
+- **Organization**: `nevridge`
+- **Application**: `taskflow`
+- **Environment**: `prod`
+- **Resource Group**: `nevridge-taskflow-prod-rg` (location: `eastus`)
+- **Azure Container Registry (ACR)**: `nevridgetaskflowprodacr`
+- **App Service Plan**: `nevridge-taskflow-prod-plan` (Linux, B1 SKU)
+- **Web App**: `nevridge-taskflow-prod-web`
+- **ACR Image**: `taskflowapi`
+
+**Public URL**: `https://nevridge-taskflow-prod-web.azurewebsites.net`
+
+To customize, modify the `ORG_NAME`, `APP_NAME`, or `ENV` variables at the top of the workflow file. For details on the naming convention and validation rules, see the [Resource Naming Convention Guide](docs/deploy.md).
 
 #### Triggering a deployment
 
