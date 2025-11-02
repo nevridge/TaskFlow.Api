@@ -1,6 +1,9 @@
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using TaskFlow.Api.Data;
+using TaskFlow.Api.HealthChecks;
 
 namespace TaskFlow.Api.Configuration;
 
@@ -27,5 +30,45 @@ public static class HealthCheckServiceExtensions
                 tags: ["live"]);
 
         return services;
+    }
+
+    /// <summary>
+    /// Creates health check options with logging and standard status codes
+    /// </summary>
+    /// <returns>Configured health check options</returns>
+    public static HealthCheckOptions CreateHealthCheckOptions()
+    {
+        return new HealthCheckOptions
+        {
+            ResponseWriter = HealthCheckResponseWriter.WriteHealthCheckResponse,
+            ResultStatusCodes =
+            {
+                [HealthStatus.Healthy] = StatusCodes.Status200OK,
+                [HealthStatus.Degraded] = StatusCodes.Status200OK,
+                [HealthStatus.Unhealthy] = StatusCodes.Status503ServiceUnavailable
+            }
+        };
+    }
+
+    /// <summary>
+    /// Creates health check options for readiness probe (database checks)
+    /// </summary>
+    /// <returns>Configured health check options for readiness</returns>
+    public static HealthCheckOptions CreateReadinessHealthCheckOptions()
+    {
+        var options = CreateHealthCheckOptions();
+        options.Predicate = check => check.Tags.Contains("ready");
+        return options;
+    }
+
+    /// <summary>
+    /// Creates health check options for liveness probe (self checks)
+    /// </summary>
+    /// <returns>Configured health check options for liveness</returns>
+    public static HealthCheckOptions CreateLivenessHealthCheckOptions()
+    {
+        var options = CreateHealthCheckOptions();
+        options.Predicate = check => check.Tags.Contains("live");
+        return options;
     }
 }
