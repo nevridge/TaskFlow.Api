@@ -174,11 +174,13 @@ jobs:
             echo "App Service Plan ${{ env.PLAN_NAME }} exists"
           else
             echo "Creating App Service Plan ${{ env.PLAN_NAME }}"
+            echo "NOTE: Using Free tier (F1) due to Azure subscription quota limitations."
+            echo "To use Basic (B1) or higher tiers, request quota increase in Azure Portal."
             az appservice plan create \
               -n ${{ env.PLAN_NAME }} \
               -g ${{ env.RG_NAME }} \
               --is-linux \
-              --sku B1
+              --sku F1
           fi
 
       - name: Ensure Web App exists

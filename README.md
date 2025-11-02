@@ -360,7 +360,7 @@ The workflow uses a **standardized naming convention** for Azure resources. All 
 - **Environment**: `prod`
 - **Resource Group**: `nevridge-taskflow-prod-rg` (location: `eastus`)
 - **Azure Container Registry (ACR)**: `nevridgetaskflowprodacr`
-- **App Service Plan**: `nevridge-taskflow-prod-plan` (Linux, B1 SKU)
+- **App Service Plan**: `nevridge-taskflow-prod-plan` (Linux, F1 SKU - Free tier)
 - **Web App**: `nevridge-taskflow-prod-web`
 - **ACR Image**: `taskflowapi`
 
@@ -390,12 +390,14 @@ git push origin v1.0.0
 2. **Creates Azure resources** if they don't exist:
    - Resource Group
    - Azure Container Registry (Basic SKU)
-   - App Service Plan (Linux B1)
+   - App Service Plan (Linux F1 - Free tier)
    - Web App with Linux container
 3. **Configures managed identity**: Enables system-assigned managed identity for the Web App
 4. **Grants ACR access**: Assigns AcrPull role to the Web App identity
 5. **Deploys container**: Updates the Web App with the latest image
 6. **Verifies deployment**: Checks the `/health` endpoint for successful startup
+
+**Note**: The deployment uses the Free tier (F1) App Service Plan due to Azure subscription quota limitations. To use Basic (B1) or higher tiers, you need to request a quota increase in the Azure Portal. See the [Azure Quota Limitations](#azure-quota-limitations) section below for details.
 
 #### Post-deployment
 
@@ -581,6 +583,56 @@ After tearing down production resources, you can redeploy by:
 
 The deployment workflow will recreate all necessary resources automatically.
 
+### Azure quota limitations
+
+The deployment workflow uses the **Free tier (F1)** App Service Plan by default because many Azure subscriptions have a quota limit of 0 for Basic VMs, which prevents creating Basic (B1) or higher tier App Service Plans.
+
+#### Symptoms of quota limitations
+
+If you see an error like this during deployment:
+```
+ERROR: Operation cannot be completed without additional quota.
+Current limit (Basic VMs): 0
+Current Usage: 0
+Amount required for this deployment (Basic VMs): 1
+```
+
+This means your Azure subscription doesn't have quota allocated for the requested SKU tier.
+
+#### How to request quota increase
+
+To use Basic (B1), Standard (S1), or Premium tiers, you need to request a quota increase:
+
+1. **Open Azure Portal** and navigate to **Subscriptions**
+2. Select your subscription
+3. Go to **Usage + quotas** in the left menu
+4. Search for "**App Service**" or "**Basic VMs**"
+5. Click on the quota you want to increase
+6. Click **Request increase**
+7. Fill out the form with your requirements:
+   - **New quota limit**: At least 1 (or more if you plan multiple instances)
+   - **Business justification**: Provide a brief explanation (e.g., "Need dedicated compute for production workload")
+8. Submit the request
+
+**Processing time**: Quota increase requests typically take 1-3 business days to be reviewed and approved.
+
+#### Alternative: Use Free tier for testing
+
+The Free tier (F1) has limitations but works well for:
+- Initial testing and validation
+- Development environments
+- Low-traffic demos
+- Proof of concept deployments
+
+**Free tier limitations**:
+- 60 minutes/day compute time
+- Shared compute resources
+- No custom domains
+- No always-on feature
+- 1 GB storage
+
+Once your quota is approved, you can update the workflow to use a higher SKU by editing `.github/workflows/deploy.yaml` and changing `--sku F1` to `--sku B1` (or higher).
+
 ### Azure deployment best practices
 
 1. **Resource naming**: Customize resource names in workflow files before first deployment
@@ -589,6 +641,7 @@ The deployment workflow will recreate all necessary resources automatically.
 4. **Monitoring**: Enable Application Insights for production deployments
 5. **Scaling**: Adjust App Service Plan SKU based on your traffic requirements
 6. **Cost optimization**: Use ephemeral deployments for testing to minimize costs
+7. **Quota planning**: Request quota increases early if you plan to use Basic or higher tiers
 
 ### Troubleshooting Azure deployments
 
@@ -758,10 +811,12 @@ To customize deployment for your environment:
 2. **Change Azure region**: Update `LOCATION` environment variable
 
 3. **Adjust App Service SKU**: Modify the `--sku` parameter in the App Service Plan creation step
-   - `F1`: Free tier (limited, not for production)
-   - `B1`: Basic (suitable for small production workloads)
-   - `S1`: Standard (production with scaling)
-   - `P1V2`: Premium (high performance)
+   - `F1`: Free tier (no quota required, limited features)
+   - `B1`: Basic (requires quota, suitable for small production workloads)
+   - `S1`: Standard (requires quota, production with scaling)
+   - `P1V2`: Premium (requires quota, high performance)
+   
+   **Important**: Basic (B1) and higher tiers require Azure quota allocation. See [Azure Quota Limitations](#azure-quota-limitations) below.
 
 4. **Add deployment slots**: Add steps to create and use deployment slots for zero-downtime deployments
 
