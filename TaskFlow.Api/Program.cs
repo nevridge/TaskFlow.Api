@@ -84,21 +84,10 @@ try
 
     app.MapControllers();
 
-    // Map health check endpoints with custom JSON response writer
-    app.MapHealthChecks("/health", new Microsoft.AspNetCore.Diagnostics.HealthChecks.HealthCheckOptions
-    {
-        ResponseWriter = HealthCheckResponseWriter.WriteHealthCheckResponse
-    });
-    app.MapHealthChecks("/health/ready", new Microsoft.AspNetCore.Diagnostics.HealthChecks.HealthCheckOptions
-    {
-        Predicate = (check) => check.Tags.Contains("ready"),
-        ResponseWriter = HealthCheckResponseWriter.WriteHealthCheckResponse
-    });
-    app.MapHealthChecks("/health/live", new Microsoft.AspNetCore.Diagnostics.HealthChecks.HealthCheckOptions
-    {
-        Predicate = (check) => check.Tags.Contains("live"),
-        ResponseWriter = HealthCheckResponseWriter.WriteHealthCheckResponse
-    });
+    // Map health check endpoints with custom JSON response writer and failure logging
+    app.MapHealthChecks("/health", HealthCheckServiceExtensions.CreateHealthCheckOptions());
+    app.MapHealthChecks("/health/ready", HealthCheckServiceExtensions.CreateReadinessHealthCheckOptions());
+    app.MapHealthChecks("/health/live", HealthCheckServiceExtensions.CreateLivenessHealthCheckOptions());
 
     Log.Information("Starting web host on port {Port}", Environment.GetEnvironmentVariable("ASPNETCORE_HTTP_PORTS") ?? "8080");
     app.Run();
