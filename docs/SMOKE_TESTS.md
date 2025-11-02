@@ -159,7 +159,11 @@ task_response=$(curl -s -X POST http://localhost:8080/api/TaskItems \
   -d '{"title": "Smoke Test Task", "description": "Integration test", "isComplete": false}')
 task_id=$(echo "$task_response" | jq -r '.id')
 echo "Created task with ID: $task_id"
-
+if [ -z "$task_id" ] || [ "$task_id" = "null" ]; then
+  echo "ERROR: Failed to create task"
+  docker compose logs
+  exit 1
+fi
 # Verify the task was created
 get_response=$(curl -s http://localhost:8080/api/TaskItems/$task_id)
 title=$(echo "$get_response" | jq -r '.title')
