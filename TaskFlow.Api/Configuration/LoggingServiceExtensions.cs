@@ -31,7 +31,7 @@ public static class LoggingServiceExtensions
         // LOG_PATH can be overridden via environment variable for flexibility
         const string DefaultLogPath = "/app/logs/log.txt";
         var logPath = Environment.GetEnvironmentVariable("LOG_PATH") ?? DefaultLogPath;
-        
+
         Log.Logger = new LoggerConfiguration()
             .WriteTo.Console()
             .WriteTo.File(

@@ -123,8 +123,8 @@ public class ServiceCollectionExtensionsTests
         services.ConfigureJsonSerialization();
 
         // Assert
-        services.Should().Contain(s => 
-            s.ServiceType.Name.Contains("JsonOptions") || 
+        services.Should().Contain(s =>
+            s.ServiceType.Name.Contains("JsonOptions") ||
             s.ServiceType.Name.Contains("ConfigureOptions"));
     }
 
@@ -148,7 +148,7 @@ public class ServiceCollectionExtensionsTests
         services.AddApplicationHealthChecks();
         services.AddSwagger();
         services.ConfigureJsonSerialization();
-        
+
         var serviceProvider = services.BuildServiceProvider();
 
         // Assert - verify all critical services are registered
