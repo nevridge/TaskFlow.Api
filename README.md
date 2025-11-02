@@ -261,7 +261,7 @@ az ad app federated-credential create \
   --parameters '{
     "name": "TaskFlowGitHubActionsMain",
     "issuer": "https://token.actions.githubusercontent.com",
-    "subject": "repo:YOUR_ORG/YOUR_REPO:ref:refs/heads/main",
+    "subject": "repo:nevridge/TaskFlow.Api:ref:refs/heads/main",
     "audiences": ["api://AzureADTokenExchange"]
   }'
 
@@ -271,7 +271,7 @@ az ad app federated-credential create \
   --parameters '{
     "name": "TaskFlowGitHubActionsTags",
     "issuer": "https://token.actions.githubusercontent.com",
-    "subject": "repo:YOUR_ORG/YOUR_REPO:ref:refs/tags/v*",
+    "subject": "repo:nevridge/TaskFlow.Api:ref:refs/tags/v*",
     "audiences": ["api://AzureADTokenExchange"]
   }'
 ```
