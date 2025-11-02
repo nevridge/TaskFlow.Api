@@ -39,6 +39,8 @@ TaskFlow.Api supports multiple Docker configurations optimized for different dep
 | **Health Check** | Enabled (40s start period) | Enabled (40s start period) |
 | **Port Mapping** | `8080:8080` | `8080:8080` |
 
+**Note on service names**: Both compose files define the service as `taskflow-api`, which is used in `docker compose` commands. The container names (`taskflow-api` and `taskflow-api-prod`) are for the running containers and allow both to run simultaneously.
+
 ### Environment Variables
 
 #### Common to Both Environments
@@ -164,6 +166,7 @@ docker-compose -f docker-compose.prod.yml up
 dotnet ef database update --project TaskFlow.Api
 
 # Option 2: Run container with migrations enabled for first run
+# Note: 'taskflow-api' is the service name (not the container name 'taskflow-api-prod')
 docker compose -f docker-compose.prod.yml run --rm -e Database__MigrateOnStartup=true taskflow-api
 ```
 
@@ -328,6 +331,7 @@ docker-compose -f docker-compose.prod.yml down
 **Solution**:
 ```bash
 # Option 1: Run container with migrations enabled
+# Note: 'taskflow-api' is the service name from docker-compose.prod.yml
 docker compose -f docker-compose.prod.yml run --rm \
   -e Database__MigrateOnStartup=true taskflow-api
 
