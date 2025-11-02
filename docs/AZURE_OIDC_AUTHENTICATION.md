@@ -77,7 +77,7 @@ The workflows in this repository already have the correct configuration:
 - Ensure workflow has `permissions.id-token: write`
 
 **"The subscription ... could not be found"**
-- Verify service principal has Contributor role: `az role assignment list --assignee $APP_ID`
+- Verify service principal has Contributor role: `az role assignment list --assignee <your-app-id>`
 
 ## Additional Resources
 
