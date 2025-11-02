@@ -458,7 +458,7 @@ docker run ...
 ## Related Documentation
 
 - [Main README](../README.md) - Getting started and deployment
-- [Volume Configuration](volumes.md) - Detailed volume setup
+- [Volume Configuration](./volumes.md) - Detailed volume setup
 - [Kubernetes Deployment](../k8s/README.md) - K8s-specific configuration
 - [Security Scanning](SECURITY_SCANNING.md) - Docker image security
 
