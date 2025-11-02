@@ -244,7 +244,7 @@ If you are migrating from legacy resource names, follow these steps:
 | `TaskFlowRG` | `nevridge-taskflow-prod-rg` | Resource Group |
 | `taskflowapi2074394909` | `nevridge-taskflow-prod-web` | Web App |
 | `taskflowregistry` | `nevridgetaskflowprodacr` | ACR |
-| `taskflowapi9` | `taskflowapi` | ACR Image Name |
+| `taskflowapi` | `taskflowapi` | ACR Image Name |
 | `TaskFlowAppServicePlan` | `nevridge-taskflow-prod-plan` | App Service Plan |
 | `taskflow-qa` (ACI) | `nevridge-taskflow-qa-aci` | Container Instance |
 
