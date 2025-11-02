@@ -14,41 +14,59 @@ jobs:
       contents: read
       security-events: write
       pull-requests: write
+    strategy:
+      matrix:
+        dockerfile:
+          - path: 'TaskFlow.Api/Dockerfile'
+            name: 'dockerfile'
+          - path: 'TaskFlow.Api/Dockerfile.dev'
+            name: 'dockerfile-dev'
+      fail-fast: false
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Check if Dockerfile exists
+        id: check-file
+        run: |
+          if [ -f "${{ matrix.dockerfile.path }}" ]; then
+            echo "exists=true" >> $GITHUB_OUTPUT
+          else
+            echo "exists=false" >> $GITHUB_OUTPUT
+          fi
+
       - name: Scan Dockerfile for misconfigurations
-        uses: aquasecurity/trivy-action@master
+        if: steps.check-file.outputs.exists == 'true'
+        uses: aquasecurity/trivy-action@0.28.0
         with:
           scan-type: 'fs'
-          scan-ref: 'TaskFlow.Api/Dockerfile'
+          scan-ref: '${{ matrix.dockerfile.path }}'
           format: 'table'
           exit-code: '1'
           severity: 'CRITICAL,HIGH'
 
       - name: Scan Dockerfile for misconfigurations (SARIF output)
-        uses: aquasecurity/trivy-action@master
-        if: always()
+        if: always() && steps.check-file.outputs.exists == 'true'
+        uses: aquasecurity/trivy-action@0.28.0
         with:
           scan-type: 'fs'
-          scan-ref: 'TaskFlow.Api/Dockerfile'
+          scan-ref: '${{ matrix.dockerfile.path }}'
           format: 'sarif'
-          output: 'trivy-dockerfile-results.sarif'
+          output: 'trivy-${{ matrix.dockerfile.name }}-results.sarif'
           severity: 'CRITICAL,HIGH,MEDIUM,LOW'
 
       - name: Upload Trivy results to GitHub Security tab
+        if: always() && steps.check-file.outputs.exists == 'true'
         uses: github/codeql-action/upload-sarif@v3
-        if: always()
         with:
-          sarif_file: 'trivy-dockerfile-results.sarif'
-          category: 'trivy-dockerfile-scan'
+          sarif_file: 'trivy-${{ matrix.dockerfile.name }}-results.sarif'
+          category: 'trivy-${{ matrix.dockerfile.name }}-scan'
 
       - name: Upload scan results as artifact
+        if: always() && steps.check-file.outputs.exists == 'true'
         uses: actions/upload-artifact@v4
-        if: always()
         with:
-          name: dockerfile-scan-results
-          path: trivy-dockerfile-results.sarif
+          name: ${{ matrix.dockerfile.name }}-scan-results
+          path: trivy-${{ matrix.dockerfile.name }}-results.sarif
           retention-days: 30
