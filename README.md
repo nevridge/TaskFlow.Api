@@ -140,7 +140,7 @@ This configuration:
 dotnet ef database update --project TaskFlow.Api
 
 # Option 2: Run container with migrations enabled for first run
-docker compose -f docker-compose.prod.yml run --rm -e Database__MigrateOnStartup=true taskflow-api
+docker-compose -f docker-compose.prod.yml run --rm -e Database__MigrateOnStartup=true taskflow-api
 ```
 
 **Stop the containers:**
