@@ -337,6 +337,7 @@ docker-compose -f docker-compose.prod.yml run --rm \
   -e Database__MigrateOnStartup=true taskflow-api
 
 # Option 2: Run migrations via dotnet CLI
+# From repository root
 dotnet ef database update --project TaskFlow.Api
 ```
 
