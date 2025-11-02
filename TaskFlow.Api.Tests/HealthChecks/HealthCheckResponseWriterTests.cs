@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Json;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
-using System.Text.Json;
 using TaskFlow.Api.Configuration;
 using TaskFlow.Api.HealthChecks;
 
@@ -14,20 +13,20 @@ public class HealthCheckResponseWriterTests
     private static DefaultHttpContext CreateHttpContextWithServices()
     {
         var services = new ServiceCollection();
-        
+
         // Configure JsonOptions using the shared configuration
         services.Configure<JsonOptions>(options =>
         {
             JsonSerializerOptionsProvider.ConfigureOptions(options.SerializerOptions);
         });
-        
+
         var serviceProvider = services.BuildServiceProvider();
-        
+
         var context = new DefaultHttpContext
         {
             RequestServices = serviceProvider
         };
-        
+
         return context;
     }
 
