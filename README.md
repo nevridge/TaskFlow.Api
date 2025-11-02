@@ -1152,7 +1152,7 @@ For local development, you have several options:
 **Monitoring costs**:
 - View costs in Azure Portal under **Cost Management**
 - Check ingestion volume in Application Insights → **Usage and estimated costs**
-- The first 5 GB/month is free (as of 2024)
+- The first 5 GB/month is free (check current pricing at [Azure Pricing page](https://azure.microsoft.com/en-us/pricing/details/monitor/); pricing may change)
 
 ### Disabling Application Insights
 
