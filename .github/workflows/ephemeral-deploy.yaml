@@ -25,8 +25,14 @@ on:
         default: 'latest'
 
 env:
-  RESOURCE_GROUP_DEFAULT: TaskFlowRG
-  ACR_NAME_DEFAULT: taskflowregistry
+  # Base naming components
+  ORG_NAME: nevridge
+  APP_NAME: taskflow
+  ENV: qa
+  
+  # Legacy defaults (for reference during migration)
+  # RESOURCE_GROUP_DEFAULT: TaskFlowRG
+  # ACR_NAME_DEFAULT: taskflowregistry
 
 permissions:
   id-token: write
@@ -59,60 +65,144 @@ jobs:
 
       - name: Compute names and set variables
         run: |
+          # Get user inputs or use defaults
           RG_INPUT='${{ github.event.inputs.resource_group }}'
           ACR_INPUT='${{ github.event.inputs.acr_name }}'
           IMAGE_TAG='${{ github.event.inputs.image_tag }}'
           LOCATION='${{ github.event.inputs.location }}'
-
+          
+          # Base components for standardized naming
+          ORG="${{ env.ORG_NAME }}"
+          APP="${{ env.APP_NAME }}"
+          ENV="${{ env.ENV }}"
+          
+          # Compute standardized names
+          RG_NAME_COMPUTED="${ORG}-${APP}-${ENV}-rg"
+          ACR_NAME_COMPUTED="${ORG}${APP}${ENV}acr"
+          ACI_NAME_COMPUTED="${ORG}-${APP}-${ENV}-aci"
+          DNS_NAME_LABEL_COMPUTED="${APP}-${ENV}"
+          
+          # Use input overrides if provided, otherwise use computed names
           if [ -n "$RG_INPUT" ]; then
-            RESOURCE_GROUP="$RG_INPUT"
+            RG_NAME="$RG_INPUT"
           else
-            if [ -n "${{ env.RESOURCE_GROUP_DEFAULT }}" ]; then
-              RESOURCE_GROUP="${{ env.RESOURCE_GROUP_DEFAULT }}"
-            else
-              RESOURCE_GROUP="taskflow-ephemeral-${GITHUB_RUN_ID}"
-            fi
+            RG_NAME="$RG_NAME_COMPUTED"
           fi
-
+          
           if [ -n "$ACR_INPUT" ]; then
             ACR_NAME="$ACR_INPUT"
           else
-            if [ -n "${{ env.ACR_NAME_DEFAULT }}" ]; then
-              ACR_NAME="${{ env.ACR_NAME_DEFAULT }}"
-            else
-              ACR_NAME="taskflowregistryephemeral${GITHUB_RUN_ID}"
-
-            fi
+            ACR_NAME="$ACR_NAME_COMPUTED"
           fi
-
-          ACI_NAME="taskflow-qa"
-          DNS_NAME_LABEL="taskflow-qa"
-
-          echo "RESOURCE_GROUP=$RESOURCE_GROUP" >> $GITHUB_ENV
+          
+          # ACI and DNS use fixed names for predictable QA endpoint
+          ACI_NAME="$ACI_NAME_COMPUTED"
+          DNS_NAME_LABEL="$DNS_NAME_LABEL_COMPUTED"
+          
+          # Image tag
+          if [ -z "$IMAGE_TAG" ]; then
+            IMAGE_TAG="latest"
+          fi
+          
+          # Location
+          if [ -z "$LOCATION" ]; then
+            LOCATION="eastus"
+          fi
+          
+          # Export to environment
+          echo "RG_NAME=$RG_NAME" >> $GITHUB_ENV
           echo "LOCATION=$LOCATION" >> $GITHUB_ENV
           echo "ACR_NAME=$ACR_NAME" >> $GITHUB_ENV
           echo "IMAGE_TAG=$IMAGE_TAG" >> $GITHUB_ENV
           echo "ACI_NAME=$ACI_NAME" >> $GITHUB_ENV
           echo "DNS_NAME_LABEL=$DNS_NAME_LABEL" >> $GITHUB_ENV
+          
+          # Log computed names for debugging
+          echo "=========================================="
+          echo "Computed Azure Resource Names (QA):"
+          echo "=========================================="
+          echo "Resource Group:     $RG_NAME"
+          echo "Container Registry: $ACR_NAME"
+          echo "ACI Container:      $ACI_NAME"
+          echo "DNS Label:          $DNS_NAME_LABEL"
+          echo "Full DNS:           $DNS_NAME_LABEL.$LOCATION.azurecontainer.io"
+          echo "Image Tag:          $IMAGE_TAG"
+          echo "Location:           $LOCATION"
+          echo "=========================================="
+
+      - name: Validate resource names (if action=deploy)
+        if: ${{ github.event.inputs.action == 'deploy' }}
+        run: |
+          # Function to validate length
+          validate_length() {
+            local name=$1
+            local min=$2
+            local max=$3
+            local resource=$4
+            local len=${#name}
+            if [ $len -lt $min ] || [ $len -gt $max ]; then
+              echo "ERROR: $resource name '$name' length ($len) must be between $min and $max characters"
+              exit 1
+            fi
+          }
+          
+          # Function to validate alphanumeric only
+          validate_alphanumeric() {
+            local name=$1
+            local resource=$2
+            if ! [[ "$name" =~ ^[a-z0-9]+$ ]]; then
+              echo "ERROR: $resource name '$name' must contain only lowercase alphanumeric characters"
+              exit 1
+            fi
+          }
+          
+          # Function to validate DNS label format
+          validate_dns_label() {
+            local name=$1
+            local resource=$2
+            if ! [[ "$name" =~ ^[a-zA-Z0-9]([a-zA-Z0-9-]*[a-zA-Z0-9])?$ ]]; then
+              echo "ERROR: $resource name '$name' must start and end with alphanumeric (upper/lowercase allowed), can contain hyphens"
+              exit 1
+            fi
+          }
+          
+          echo "Validating resource names against Azure constraints..."
+          
+          # Validate ACR name (5-50 chars, alphanumeric only)
+          validate_length "$ACR_NAME" 5 50 "ACR"
+          validate_alphanumeric "$ACR_NAME" "ACR"
+          
+          # Validate ACI name (1-63 chars, alphanumeric and hyphens)
+          validate_length "$ACI_NAME" 1 63 "ACI"
+          validate_dns_label "$ACI_NAME" "ACI"
+          
+          # Validate DNS label (1-63 chars, alphanumeric and hyphens)
+          validate_length "$DNS_NAME_LABEL" 1 63 "DNS Label"
+          validate_dns_label "$DNS_NAME_LABEL" "DNS Label"
+          
+          # Validate Resource Group name (1-90 chars)
+          validate_length "$RG_NAME" 1 90 "Resource Group"
+          
+          echo "✓ All resource names passed validation"
 
       - name: Ensure resource group exists (if action=deploy)
         if: ${{ github.event.inputs.action == 'deploy' }}
         run: |
-          if az group show -n $RESOURCE_GROUP >/dev/null 2>&1; then
-            echo "Resource group $RESOURCE_GROUP exists"
+          if az group show -n $RG_NAME >/dev/null 2>&1; then
+            echo "Resource group $RG_NAME exists"
           else
-            echo "Creating resource group $RESOURCE_GROUP"
-            az group create -n $RESOURCE_GROUP -l $LOCATION
+            echo "Creating resource group $RG_NAME"
+            az group create -n $RG_NAME -l $LOCATION
           fi
 
       - name: Ensure ACR exists (if action=deploy)
         if: ${{ github.event.inputs.action == 'deploy' }}
         run: |
-          if az acr show -n $ACR_NAME -g $RESOURCE_GROUP >/dev/null 2>&1; then
+          if az acr show -n $ACR_NAME -g $RG_NAME >/dev/null 2>&1; then
             echo "ACR $ACR_NAME already exists"
           else
-            echo "Creating ACR $ACR_NAME in $RESOURCE_GROUP"
-            az acr create -n $ACR_NAME -g $RESOURCE_GROUP --sku Basic --admin-enabled true
+            echo "Creating ACR $ACR_NAME in $RG_NAME"
+            az acr create -n $ACR_NAME -g $RG_NAME --sku Basic --admin-enabled true
           fi
 
       - name: Build and push image to ACR (if action=deploy)
@@ -123,15 +213,15 @@ jobs:
       - name: Delete existing ACI if it exists (if action=deploy)
         if: ${{ github.event.inputs.action == 'deploy' }}
         run: |
-          echo "Checking for existing ACI container with name: $ACI_NAME"
-          if az container show -g $RESOURCE_GROUP -n $ACI_NAME >/dev/null 2>&1; then
-            echo "Found existing ACI container '$ACI_NAME'. Deleting to avoid DNS conflicts..."
-            az container delete -g $RESOURCE_GROUP -n $ACI_NAME --yes
+          echo "Pre-deployment cleanup: Checking for existing ACI container '$ACI_NAME'"
+          if az container show -g $RG_NAME -n $ACI_NAME >/dev/null 2>&1; then
+            echo "Found existing ACI container '$ACI_NAME'. Deleting to free DNS label '$DNS_NAME_LABEL'..."
+            az container delete -g $RG_NAME -n $ACI_NAME --yes
             echo "Waiting for container deletion to complete (polling for up to 60 seconds)..."
             TIMEOUT=60
             INTERVAL=2
             ELAPSED=0
-            while az container show -g $RESOURCE_GROUP -n $ACI_NAME >/dev/null 2>&1; do
+            while az container show -g $RG_NAME -n $ACI_NAME >/dev/null 2>&1; do
               if [ $ELAPSED -ge $TIMEOUT ]; then
                 echo "Timeout waiting for container deletion. Exiting with error."
                 exit 1
@@ -139,7 +229,7 @@ jobs:
               sleep $INTERVAL
               ELAPSED=$((ELAPSED + INTERVAL))
             done
-            echo "Container deletion confirmed."
+            echo "✓ Container deletion confirmed. DNS label is now available."
           else
             echo "No existing ACI container found with name '$ACI_NAME'. Proceeding with deployment."
           fi
@@ -147,8 +237,9 @@ jobs:
       - name: Create ACI from ACR image (if action=deploy)
         if: ${{ github.event.inputs.action == 'deploy' }}
         run: |
+          echo "Creating ACI container '$ACI_NAME' with DNS label '$DNS_NAME_LABEL'..."
           az container create \
-            --resource-group $RESOURCE_GROUP \
+            --resource-group $RG_NAME \
             --name $ACI_NAME \
             --image $ACR_NAME.azurecr.io/taskflowapi:${IMAGE_TAG} \
             --registry-login-server $ACR_NAME.azurecr.io \
@@ -158,6 +249,7 @@ jobs:
             --os-type Linux \
             --ports 8080 \
             --dns-name-label $DNS_NAME_LABEL
+          echo "✓ ACI container created successfully"
 
       - name: Wait for ACI to be ready and print FQDN (if action=deploy)
         if: ${{ github.event.inputs.action == 'deploy' }}
@@ -166,16 +258,19 @@ jobs:
           echo "Waiting for QA deployment to be ready..."
           echo "========================================"
           for i in {1..30}; do
-            fqdn=$(az container show -g $RESOURCE_GROUP -n $ACI_NAME --query ipAddress.fqdn -o tsv)
+            fqdn=$(az container show -g $RG_NAME -n $ACI_NAME --query ipAddress.fqdn -o tsv)
             if [ -n "$fqdn" ] && [ "$fqdn" != "null" ]; then
               echo "FQDN=$fqdn" >> $GITHUB_ENV
               echo ""
               echo "========================================"
               echo "QA Deployment Ready!"
               echo "========================================"
-              echo "Fixed QA DNS: $fqdn"
-              echo "API Endpoint: http://$fqdn:8080"
-              echo "Health Check: http://$fqdn:8080/health"
+              echo "Resource Group:     $RG_NAME"
+              echo "ACI Container:      $ACI_NAME"
+              echo "DNS Label:          $DNS_NAME_LABEL"
+              echo "Full DNS (FQDN):    $fqdn"
+              echo "API Endpoint:       http://$fqdn:8080"
+              echo "Health Check:       http://$fqdn:8080/health"
               echo "========================================"
               echo ""
               echo "This QA endpoint will remain at this fixed DNS name for all future deployments."
@@ -210,7 +305,8 @@ jobs:
         run: |
           RG_TO_DELETE='${{ github.event.inputs.resource_group }}'
           if [ -z "$RG_TO_DELETE" ]; then
-            RG_TO_DELETE="${{ env.RESOURCE_GROUP }}"
+            RG_TO_DELETE="${{ env.RG_NAME }}"
           fi
           echo "Deleting resource group: $RG_TO_DELETE"
           az group delete -n "$RG_TO_DELETE" --yes --no-wait
+          echo "Resource group deletion initiated (running asynchronously)"

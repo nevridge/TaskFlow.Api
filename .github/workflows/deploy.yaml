@@ -11,12 +11,18 @@ permissions:
   contents: read
 
 env:
-  RESOURCE_GROUP: TaskFlowRG
-  WEBAPP_NAME: taskflowapi2074394909
-  ACR_NAME: taskflowregistry
-  ACR_IMAGE_NAME: taskflowapi9
-  APP_SERVICE_PLAN: TaskFlowAppServicePlan
+  # Base naming components
+  ORG_NAME: nevridge
+  APP_NAME: taskflow
+  ENV: prod
   LOCATION: eastus
+  
+  # Legacy names (for reference during migration)
+  # RESOURCE_GROUP: TaskFlowRG
+  # WEBAPP_NAME: taskflowapi2074394909
+  # ACR_NAME: taskflowregistry
+  # ACR_IMAGE_NAME: taskflowapi9
+  # APP_SERVICE_PLAN: TaskFlowAppServicePlan
 
 jobs:
   build-and-deploy:
@@ -26,6 +32,97 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+
+      - name: Compute resource names
+        run: |
+          # Base components
+          ORG="${{ env.ORG_NAME }}"
+          APP="${{ env.APP_NAME }}"
+          ENV="${{ env.ENV }}"
+          
+          # Computed names following naming convention: {org}-{app}-{env}-{type}
+          RG_NAME="${ORG}-${APP}-${ENV}-rg"
+          WEB_NAME="${ORG}-${APP}-${ENV}-web"
+          PLAN_NAME="${ORG}-${APP}-${ENV}-plan"
+          
+          # Special: ACR (no hyphens, alphanumeric only)
+          ACR_NAME="${ORG}${APP}${ENV}acr"
+          
+          # Image name (simple, descriptive)
+          ACR_IMAGE_NAME="${APP}api"
+          
+          # Export to environment
+          echo "RG_NAME=$RG_NAME" >> $GITHUB_ENV
+          echo "WEB_NAME=$WEB_NAME" >> $GITHUB_ENV
+          echo "PLAN_NAME=$PLAN_NAME" >> $GITHUB_ENV
+          echo "ACR_NAME=$ACR_NAME" >> $GITHUB_ENV
+          echo "ACR_IMAGE_NAME=$ACR_IMAGE_NAME" >> $GITHUB_ENV
+          
+          # Log computed names for debugging
+          echo "=========================================="
+          echo "Computed Azure Resource Names:"
+          echo "=========================================="
+          echo "Resource Group:     $RG_NAME"
+          echo "Web App:            $WEB_NAME"
+          echo "App Service Plan:   $PLAN_NAME"
+          echo "Container Registry: $ACR_NAME"
+          echo "Image Name:         $ACR_IMAGE_NAME"
+          echo "Location:           ${{ env.LOCATION }}"
+          echo "=========================================="
+
+      - name: Validate resource names
+        run: |
+          # Function to validate length
+          validate_length() {
+            local name=$1
+            local min=$2
+            local max=$3
+            local resource=$4
+            local len=${#name}
+            if [ $len -lt $min ] || [ $len -gt $max ]; then
+              echo "ERROR: $resource name '$name' length ($len) must be between $min and $max characters"
+              exit 1
+            fi
+          }
+          
+          # Function to validate alphanumeric only
+          validate_alphanumeric() {
+            local name=$1
+            local resource=$2
+            if ! [[ "$name" =~ ^[a-z0-9]+$ ]]; then
+              echo "ERROR: $resource name '$name' must contain only lowercase alphanumeric characters"
+              exit 1
+            fi
+          }
+          
+          # Function to validate alphanumeric with hyphens
+          validate_alphanumeric_hyphen() {
+            local name=$1
+            local resource=$2
+            if ! [[ "$name" =~ ^[a-z0-9]([a-z0-9-]*[a-z0-9])?$ ]]; then
+              echo "ERROR: $resource name '$name' must start and end with lowercase alphanumeric, can contain hyphens"
+              exit 1
+            fi
+          }
+          
+          echo "Validating resource names against Azure constraints..."
+          
+          # Validate ACR name (5-50 chars, alphanumeric only)
+          validate_length "$ACR_NAME" 5 50 "ACR"
+          validate_alphanumeric "$ACR_NAME" "ACR"
+          
+          # Validate Web App name (2-60 chars, alphanumeric and hyphens)
+          validate_length "$WEB_NAME" 2 60 "Web App"
+          validate_alphanumeric_hyphen "$WEB_NAME" "Web App"
+          
+          # Validate App Service Plan name (1-40 chars, alphanumeric and hyphens)
+          validate_length "$PLAN_NAME" 1 40 "App Service Plan"
+          validate_alphanumeric_hyphen "$PLAN_NAME" "App Service Plan"
+          
+          # Validate Resource Group name (1-90 chars)
+          validate_length "$RG_NAME" 1 90 "Resource Group"
+          
+          echo "✓ All resource names passed validation"
 
       - name: Azure Login
         uses: azure/login@v2
@@ -40,20 +137,20 @@ jobs:
 
       - name: Ensure resource group exists
         run: |
-          if az group show -n ${{ env.RESOURCE_GROUP }} >/dev/null 2>&1; then
-            echo "Resource group ${{ env.RESOURCE_GROUP }} exists"
+          if az group show -n ${{ env.RG_NAME }} >/dev/null 2>&1; then
+            echo "Resource group ${{ env.RG_NAME }} exists"
           else
-            echo "Creating resource group ${{ env.RESOURCE_GROUP }}"
-            az group create -n ${{ env.RESOURCE_GROUP }} -l ${{ env.LOCATION }}
+            echo "Creating resource group ${{ env.RG_NAME }}"
+            az group create -n ${{ env.RG_NAME }} -l ${{ env.LOCATION }}
           fi
 
       - name: Ensure ACR exists
         run: |
-          if az acr show -n ${{ env.ACR_NAME }} -g ${{ env.RESOURCE_GROUP }} >/dev/null 2>&1; then
+          if az acr show -n ${{ env.ACR_NAME }} -g ${{ env.RG_NAME }} >/dev/null 2>&1; then
             echo "ACR ${{ env.ACR_NAME }} exists"
           else
             echo "Creating ACR ${{ env.ACR_NAME }}"
-            az acr create -n ${{ env.ACR_NAME }} -g ${{ env.RESOURCE_GROUP }} --sku Basic --admin-enabled true
+            az acr create -n ${{ env.ACR_NAME }} -g ${{ env.RG_NAME }} --sku Basic --admin-enabled true
           fi
 
       - name: Build and push Docker image to ACR
@@ -67,42 +164,42 @@ jobs:
 
       - name: Ensure App Service Plan exists
         run: |
-          if az appservice plan show -n ${{ env.APP_SERVICE_PLAN }} -g ${{ env.RESOURCE_GROUP }} >/dev/null 2>&1; then
-            echo "App Service Plan ${{ env.APP_SERVICE_PLAN }} exists"
+          if az appservice plan show -n ${{ env.PLAN_NAME }} -g ${{ env.RG_NAME }} >/dev/null 2>&1; then
+            echo "App Service Plan ${{ env.PLAN_NAME }} exists"
           else
-            echo "Creating App Service Plan ${{ env.APP_SERVICE_PLAN }}"
+            echo "Creating App Service Plan ${{ env.PLAN_NAME }}"
             az appservice plan create \
-              -n ${{ env.APP_SERVICE_PLAN }} \
-              -g ${{ env.RESOURCE_GROUP }} \
+              -n ${{ env.PLAN_NAME }} \
+              -g ${{ env.RG_NAME }} \
               --is-linux \
               --sku B1
           fi
 
       - name: Ensure Web App exists
         run: |
-          if az webapp show -n ${{ env.WEBAPP_NAME }} -g ${{ env.RESOURCE_GROUP }} >/dev/null 2>&1; then
-            echo "Web App ${{ env.WEBAPP_NAME }} exists"
+          if az webapp show -n ${{ env.WEB_NAME }} -g ${{ env.RG_NAME }} >/dev/null 2>&1; then
+            echo "Web App ${{ env.WEB_NAME }} exists"
           else
-            echo "Creating Web App ${{ env.WEBAPP_NAME }}"
+            echo "Creating Web App ${{ env.WEB_NAME }}"
             az webapp create \
-              -n ${{ env.WEBAPP_NAME }} \
-              -g ${{ env.RESOURCE_GROUP }} \
-              --plan ${{ env.APP_SERVICE_PLAN }} \
+              -n ${{ env.WEB_NAME }} \
+              -g ${{ env.RG_NAME }} \
+              --plan ${{ env.PLAN_NAME }} \
               --deployment-container-image-name ${{ env.ACR_NAME }}.azurecr.io/${{ env.ACR_IMAGE_NAME }}:latest
           fi
 
       - name: Enable system-assigned identity
         run: |
           az webapp identity assign \
-            --resource-group ${{ env.RESOURCE_GROUP }} \
-            --name ${{ env.WEBAPP_NAME }}
+            --resource-group ${{ env.RG_NAME }} \
+            --name ${{ env.WEB_NAME }}
 
       - name: Get webapp managed identity principal ID
         id: get_principal
         run: |
           principalId=$(az webapp show \
-            --resource-group ${{ env.RESOURCE_GROUP }} \
-            --name ${{ env.WEBAPP_NAME }} \
+            --resource-group ${{ env.RG_NAME }} \
+            --name ${{ env.WEB_NAME }} \
             --query identity.principalId -o tsv)
           echo "PRINCIPAL_ID=$principalId" >> $GITHUB_ENV
 
@@ -117,29 +214,29 @@ jobs:
       - name: Configure webapp to use managed identity for ACR
         run: |
           az resource update \
-            --ids /subscriptions/$(az account show --query id -o tsv)/resourceGroups/${{ env.RESOURCE_GROUP }}/providers/Microsoft.Web/sites/${{ env.WEBAPP_NAME }}/config/web \
+            --ids /subscriptions/$(az account show --query id -o tsv)/resourceGroups/${{ env.RG_NAME }}/providers/Microsoft.Web/sites/${{ env.WEB_NAME }}/config/web \
             --set properties.acrUseManagedIdentityCreds=true
 
       - name: Set the container image
         run: |
           az webapp config container set \
-            --name ${{ env.WEBAPP_NAME }} \
-            --resource-group ${{ env.RESOURCE_GROUP }} \
+            --name ${{ env.WEB_NAME }} \
+            --resource-group ${{ env.RG_NAME }} \
             --container-image-name ${{ env.ACR_NAME }}.azurecr.io/${{ env.ACR_IMAGE_NAME }}:latest \
             --container-registry-url https://${{ env.ACR_NAME }}.azurecr.io
 
       - name: Configure health check path
         run: |
           az webapp config set \
-            --resource-group ${{ env.RESOURCE_GROUP }} \
-            --name ${{ env.WEBAPP_NAME }} \
+            --resource-group ${{ env.RG_NAME }} \
+            --name ${{ env.WEB_NAME }} \
             --generic-configurations '{"healthCheckPath": "/health"}'
 
       - name: Restart webapp
         run: |
           az webapp restart \
-            --resource-group ${{ env.RESOURCE_GROUP }} \
-            --name ${{ env.WEBAPP_NAME }}
+            --resource-group ${{ env.RG_NAME }} \
+            --name ${{ env.WEB_NAME }}
 
       - name: Verify health check
         run: |
@@ -147,10 +244,17 @@ jobs:
           sleep 30
           echo "Checking health endpoint..."
           for i in {1..10}; do
-            status=$(curl -s -o /dev/null -w '%{http_code}' --max-time 10 https://${{ env.WEBAPP_NAME }}.azurewebsites.net/health || echo "000")
+            status=$(curl -s -o /dev/null -w '%{http_code}' --max-time 10 https://${{ env.WEB_NAME }}.azurewebsites.net/health || echo "000")
             echo "Health check status: $status"
             if [ "$status" = "200" ]; then
               echo "Health check passed"
+              echo ""
+              echo "=========================================="
+              echo "Production Deployment Complete!"
+              echo "=========================================="
+              echo "Web App URL: https://${{ env.WEB_NAME }}.azurewebsites.net"
+              echo "Health Check: https://${{ env.WEB_NAME }}.azurewebsites.net/health"
+              echo "=========================================="
               exit 0
             fi
             echo "Attempt $i failed, retrying..."

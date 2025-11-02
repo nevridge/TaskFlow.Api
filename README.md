@@ -36,6 +36,8 @@ TaskFlow.Api is a small .NET 9 Web API for managing task items (CRUD). The proje
 ## Docker deployment
 The project includes Docker support for both development and production deployments.
 
+> **📖 For comprehensive Docker configuration details**, including configuration comparisons, troubleshooting, and best practices, see [Docker Configuration Guide](docs/DOCKER_CONFIGURATION.md).
+
 ### Local development with Docker
 
 #### Option 1: Visual Studio (Windows/Mac)
@@ -62,27 +64,34 @@ For command-line or non-Visual Studio users:
    
    **Bash/PowerShell:**
    ```shell
-   docker-compose up
+   docker compose up
    ```
    
    The API will be available at `http://localhost:8080`. The development configuration automatically:
    - Runs in Development mode
    - Auto-applies database migrations
-   - Persists the SQLite database in a Docker volume
+   - Persists the SQLite database in a Docker named volume
+   - Persists application logs in a Docker named volume
 
 2. **Stop the containers**:
    
    **Bash/PowerShell:**
    ```shell
-   docker-compose down
+   docker compose down
    ```
+   
+   **Note:** This preserves data in volumes. To remove data as well, use `docker compose down -v`.
 
 3. **View logs**:
    
    **Bash/PowerShell:**
    ```shell
-   docker-compose logs -f
+   docker compose logs -f
    ```
+
+4. **Test volume persistence** (optional):
+   
+   See [docs/VOLUME_TESTING.md](docs/VOLUME_TESTING.md) for comprehensive testing instructions to verify data persists across container recreation.
 
 **Docker Compose Services:**
 The `docker-compose.yml` defines the following service:
@@ -90,8 +99,8 @@ The `docker-compose.yml` defines the following service:
   - **Image**: Built from `Dockerfile.dev`
   - **Ports**: Maps host port `8080` to container port `8080`
   - **Volumes**: 
-    - `./data:/app/data` - Persists the SQLite database
-    - `./logs:/app/logs` - Persists application logs
+    - `taskflow-data:/app/data` - Docker named volume for SQLite database
+    - `taskflow-logs:/app/logs` - Docker named volume for application logs
   - **Environment Variables**:
     - `ASPNETCORE_ENVIRONMENT=Development` - Runs in development mode
     - `ASPNETCORE_URLS=http://+:8080` - Configures Kestrel to listen on port 8080
@@ -100,11 +109,13 @@ The `docker-compose.yml` defines the following service:
     - `DOTNET_RUNNING_IN_CONTAINER=true` - Indicates running in container
 
 **Important Notes:**
-- The `./data` and `./logs` directories will be created automatically on first run
-- Database file is stored at `/app/data/tasks.dev.db` (configured in `appsettings.Development.json`) and persisted via the `./data` volume mount
-- Application logs are written to `/app/logs/log.txt` and persisted via the `./logs` volume mount
-- Ensure these directories are excluded from version control (they're in `.gitignore`)
-- For detailed volume configuration, see [docs/volumes.md](docs/volumes.md)
+- Docker named volumes (`taskflow-data` and `taskflow-logs`) are automatically created on first run
+- **Data persists** across container removal and recreation - volumes remain until explicitly deleted with `-v` flag
+- Database file is stored at `/app/data/tasks.dev.db` (configured in `appsettings.Development.json`)
+- Application logs are written to `/app/logs/log.txt`
+- Volumes are managed by Docker and stored in Docker's volume directory (typically `/var/lib/docker/volumes/` on Linux)
+- To verify persistence works correctly, see [docs/VOLUME_TESTING.md](docs/VOLUME_TESTING.md)
+- For detailed volume configuration, management commands, and troubleshooting, see [docs/volumes.md](docs/volumes.md)
 
 #### Option 3: Docker CLI (Alternative)
 Using Docker directly without compose:
@@ -113,8 +124,19 @@ Using Docker directly without compose:
 ```shell
 cd TaskFlow.Api
 docker build -f Dockerfile.dev -t taskflow-api:dev .
-docker run -p 8080:8080 -e ASPNETCORE_ENVIRONMENT=Development -e Database__MigrateOnStartup=true taskflow-api:dev
+# Create named volumes (optional - Docker will create them automatically if they don't exist)
+docker volume create taskflow-data
+docker volume create taskflow-logs
+# Run container with named volumes
+docker run -p 8080:8080 \
+  -v taskflow-data:/app/data \
+  -v taskflow-logs:/app/logs \
+  -e ASPNETCORE_ENVIRONMENT=Development \
+  -e Database__MigrateOnStartup=true \
+  taskflow-api:dev
 ```
+
+**Note:** Without the `-v` volume options, data and logs will be lost when the container is removed.
 
 ### Production deployment
 
@@ -130,35 +152,66 @@ Note: The production `Dockerfile` uses a multi-stage build with the repository r
 
 #### Running the container
 
+**Option 1: Using Docker named volumes (recommended):**
+
 **Bash:**
 ```bash
-# For persistent database and log storage, mount host directories
+# Create named volumes (optional - Docker creates them automatically)
+docker volume create taskflow-prod-data
+docker volume create taskflow-prod-logs
+
+# Run with Docker named volumes for persistence
 docker run -d -p 8080:8080 \
-  -v $(pwd)/data:/app/data \
-  -v $(pwd)/logs:/app/logs \
+  -v taskflow-prod-data:/app/data \
+  -v taskflow-prod-logs:/app/logs \
   --name taskflow-api taskflow-api:latest
-# Without the -v options, all data and logs will be lost when the container is removed.
 ```
 
 **PowerShell:**
 ```powershell
-# For persistent database and log storage, mount host directories
+# Create named volumes (optional - Docker creates them automatically)
+docker volume create taskflow-prod-data
+docker volume create taskflow-prod-logs
+
+# Run with Docker named volumes for persistence
+docker run -d -p 8080:8080 `
+  -v taskflow-prod-data:/app/data `
+  -v taskflow-prod-logs:/app/logs `
+  --name taskflow-api taskflow-api:latest
+```
+
+**Option 2: Using bind mounts (host directories):**
+
+**Bash:**
+```bash
+# For persistent storage using host directories
+docker run -d -p 8080:8080 \
+  -v $(pwd)/data:/app/data \
+  -v $(pwd)/logs:/app/logs \
+  --name taskflow-api taskflow-api:latest
+```
+
+**PowerShell:**
+```powershell
+# For persistent storage using host directories
 docker run -d -p 8080:8080 `
   -v ${PWD}/data:/app/data `
   -v ${PWD}/logs:/app/logs `
   --name taskflow-api taskflow-api:latest
-# Without the -v options, all data and logs will be lost when the container is removed.
 ```
 
-**Important**: The application uses `/app/data/tasks.db` for the database and `/app/logs/log.txt` for logs by default. To use custom paths, override via environment variables:
+**⚠️ Important:** Without volume mounts, all data and logs will be lost when the container is removed.
+
+**Customizing paths:**
+The application uses `/app/data/tasks.db` for the database and `/app/logs/log.txt` for logs by default. To use custom paths, override via environment variables:
 
 **Bash:**
 ```bash
 docker run -d -p 8080:8080 \
   -e ConnectionStrings__DefaultConnection="Data Source=/app/data/production.db" \
   -e LOG_PATH=/app/logs/taskflow.log \
-  -v $(pwd)/data:/app/data \
-  -v $(pwd)/logs:/app/logs \
+  -v taskflow-prod-data:/app/data \
+  -v taskflow-prod-logs:/app/logs \
   --name taskflow-api taskflow-api:latest
 ```
 
@@ -167,12 +220,14 @@ docker run -d -p 8080:8080 \
 docker run -d -p 8080:8080 `
   -e ConnectionStrings__DefaultConnection="Data Source=/app/data/production.db" `
   -e LOG_PATH=/app/logs/taskflow.log `
-  -v ${PWD}/data:/app/data `
-  -v ${PWD}/logs:/app/logs `
+  -v taskflow-prod-data:/app/data `
+  -v taskflow-prod-logs:/app/logs `
   --name taskflow-api taskflow-api:latest
 ```
 
 ### Docker configuration summary
+
+#### Dockerfiles
 - **Development Dockerfile** (`Dockerfile.dev`):
   - Uses .NET 9 SDK and ASP.NET runtime
   - Build context is the `TaskFlow.Api` directory
@@ -186,13 +241,23 @@ docker run -d -p 8080:8080 `
   - Creates `/app/logs` and `/app/data` directories for persistence
   - Exposes port 8080
 
-- **docker-compose.yml**:
+#### Docker Compose Files
+- **docker-compose.yml** (Development):
   - Builds using `Dockerfile.dev` from the `TaskFlow.Api` directory
-  - Mounts `./data:/app/data` for database persistence
-  - Mounts `./logs:/app/logs` for log persistence
+  - Uses Docker named volumes `taskflow-data` and `taskflow-logs` for persistence
+  - Volumes persist data across container removal and recreation
   - Configures development environment with automatic migrations
+  - Container name: `taskflow-api`
+  - Database: `/app/data/tasks.dev.db`
 
-- **Key environment variables**:
+- **docker-compose.prod.yml** (Production):
+  - Builds using `Dockerfile` from the repository root
+  - Same volume mounts as development
+  - Configures production environment with manual migration control
+  - Container name: `taskflow-api-prod`
+  - Database: `/app/data/tasks.db`
+
+#### Key environment variables
   - `ASPNETCORE_ENVIRONMENT`: Controls environment (Development/Production)
   - `ASPNETCORE_URLS` / `ASPNETCORE_HTTP_PORTS`: Configure Kestrel ports
   - `Database__MigrateOnStartup`: Enable/disable automatic migrations (true/false)
@@ -200,12 +265,23 @@ docker run -d -p 8080:8080 `
   - `LOG_PATH`: Override log file path (default: `/app/logs/log.txt`)
   - `DOTNET_RUNNING_IN_CONTAINER`: Signals container runtime
 
-For detailed volume configuration and troubleshooting, see [docs/volumes.md](docs/volumes.md).
+#### Configuration differences explained
+The intentional differences between development and production configurations are:
+- **Build context**: Development optimizes for rapid iteration, production supports multi-project solutions
+- **Environment variables**: Development enables Swagger and verbose logging, production uses optimized settings
+- **Migration strategy**: Development auto-applies migrations, production requires explicit control
+- **Database files**: Separate database files prevent mixing dev and production-like test data
+
+For comprehensive configuration details, comparisons, and troubleshooting, see [Docker Configuration Guide](docs/DOCKER_CONFIGURATION.md).
+
+For detailed volume configuration, see [docs/volumes.md](docs/volumes.md).
 
 ### Docker notes
 - The `.dockerignore` file excludes build artifacts, dependencies, and unnecessary files from the build context
 - The container exposes port 8080 by default
-- **Persistence warning:** Without volume mounting, the SQLite database and logs will be lost when the container is removed
+- **Data Persistence:** Docker volumes ensure SQLite database and logs persist across container removal and recreation
+- **Volume Management:** Use `docker volume ls` to list volumes, `docker volume rm` to remove them, and `docker volume inspect` to view details
+- **⚠️ Persistence warning:** Without volume mounting, the SQLite database and logs will be lost when the container is removed
 - By default, the production Docker container runs in Production mode and migrations will **not** auto-apply. To enable automatic migrations, set either `ASPNETCORE_ENVIRONMENT=Development` or `Database__MigrateOnStartup=true` via environment variables when running the container.
 
 ## Azure deployment
@@ -289,14 +365,21 @@ Add these secrets in GitHub (**Settings → Secrets and variables → Actions**)
 
 #### Deployment workflow configuration
 
-The workflow is configured with the following Azure resources (in `.github/workflows/deploy.yaml`):
-- **Resource Group**: `TaskFlowRG` (location: `eastus`)
-- **Azure Container Registry (ACR)**: `taskflowregistry`
-- **App Service Plan**: `TaskFlowAppServicePlan` (Linux, B1 SKU)
-- **Web App**: `taskflowapi2074394909`
-- **ACR Image**: `taskflowapi9`
+The workflow uses a **standardized naming convention** for Azure resources. All resource names are computed automatically based on organization, application, and environment identifiers. See [docs/deploy.md](docs/deploy.md) for complete details.
 
-**Note**: You should customize these resource names in the workflow file to match your requirements.
+**Default production resource names** (in `.github/workflows/deploy.yaml`):
+- **Organization**: `nevridge`
+- **Application**: `taskflow`
+- **Environment**: `prod`
+- **Resource Group**: `nevridge-taskflow-prod-rg` (location: `eastus`)
+- **Azure Container Registry (ACR)**: `nevridgetaskflowprodacr`
+- **App Service Plan**: `nevridge-taskflow-prod-plan` (Linux, B1 SKU)
+- **Web App**: `nevridge-taskflow-prod-web`
+- **ACR Image**: `taskflowapi`
+
+**Public URL**: `https://nevridge-taskflow-prod-web.azurewebsites.net`
+
+To customize, modify the `ORG_NAME`, `APP_NAME`, or `ENV` variables at the top of the workflow file. For details on the naming convention and validation rules, see the [Resource Naming Convention Guide](docs/deploy.md).
 
 #### Triggering a deployment
 
