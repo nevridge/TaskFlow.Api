@@ -3,7 +3,7 @@ using TaskFlow.Api.Repositories;
 
 namespace TaskFlow.Api.Services;
 
-public class TaskService(ITaskRepository repo)
+public class TaskService(ITaskRepository repo) : ITaskService
 {
     private readonly ITaskRepository _repo = repo;
 

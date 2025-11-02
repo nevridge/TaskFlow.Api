@@ -8,9 +8,9 @@ namespace TaskFlow.Api.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public class TaskItemsController(TaskService taskService, IValidator<TaskItem> validator) : ControllerBase
+public class TaskItemsController(ITaskService taskService, IValidator<TaskItem> validator) : ControllerBase
 {
-    private readonly TaskService _taskService = taskService;
+    private readonly ITaskService _taskService = taskService;
     private readonly IValidator<TaskItem> _validator = validator;
 
     // GET: api/TaskItems
