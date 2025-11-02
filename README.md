@@ -1049,8 +1049,36 @@ builder.Services.AddHealthChecks()
   
   - Commit the change and add the `.gitignore` entry.
 
+## Project structure and architecture
+
+### Service registration pattern
+TaskFlow.Api uses the **ServiceCollection Extension Pattern** for organizing dependency injection service registrations. This keeps `Program.cs` clean and maintainable by grouping related services into dedicated extension methods in the `Configuration` folder.
+
+**Key extension classes:**
+- `PersistenceServiceExtensions` — Database and repository services
+- `ApplicationServiceExtensions` — Business logic services  
+- `ValidationServiceExtensions` — FluentValidation configuration
+- `HealthCheckServiceExtensions` — Health monitoring services
+- `SwaggerServiceExtensions` — API documentation services
+- `LoggingServiceExtensions` — Serilog configuration
+- `JsonConfigurationExtensions` — JSON serialization options
+
+📖 **For detailed guidance on adding new services or understanding the pattern, see [Service Registration Pattern Documentation](docs/SERVICE_REGISTRATION_PATTERN.md)**
+
+### Key folders
+- `Controllers/` — API controllers exposing REST endpoints
+- `Services/` — Business logic layer
+- `Repositories/` — Data access layer
+- `Models/` — Domain entities
+- `DTOs/` — Data transfer objects
+- `Validators/` — FluentValidation validators
+- `Configuration/` — Service registration extensions
+- `Middleware/` — Custom middleware components
+- `HealthChecks/` — Health check implementations
+- `Migrations/` — EF Core database migrations
+
 ## Helpful files
-- `Program.cs` — app startup, Serilog bootstrap, DI registrations, and conditional migration logic.
+- `Program.cs` — app startup, Serilog bootstrap, and DI registration via extension methods.
 - `TaskDbContext.cs` — EF Core `DbContext`.
 - `TaskItemsController.cs` — API controller (async EF Core usage, validation applied).
 - `appsettings.json` / `appsettings.Development.json` — configuration and connection string.
@@ -1062,7 +1090,10 @@ builder.Services.AddHealthChecks()
 
 ## Contributing
 - Follow standard Git workflows. Keep migrations descriptive and run them locally before pushing schema changes.
-- Run tests (if added) and validate migrations with `dotnet ef database update` before opening a PR.
+- Run tests and validate migrations with `dotnet ef database update` before opening a PR.
+- When adding new services, follow the [Service Registration Pattern](docs/SERVICE_REGISTRATION_PATTERN.md) to keep `Program.cs` clean.
+- Write unit and integration tests for new features.
+- Follow the existing code style and conventions.
 
 ## License
 No license specified. Add a `LICENSE` file if you plan to publish or share externally.
