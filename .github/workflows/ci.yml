@@ -1,7 +1,18 @@
 name: Build
 on: [push, pull_request]
 jobs:
+  lint:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '9.0.x'
+      - run: dotnet format --verify-no-changes
   build:
+    needs: lint
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -12,6 +23,7 @@ jobs:
           dotnet-version: '9.0.x'
       - run: dotnet build --configuration Release
   test:
+    needs: lint
     runs-on: ubuntu-latest
     permissions:
       contents: read
