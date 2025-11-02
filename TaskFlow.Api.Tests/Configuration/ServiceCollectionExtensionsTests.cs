@@ -1,5 +1,6 @@
 using FluentAssertions;
 using FluentValidation;
+using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -127,6 +128,33 @@ public class ServiceCollectionExtensionsTests
     }
 
     [Fact]
+    public void AddApplicationInsights_ShouldRegisterApplicationInsightsServices()
+    {
+        // Arrange
+        var services = new ServiceCollection();
+
+        // Act
+        services.AddApplicationInsights();
+
+        // Assert
+        // Verify that Application Insights services are registered
+        services.Should().Contain(s => s.ServiceType == typeof(TelemetryConfiguration));
+    }
+
+    [Fact]
+    public void AddApplicationInsights_ShouldReturnServiceCollection()
+    {
+        // Arrange
+        var services = new ServiceCollection();
+
+        // Act
+        var result = services.AddApplicationInsights();
+
+        // Assert
+        result.Should().BeSameAs(services);
+    }
+
+    [Fact]
     public void AllExtensions_ShouldWorkTogether()
     {
         // Arrange
@@ -155,5 +183,39 @@ public class ServiceCollectionExtensionsTests
         serviceProvider.GetService<ITaskService>().Should().NotBeNull();
         serviceProvider.GetService<IValidator<TaskItem>>().Should().NotBeNull();
         serviceProvider.GetService<HealthCheckService>().Should().NotBeNull();
+    }
+
+    [Fact]
+    public void AllExtensionsWithApplicationInsights_ShouldRegisterAllServices()
+    {
+        // Arrange
+        var services = new ServiceCollection();
+        var configuration = new ConfigurationBuilder()
+            .AddInMemoryCollection(new Dictionary<string, string?>
+            {
+                { "ConnectionStrings:DefaultConnection", "Data Source=:memory:" }
+            })
+            .Build();
+
+        // Act
+        services.AddLogging();
+        services.AddPersistence(configuration);
+        services.AddApplicationServices();
+        services.AddValidation();
+        services.AddApplicationHealthChecks();
+        services.AddApplicationInsights();
+        services.AddSwagger();
+        services.ConfigureJsonSerialization();
+
+        // Assert - verify all services are registered in the collection
+        // Note: We don't build the service provider for this test because
+        // Application Insights has complex dependencies that would require
+        // a full hosting environment setup
+        services.Should().Contain(s => s.ServiceType == typeof(TaskDbContext));
+        services.Should().Contain(s => s.ServiceType == typeof(ITaskRepository));
+        services.Should().Contain(s => s.ServiceType == typeof(ITaskService));
+        services.Should().Contain(s => s.ServiceType == typeof(IValidator<TaskItem>));
+        services.Should().Contain(s => s.ServiceType == typeof(HealthCheckService));
+        services.Should().Contain(s => s.ServiceType == typeof(TelemetryConfiguration));
     }
 }

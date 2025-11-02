@@ -24,6 +24,7 @@ try
     builder.Services.AddApplicationServices();
     builder.Services.AddValidation();
     builder.Services.AddApplicationHealthChecks();
+    builder.Services.AddApplicationInsights();
     builder.Services.ConfigureJsonSerialization();
 
     var app = builder.Build();
