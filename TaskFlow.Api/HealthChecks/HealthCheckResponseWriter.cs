@@ -17,7 +17,7 @@ public static class HealthCheckResponseWriter
 
         // Retrieve options from DI container
         var options = context.RequestServices
-            .GetService<IOptions<JsonOptions>>()?.Value.SerializerOptions
+            .GetService<IOptions<JsonOptions>>()?.Value?.SerializerOptions
             ?? JsonSerializerOptionsProvider.Default;
 
         try
