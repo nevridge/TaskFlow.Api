@@ -99,7 +99,7 @@ public class TaskRepositoryTests
         result.Should().NotBeNull();
         result.Id.Should().BeGreaterThan(0);
         result.Title.Should().Be("New Task");
-        
+
         var savedTask = await context.TaskItems.FindAsync(result.Id);
         savedTask.Should().NotBeNull();
         savedTask.Should().BeEquivalentTo(result);
@@ -119,7 +119,7 @@ public class TaskRepositoryTests
         // Assert
         result.Should().NotBeNull();
         result.Description.Should().BeNull();
-        
+
         var savedTask = await context.TaskItems.FindAsync(result.Id);
         savedTask.Should().NotBeNull();
         savedTask!.Description.Should().BeNull();
@@ -139,7 +139,7 @@ public class TaskRepositoryTests
         // Assert
         result.Should().NotBeNull();
         result.IsComplete.Should().BeTrue();
-        
+
         var savedTask = await context.TaskItems.FindAsync(result.Id);
         savedTask.Should().NotBeNull();
         savedTask!.IsComplete.Should().BeTrue();
