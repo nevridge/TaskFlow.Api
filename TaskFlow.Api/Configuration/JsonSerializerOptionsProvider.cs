@@ -4,11 +4,7 @@ namespace TaskFlow.Api.Configuration;
 
 public static class JsonSerializerOptionsProvider
 {
-    private static readonly JsonSerializerOptions _defaultOptions = new()
-    {
-        WriteIndented = true,
-        PropertyNamingPolicy = JsonNamingPolicy.CamelCase
-    };
+    private static readonly JsonSerializerOptions _defaultOptions = CreateDefaultOptions();
 
     public static JsonSerializerOptions Default => _defaultOptions;
 
@@ -19,5 +15,16 @@ public static class JsonSerializerOptionsProvider
     {
         options.WriteIndented = true;
         options.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
+    }
+
+    private static JsonSerializerOptions CreateDefaultOptions()
+    {
+        var options = new JsonSerializerOptions(JsonSerializerDefaults.Web)
+        {
+            // makeReadOnly: true prevents modification after initialization
+        };
+        ConfigureOptions(options);
+        options.MakeReadOnly();
+        return options;
     }
 }
