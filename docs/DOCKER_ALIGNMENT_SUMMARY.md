@@ -175,7 +175,7 @@ To maintain alignment going forward:
 
 - [Docker Configuration Guide](DOCKER_CONFIGURATION.md) - Comprehensive configuration details
 - [Main README](../README.md) - Getting started and quick reference
-- [Volume Configuration](volumes.md) - Detailed volume setup
+- [Volume Configuration](./volumes.md) - Detailed volume setup
 - [Kubernetes Deployment](../k8s/README.md) - Production Kubernetes configuration
 
 ## Questions or Issues?
