@@ -77,7 +77,10 @@ jobs:
       - name: Verify and set subscription
         run: |
           az account show
-          SUB_ID=$(echo '${{ secrets.AZURE_CREDENTIALS }}' | jq -r '.subscriptionId // empty')
+          # Extract subscription ID securely without logging credentials
+          echo '${{ secrets.AZURE_CREDENTIALS }}' > /tmp/azure_creds.json
+          SUB_ID=$(jq -r '.subscriptionId // empty' /tmp/azure_creds.json)
+          rm -f /tmp/azure_creds.json
           if [ -n "$SUB_ID" ]; then
             echo "Setting subscription to $SUB_ID"
             az account set --subscription "$SUB_ID"
