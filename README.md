@@ -956,7 +956,7 @@ Or configure via Azure Portal:
 4. **Database checks**: Only include database in readiness, not liveness, to avoid restart loops from transient DB issues
 5. **Test with clean databases**: Simulate worst-case startup scenarios with empty databases requiring full migration runs
 6. **Monitoring**: Set up alerts on repeated health check failures to detect persistent issues
-7. **Logging**: Health check failures are logged by Serilog for troubleshooting; check logs if experiencing startup issues
+7. **Logging**: Health check failures are automatically logged by Serilog with error/warning severity for troubleshooting. See [Logging Guide](docs/logging.md#health-check-failure-logging) for details on finding and interpreting health check logs
 
 ### Response format details
 
@@ -1055,8 +1055,10 @@ builder.Services.AddHealthChecks()
 - By default logs are written to console and to daily rolling files at `/app/logs/log.txt` (in containers) or `logs/log.txt` (local development).
 - The log path can be customized via the `LOG_PATH` environment variable.
 - Log configuration can be extended in `appsettings.json` (Serilog section) and via environment variables.
+- **Health check failures** are automatically logged with error/warning severity for troubleshooting.
 - Ensure `logs/` is ignored in Git (see .gitignore recommendations below).
 - For Docker volume configuration, see [docs/volumes.md](docs/volumes.md).
+- **📖 For comprehensive logging documentation**, including health check failure troubleshooting, log aggregation, and alerting setup, see [docs/logging.md](docs/logging.md).
 
 ## Security & production notes
 - Do not commit local runtime artifacts such as the SQLite DB file or log files.
