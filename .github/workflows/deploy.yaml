@@ -99,8 +99,8 @@ jobs:
           validate_alphanumeric_hyphen() {
             local name=$1
             local resource=$2
-            if ! [[ "$name" =~ ^[a-zA-Z0-9]([a-zA-Z0-9-]*[a-zA-Z0-9])?$ ]]; then
-              echo "ERROR: $resource name '$name' must start and end with alphanumeric (upper/lowercase allowed), can contain hyphens"
+            if ! [[ "$name" =~ ^[a-z0-9]([a-z0-9-]*[a-z0-9])?$ ]]; then
+              echo "ERROR: $resource name '$name' must start and end with lowercase alphanumeric, can contain hyphens"
               exit 1
             fi
           }
