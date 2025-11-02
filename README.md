@@ -36,6 +36,8 @@ TaskFlow.Api is a small .NET 9 Web API for managing task items (CRUD). The proje
 ## Docker deployment
 The project includes Docker support for both development and production deployments.
 
+> **📖 For comprehensive Docker configuration details**, including configuration comparisons, troubleshooting, and best practices, see [Docker Configuration Guide](docs/DOCKER_CONFIGURATION.md).
+
 ### Local development with Docker
 
 #### Option 1: Visual Studio (Windows/Mac)
@@ -224,6 +226,8 @@ docker run -d -p 8080:8080 `
 ```
 
 ### Docker configuration summary
+
+#### Dockerfiles
 - **Development Dockerfile** (`Dockerfile.dev`):
   - Uses .NET 9 SDK and ASP.NET runtime
   - Build context is the `TaskFlow.Api` directory
@@ -237,13 +241,23 @@ docker run -d -p 8080:8080 `
   - Creates `/app/logs` and `/app/data` directories for persistence
   - Exposes port 8080
 
-- **docker-compose.yml**:
+#### Docker Compose Files
+- **docker-compose.yml** (Development):
   - Builds using `Dockerfile.dev` from the `TaskFlow.Api` directory
   - Uses Docker named volumes `taskflow-data` and `taskflow-logs` for persistence
   - Volumes persist data across container removal and recreation
   - Configures development environment with automatic migrations
+  - Container name: `taskflow-api`
+  - Database: `/app/data/tasks.dev.db`
 
-- **Key environment variables**:
+- **docker-compose.prod.yml** (Production):
+  - Builds using `Dockerfile` from the repository root
+  - Same volume mounts as development
+  - Configures production environment with manual migration control
+  - Container name: `taskflow-api-prod`
+  - Database: `/app/data/tasks.db`
+
+#### Key environment variables
   - `ASPNETCORE_ENVIRONMENT`: Controls environment (Development/Production)
   - `ASPNETCORE_URLS` / `ASPNETCORE_HTTP_PORTS`: Configure Kestrel ports
   - `Database__MigrateOnStartup`: Enable/disable automatic migrations (true/false)
@@ -251,7 +265,16 @@ docker run -d -p 8080:8080 `
   - `LOG_PATH`: Override log file path (default: `/app/logs/log.txt`)
   - `DOTNET_RUNNING_IN_CONTAINER`: Signals container runtime
 
-For detailed volume configuration and troubleshooting, see [docs/volumes.md](docs/volumes.md).
+#### Configuration differences explained
+The intentional differences between development and production configurations are:
+- **Build context**: Development optimizes for rapid iteration, production supports multi-project solutions
+- **Environment variables**: Development enables Swagger and verbose logging, production uses optimized settings
+- **Migration strategy**: Development auto-applies migrations, production requires explicit control
+- **Database files**: Separate database files prevent mixing dev and production-like test data
+
+For comprehensive configuration details, comparisons, and troubleshooting, see [Docker Configuration Guide](docs/DOCKER_CONFIGURATION.md).
+
+For detailed volume configuration, see [docs/volumes.md](docs/volumes.md).
 
 ### Docker notes
 - The `.dockerignore` file excludes build artifacts, dependencies, and unnecessary files from the build context
@@ -329,14 +352,21 @@ az ad sp create-for-rbac `
 
 #### Deployment workflow configuration
 
-The workflow is configured with the following Azure resources (in `.github/workflows/deploy.yaml`):
-- **Resource Group**: `TaskFlowRG` (location: `eastus`)
-- **Azure Container Registry (ACR)**: `taskflowregistry`
-- **App Service Plan**: `TaskFlowAppServicePlan` (Linux, B1 SKU)
-- **Web App**: `taskflowapi2074394909`
-- **ACR Image**: `taskflowapi9`
+The workflow uses a **standardized naming convention** for Azure resources. All resource names are computed automatically based on organization, application, and environment identifiers. See [docs/deploy.md](docs/deploy.md) for complete details.
 
-**Note**: You should customize these resource names in the workflow file to match your requirements.
+**Default production resource names** (in `.github/workflows/deploy.yaml`):
+- **Organization**: `nevridge`
+- **Application**: `taskflow`
+- **Environment**: `prod`
+- **Resource Group**: `nevridge-taskflow-prod-rg` (location: `eastus`)
+- **Azure Container Registry (ACR)**: `nevridgetaskflowprodacr`
+- **App Service Plan**: `nevridge-taskflow-prod-plan` (Linux, B1 SKU)
+- **Web App**: `nevridge-taskflow-prod-web`
+- **ACR Image**: `taskflowapi`
+
+**Public URL**: `https://nevridge-taskflow-prod-web.azurewebsites.net`
+
+To customize, modify the `ORG_NAME`, `APP_NAME`, or `ENV` variables at the top of the workflow file. For details on the naming convention and validation rules, see the [Resource Naming Convention Guide](docs/deploy.md).
 
 #### Triggering a deployment
 
