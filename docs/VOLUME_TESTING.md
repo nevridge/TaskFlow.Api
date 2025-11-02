@@ -188,7 +188,9 @@ set -e
 echo "=== Testing Docker Volume Persistence ==="
 echo ""
 
-cd /path/to/TaskFlow.Api
+# Change to your TaskFlow.Api repository directory
+# Example: cd ~/projects/TaskFlow.Api
+cd "$(dirname "$0")/.."
 
 echo "Step 1: Clean up..."
 docker compose down -v 2>/dev/null || true

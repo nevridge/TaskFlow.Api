@@ -154,27 +154,27 @@ This configuration:
 
 3. **View data inside volumes:**
    ```bash
-   # List database files
-   docker exec taskflow-api ls -la /app/data
+   # List database files (using service name)
+   docker compose exec taskflow-api ls -la /app/data
    
    # View logs (inside container)
-   docker exec taskflow-api ls -la /app/logs
-   docker exec taskflow-api tail -f /app/logs/log*.txt
+   docker compose exec taskflow-api ls -la /app/logs
+   docker compose exec taskflow-api tail -f /app/logs/log*.txt
    
    # Or use docker compose logs to view container logs
-   docker-compose logs -f
+   docker compose logs -f
    ```
 
 4. **Stop the containers:**
    ```bash
    # Stop and remove containers (volumes persist)
-   docker-compose down
+   docker compose down
    
    # Stop and remove containers AND volumes (data loss!)
-   docker-compose down -v
+   docker compose down -v
    ```
 
-**Important:** Data persists in Docker-managed volumes even after `docker-compose down`. Volumes remain until explicitly removed with `-v` flag or `docker volume rm`.
+**Important:** Data persists in Docker-managed volumes even after `docker compose down`. Volumes remain until explicitly removed with `-v` flag or `docker volume rm`.
 
 ### Production Deployment with Docker CLI
 
@@ -341,16 +341,20 @@ docker run --rm \
 2. **Clean up volumes**: Remove volumes when you want to start fresh:
    ```bash
    # Stop and remove containers and volumes
-   docker-compose down -v
+   docker compose down -v
    
-   # Or remove specific volumes
-   docker volume rm taskflow-data taskflow-logs
+   # Or remove specific volumes (after stopping containers)
+   docker volume rm taskflowapi_taskflow-data taskflowapi_taskflow-logs
    ```
 
 3. **Inspect running container**: Check volume mounts and paths:
    ```bash
-   docker exec -it taskflow-api ls -la /app/logs /app/data
-   docker exec -it taskflow-api cat /app/logs/log*.txt
+   # Using compose exec (recommended)
+   docker compose exec taskflow-api ls -la /app/logs /app/data
+   docker compose exec taskflow-api cat /app/logs/log*.txt
+   
+   # Or using container name directly
+   docker exec taskflow-api ls -la /app/logs /app/data
    ```
 
 ### Production
@@ -383,26 +387,26 @@ docker run --rm \
 **Diagnosis:**
 ```bash
 # Check if the directory exists in the container
-docker exec taskflow-api ls -la /app/logs
+docker compose exec taskflow-api ls -la /app/logs
 
 # Check the LOG_PATH environment variable
-docker exec taskflow-api env | grep LOG_PATH
+docker compose exec taskflow-api env | grep LOG_PATH
 
 # Check container logs for Serilog errors
-docker logs taskflow-api
+docker compose logs taskflow-api
 
 # Verify volume is mounted
 docker inspect taskflow-api | grep -A 10 Mounts
 
 # Check volume exists
-docker volume ls | grep taskflow-logs
+docker volume ls | grep taskflow
 ```
 
 **Solutions:**
 - Ensure the volume mount is correct in docker-compose.yml (`taskflow-logs:/app/logs`)
 - Verify the LOG_PATH environment variable is set correctly
 - Check directory permissions inside container (should be 777)
-- Recreate the volume: `docker-compose down -v && docker-compose up`
+- Recreate the volume: `docker compose down -v && docker compose up`
 
 ### Database not persisting
 
@@ -432,10 +436,10 @@ docker inspect taskflow-api | grep -A 10 Mounts
 **Diagnosis:**
 ```bash
 # Check the user the container runs as
-docker exec taskflow-api whoami
+docker compose exec taskflow-api whoami
 
 # Check directory permissions inside container
-docker exec taskflow-api ls -la /app/data /app/logs
+docker compose exec taskflow-api ls -la /app/data /app/logs
 
 # Check volume mount details
 docker inspect taskflow-api | grep -A 10 Mounts
@@ -444,11 +448,11 @@ docker inspect taskflow-api | grep -A 10 Mounts
 **Solutions:**
 ```bash
 # Rebuild the image to ensure directories are created with correct permissions
-docker-compose build --no-cache
+docker compose build --no-cache
 
 # Recreate volumes with correct permissions
-docker-compose down -v
-docker-compose up --build
+docker compose down -v
+docker compose up --build
 ```
 
 ### Different behavior in Azure vs. local
@@ -574,13 +578,13 @@ If you're upgrading from a previous version that used `/home/logs` and `/home/ta
 1. **Update to latest version:**
    ```bash
    git pull origin main
-   docker-compose down
-   docker-compose build --no-cache
+   docker compose down
+   docker compose build --no-cache
    ```
 
 2. **Start with new configuration:**
    ```bash
-   docker-compose up -d
+   docker compose up -d
    ```
 
 The new configuration will create Docker named volumes automatically.
