@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Http.Json;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using System.Text.Json;
+using TaskFlow.Api.Configuration;
 using TaskFlow.Api.HealthChecks;
 
 namespace TaskFlow.Api.Tests.HealthChecks;
@@ -14,11 +15,10 @@ public class HealthCheckResponseWriterTests
     {
         var services = new ServiceCollection();
         
-        // Configure JsonOptions the same way as in Program.cs
+        // Configure JsonOptions using the shared configuration
         services.Configure<JsonOptions>(options =>
         {
-            options.SerializerOptions.WriteIndented = true;
-            options.SerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
+            JsonSerializerOptionsProvider.ConfigureOptions(options.SerializerOptions);
         });
         
         var serviceProvider = services.BuildServiceProvider();

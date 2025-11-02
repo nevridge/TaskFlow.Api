@@ -11,6 +11,7 @@ using TaskFlow.Api.Services;
 using TaskFlow.Api.Validators;
 using System.Text.Json;
 using Microsoft.AspNetCore.Mvc;
+using TaskFlow.Api.Configuration;
 
 // Configure Serilog with safe paths for containers
 // LOG_PATH can be overridden via environment variable for flexibility
@@ -79,6 +80,8 @@ try
         options.JsonSerializerOptions.WriteIndented = true;
         options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
     });
+
+    builder.Services.ConfigureJsonSerialization();
 
     var app = builder.Build();
 
