@@ -71,13 +71,13 @@ The workflows in this repository already have the correct configuration:
 
 **"AADSTS70021: No matching federated identity record found"**
 - Verify the subject claim matches your repository name exactly
-- Check federated credentials: `az ad app federated-credential list --id $APP_ID`
+- Check federated credentials: `az ad app federated-credential list --id $(az ad app list --display-name "TaskFlowGitHubActions" --query "[0].appId" -o tsv)`
 
 **"ClientAuthenticationFailed"**
 - Ensure workflow has `permissions.id-token: write`
 
 **"The subscription ... could not be found"**
-- Verify service principal has Contributor role: `az role assignment list --assignee <your-app-id>`
+- Verify service principal has Contributor role: `az role assignment list --assignee $(az ad app list --display-name "TaskFlowGitHubActions" --query "[0].appId" -o tsv)`
 
 ## Additional Resources
 

@@ -252,7 +252,8 @@ Save the output - you'll need the `appId` (Client ID) and `tenant` (Tenant ID).
 
 Configure GitHub Actions to authenticate using OIDC:
 
-**Bash:**
+**Note**: The Azure CLI (`az`) commands below work cross-platform on Windows (PowerShell/CMD), macOS, and Linux.
+
 ```bash
 APP_ID=$(az ad app list --display-name "TaskFlowDeployment" --query "[0].appId" -o tsv)
 
