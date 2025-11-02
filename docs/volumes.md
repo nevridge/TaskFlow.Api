@@ -1,10 +1,34 @@
 # Volume Mount Configuration
 
-This document describes the volume mount configuration for TaskFlow.Api, including paths, environment variables, and best practices for local development and deployment.
+This document describes the volume configuration for TaskFlow.Api, including Docker named volumes, environment variables, and best practices for local development and deployment.
 
 ## Overview
 
-TaskFlow.Api uses Docker volumes to persist data and logs across container restarts and deployments. The application follows industry-standard practices by using `/app` as the base directory for application files, with subdirectories for persistent data.
+TaskFlow.Api uses **Docker named volumes** to persist data and logs across container restarts, removals, and redeployments. The application follows industry-standard practices by using `/app` as the base directory for application files, with subdirectories for persistent data.
+
+## Docker Volumes vs Bind Mounts
+
+TaskFlow.Api supports two types of volume mounting:
+
+### Docker Named Volumes (Default & Recommended)
+- **What**: Docker-managed storage volumes with lifecycle independent of containers
+- **Benefits**: 
+  - Managed by Docker with commands like `docker volume ls`, `docker volume inspect`
+  - Persist across container removal and recreation
+  - Better performance on Windows and macOS
+  - Easier backup and migration
+  - No host path dependencies
+- **Use case**: Development with docker-compose, production deployments
+- **Configuration**: Defined in `docker-compose.yml` as `taskflow-data` and `taskflow-logs`
+
+### Bind Mounts (Alternative)
+- **What**: Direct mounts of host directories into containers
+- **Benefits**:
+  - Direct access to files from host filesystem
+  - Useful for debugging and development
+  - Easier to inspect and modify files
+- **Use case**: Advanced debugging, manual deployments
+- **Configuration**: Using `-v $(pwd)/data:/app/data` syntax
 
 ## Standard Volume Paths
 
@@ -15,12 +39,12 @@ TaskFlow.Api uses Docker volumes to persist data and logs across container resta
 | Logs | `/app/logs/` | Application logs written by Serilog |
 | Database | `/app/data/` | SQLite database files |
 
-### Host Mounts (docker-compose)
+### Docker Named Volumes (docker-compose)
 
-| Host Path | Container Path | Purpose |
-|-----------|----------------|---------|
-| `./logs` | `/app/logs` | Persists application logs on the host |
-| `./data` | `/app/data` | Persists SQLite database on the host |
+| Volume Name | Container Path | Purpose |
+|-------------|----------------|---------|
+| `taskflow-data` | `/app/data` | Persists SQLite database |
+| `taskflow-logs` | `/app/logs` | Persists application logs |
 
 ## Environment Variables
 
@@ -83,19 +107,30 @@ For production deployments with stricter security requirements, consider using a
 
 ### docker-compose.yml
 
-The docker-compose configuration mounts host directories to the container paths:
+The docker-compose configuration uses Docker named volumes for data persistence:
 
 ```yaml
+services:
+  taskflow-api:
+    # ... other configuration ...
+    volumes:
+      # Use Docker named volumes for data and logs persistence
+      - taskflow-data:/app/data
+      - taskflow-logs:/app/logs
+
 volumes:
-  # Mount host directories for data and logs persistence
-  - ./data:/app/data
-  - ./logs:/app/logs
+  taskflow-data:
+    driver: local
+  taskflow-logs:
+    driver: local
 ```
 
 This configuration:
-- Creates `./data` and `./logs` directories on the host if they don't exist
+- Creates Docker-managed named volumes `taskflow-data` and `taskflow-logs`
+- Volumes are created automatically on first `docker-compose up`
 - Mounts them to the corresponding paths in the container
-- Persists data across container restarts and recreations
+- Data persists across container removal, recreation, and `docker-compose down`
+- Volumes remain until explicitly deleted with `docker-compose down -v` or `docker volume rm`
 
 ## Usage Examples
 
@@ -105,25 +140,41 @@ This configuration:
    ```bash
    docker-compose up
    ```
+   This automatically creates and mounts the named volumes `taskflow-data` and `taskflow-logs`.
 
-2. **Verify volume mounts:**
+2. **Verify volumes were created:**
    ```bash
-   # Check that directories were created
-   ls -la ./data ./logs
+   # List all Docker volumes
+   docker volume ls | grep taskflow
    
-   # View logs on the host
-   tail -f ./logs/log*.txt
-   
-   # Check database file
-   ls -la ./data/*.db
+   # Inspect volume details
+   docker volume inspect taskflow-data
+   docker volume inspect taskflow-logs
    ```
 
-3. **Stop the containers:**
+3. **View data inside volumes:**
    ```bash
-   docker-compose down
+   # List database files (using service name)
+   docker compose exec taskflow-api ls -la /app/data
+   
+   # View logs (inside container)
+   docker compose exec taskflow-api ls -la /app/logs
+   docker compose exec taskflow-api tail -f /app/logs/log*.txt
+   
+   # Or use docker compose logs to view container logs
+   docker compose logs -f
    ```
 
-The data and logs will persist in the `./data` and `./logs` directories on your host machine.
+4. **Stop the containers:**
+   ```bash
+   # Stop and remove containers (volumes persist)
+   docker compose down
+   
+   # Stop and remove containers AND volumes (data loss!)
+   docker compose down -v
+   ```
+
+**Important:** Data persists in Docker-managed volumes even after `docker compose down`. Volumes remain until explicitly removed with `-v` flag or `docker volume rm`.
 
 ### Production Deployment with Docker CLI
 
@@ -133,7 +184,22 @@ The data and logs will persist in the `./data` and `./logs` directories on your 
    docker build -f Dockerfile -t taskflow-api:latest ..
    ```
 
-2. **Run with persistent volumes:**
+2. **Option A: Run with Docker named volumes (recommended):**
+   ```bash
+   # Create named volumes
+   docker volume create taskflow-prod-data
+   docker volume create taskflow-prod-logs
+   
+   # Run with named volumes
+   docker run -d \
+     -p 8080:8080 \
+     -v taskflow-prod-data:/app/data \
+     -v taskflow-prod-logs:/app/logs \
+     --name taskflow-api \
+     taskflow-api:latest
+   ```
+
+3. **Option B: Run with bind mounts (host directories):**
    ```bash
    docker run -d \
      -p 8080:8080 \
@@ -143,12 +209,24 @@ The data and logs will persist in the `./data` and `./logs` directories on your 
      taskflow-api:latest
    ```
 
-3. **Run with custom paths:**
+4. **Verify volumes:**
+   ```bash
+   # List volumes
+   docker volume ls | grep taskflow
+   
+   # Inspect volume
+   docker volume inspect taskflow-prod-data
+   
+   # View files in volume
+   docker exec taskflow-api ls -la /app/data
+   ```
+
+5. **Run with custom paths:**
    ```bash
    docker run -d \
      -p 8080:8080 \
-     -v /var/taskflow/data:/app/data \
-     -v /var/taskflow/logs:/app/logs \
+     -v taskflow-prod-data:/app/data \
+     -v taskflow-prod-logs:/app/logs \
      -e LOG_PATH=/app/logs/taskflow.log \
      -e ConnectionStrings__DefaultConnection="Data Source=/app/data/production.db" \
      --name taskflow-api \
@@ -175,26 +253,108 @@ az webapp config appsettings set \
 
 The default `/app/data` and `/app/logs` paths will work, but data will only persist as long as the container is running. For production, use Option 1 or configure Azure File Storage mounts.
 
+## Managing Docker Volumes
+
+### List volumes
+```bash
+# List all volumes
+docker volume ls
+
+# List TaskFlow volumes
+docker volume ls | grep taskflow
+```
+
+### Inspect volume details
+```bash
+# View volume configuration and mount point
+docker volume inspect taskflow-data
+docker volume inspect taskflow-logs
+```
+
+### Remove volumes
+```bash
+# Remove specific volume (container must be stopped first)
+docker volume rm taskflow-data
+
+# Remove all unused volumes
+docker volume prune
+
+# Remove volumes when stopping compose
+docker compose down -v
+```
+
+### Backup and restore volumes
+
+**Backup a volume:**
+```bash
+# Create backup directory
+mkdir -p backups
+
+# Backup database volume
+docker run --rm \
+  -v taskflow-data:/data \
+  -v $(pwd)/backups:/backup \
+  alpine tar czf /backup/taskflow-data-$(date +%Y%m%d).tar.gz -C /data .
+
+# Backup logs volume
+docker run --rm \
+  -v taskflow-logs:/data \
+  -v $(pwd)/backups:/backup \
+  alpine tar czf /backup/taskflow-logs-$(date +%Y%m%d).tar.gz -C /data .
+```
+
+**Restore a volume:**
+```bash
+# Stop the application
+docker compose down
+
+# Restore database volume
+docker run --rm \
+  -v taskflow-data:/data \
+  -v $(pwd)/backups:/backup \
+  alpine tar xzf /backup/taskflow-data-20240101.tar.gz -C /data
+
+# Restart application
+docker compose up -d
+```
+
+### Copy files from volumes
+
+**Copy database file from volume:**
+```bash
+# Using running container
+docker cp taskflow-api:/app/data/tasks.db ./tasks-backup.db
+
+# Using temporary container
+docker run --rm \
+  -v taskflow-data:/data \
+  -v $(pwd):/backup \
+  alpine cp /data/tasks.db /backup/tasks-backup.db
+```
+
 ## Best Practices
 
 ### Development
 
-1. **Add to .gitignore**: Ensure `./data` and `./logs` directories are in `.gitignore` to avoid committing runtime artifacts:
-   ```gitignore
-   data/
-   logs/
-   ```
+1. **Use Docker named volumes**: The default docker-compose.yml uses named volumes for better Docker integration
 
 2. **Clean up volumes**: Remove volumes when you want to start fresh:
    ```bash
-   docker-compose down -v  # Remove volumes
-   rm -rf ./data ./logs    # Remove host directories
+   # Stop and remove containers and volumes
+   docker compose down -v
+   
+   # Or remove specific volumes (after stopping containers)
+   docker volume rm taskflowapi_taskflow-data taskflowapi_taskflow-logs
    ```
 
 3. **Inspect running container**: Check volume mounts and paths:
    ```bash
-   docker exec -it taskflow-api ls -la /app/logs /app/data
-   docker exec -it taskflow-api cat /app/logs/log*.txt
+   # Using compose exec (recommended)
+   docker compose exec taskflow-api ls -la /app/logs /app/data
+   docker compose exec taskflow-api cat /app/logs/log*.txt
+   
+   # Or using container name directly
+   docker exec taskflow-api ls -la /app/logs /app/data
    ```
 
 ### Production
@@ -210,21 +370,7 @@ The default `/app/data` and `/app/logs` paths will work, but data will only pers
      taskflow-logs:
    ```
 
-2. **Backup database regularly**: The SQLite database file can be backed up using various methods:
-   ```bash
-   # Method 1: Copy the database file from the container to the host
-   docker cp taskflow-api:/app/data/tasks.db ./backups/tasks-$(date +%Y%m%d).db
-   
-   # Method 2: Use SQLite's backup command (backs up to a different volume)
-   docker exec taskflow-api sqlite3 /app/data/tasks.db ".backup '/tmp/backup.db'"
-   docker cp taskflow-api:/tmp/backup.db ./backups/tasks-$(date +%Y%m%d).db
-   
-   # Method 3: Create backups directly to a mounted backup volume
-   # Recommended: Use the actual TaskFlow API image to ensure environment matches production
-   docker run -v $(pwd)/data:/app/data -v $(pwd)/backups:/backups \
-     --rm taskflow-api:latest \
-     sh -c "cp /app/data/tasks.db /backups/tasks-$(date +%Y%m%d).db"
-   ```
+2. **Backup database regularly**: Use the backup methods described in the "Backup and restore volumes" section above
 
 3. **Log rotation**: Serilog is configured with daily rolling logs. The current log file is named `log.txt`, and old logs are automatically archived with date suffixes in the format `log<YYYYMMDD>.txt` (e.g., the file for December 1, 2023 would be `log20231201.txt`).
 
@@ -234,26 +380,33 @@ The default `/app/data` and `/app/logs` paths will work, but data will only pers
 
 ## Troubleshooting
 
-### Logs not appearing in ./logs
+### Logs not appearing
 
-**Symptom**: Container runs but no log files appear in the host `./logs` directory.
+**Symptom**: Container runs but no log files appear in the volume.
 
 **Diagnosis:**
 ```bash
 # Check if the directory exists in the container
-docker exec taskflow-api ls -la /app/logs
+docker compose exec taskflow-api ls -la /app/logs
 
 # Check the LOG_PATH environment variable
-docker exec taskflow-api env | grep LOG_PATH
+docker compose exec taskflow-api env | grep LOG_PATH
 
 # Check container logs for Serilog errors
-docker logs taskflow-api
+docker compose logs taskflow-api
+
+# Verify volume is mounted
+docker inspect taskflow-api | grep -A 10 Mounts
+
+# Check volume exists
+docker volume ls | grep taskflow
 ```
 
 **Solutions:**
-- Ensure the volume mount is correct in docker-compose.yml
+- Ensure the volume mount is correct in docker-compose.yml (`taskflow-logs:/app/logs`)
 - Verify the LOG_PATH environment variable is set correctly
-- Check directory permissions (should be 777)
+- Check directory permissions inside container (should be 777)
+- Recreate the volume: `docker compose down -v && docker compose up`
 
 ### Database not persisting
 
@@ -272,24 +425,41 @@ docker inspect taskflow-api | grep -A 10 Mounts
 ```
 
 **Solutions:**
-- Ensure `./data:/app/data` volume mount is present
+- Ensure `taskflow-data:/app/data` volume mount is present in docker-compose.yml
 - Verify the connection string points to `/app/data/tasks.db`
-- Check that the database file exists on the host: `ls -la ./data/`
+- Check that the database file exists in the volume:
+  ```bash
+  # Using running container
+  docker compose exec taskflow-api ls -la /app/data
+  
+  # Or inspect volume contents directly
+  docker run --rm -v taskflowapi_taskflow-data:/data alpine ls -la /data
+  ```
 
 ### Permission denied errors
 
 **Symptom**: Application crashes with "Permission denied" when writing to logs or database.
 
+**Diagnosis:**
+```bash
+# Check the user the container runs as
+docker compose exec taskflow-api whoami
+
+# Check directory permissions inside container
+docker compose exec taskflow-api ls -la /app/data /app/logs
+
+# Check volume mount details
+docker inspect taskflow-api | grep -A 10 Mounts
+```
+
 **Solutions:**
 ```bash
-# Fix permissions on host directories
-chmod -R 777 ./data ./logs
-
 # Rebuild the image to ensure directories are created with correct permissions
-docker-compose build --no-cache
+docker compose build --no-cache
 
-# Check the user the container runs as
-docker exec taskflow-api whoami
+# Recreate volumes with correct permissions
+docker compose down -v
+docker compose up --build
 ```
 
 ### Different behavior in Azure vs. local
@@ -303,25 +473,128 @@ docker exec taskflow-api whoami
   - `ConnectionStrings__DefaultConnection="Data Source=/home/data/tasks.db"`
 - Or mount Azure File Storage to `/app/data` and `/app/logs`
 
-## Migration from Previous Configuration
+## Migration Guide
+
+### Migrating from Bind Mounts to Docker Named Volumes
+
+If you were previously using bind mounts (host directories `./data` and `./logs`), follow these steps to migrate to Docker named volumes:
+
+#### Option 1: Import existing data into new volumes (recommended)
+
+1. **Stop the running containers:**
+   ```bash
+   docker compose down
+   ```
+
+2. **Create the new named volumes:**
+   ```bash
+   docker volume create taskflow-data
+   docker volume create taskflow-logs
+   ```
+
+3. **Copy data from bind mounts to named volumes:**
+   ```bash
+   # Copy database files to named volume
+   docker run --rm \
+     -v $(pwd)/data:/source \
+     -v taskflow-data:/dest \
+     alpine sh -c "cp -a /source/. /dest/"
+   
+   # Copy log files to named volume
+   docker run --rm \
+     -v $(pwd)/logs:/source \
+     -v taskflow-logs:/dest \
+     alpine sh -c "cp -a /source/. /dest/"
+   ```
+
+4. **Verify data was copied:**
+   ```bash
+   # Check database volume
+   docker run --rm -v taskflow-data:/data alpine ls -la /data
+   
+   # Check logs volume
+   docker run --rm -v taskflow-logs:/data alpine ls -la /data
+   ```
+
+5. **Update docker-compose.yml** (if not already updated):
+   ```yaml
+   services:
+     taskflow-api:
+       volumes:
+         - taskflow-data:/app/data
+         - taskflow-logs:/app/logs
+   
+   volumes:
+     taskflow-data:
+       driver: local
+     taskflow-logs:
+       driver: local
+   ```
+
+6. **Start with the new configuration:**
+   ```bash
+   docker compose up -d
+   ```
+
+7. **Verify the application is working:**
+   ```bash
+   # Check health
+   curl http://localhost:8080/health
+   
+   # View logs
+   docker exec taskflow-api ls -la /app/data /app/logs
+   ```
+
+8. **Optional: Clean up old bind mount directories:**
+   ```bash
+   # Backup first!
+   tar czf data-backup.tar.gz data/
+   tar czf logs-backup.tar.gz logs/
+   
+   # Remove old directories
+   rm -rf data/ logs/
+   ```
+
+#### Option 2: Start fresh with named volumes
+
+If you don't need to preserve existing data:
+
+1. **Stop and remove containers:**
+   ```bash
+   docker compose down
+   ```
+
+2. **Update docker-compose.yml** to use named volumes (if not already updated)
+
+3. **Start with new named volumes:**
+   ```bash
+   docker compose up -d
+   ```
+
+4. **Optional: Remove old bind mount directories:**
+   ```bash
+   rm -rf data/ logs/
+   ```
+
+### Migrating from `/home` paths (legacy)
 
 If you're upgrading from a previous version that used `/home/logs` and `/home/tasks.db`:
 
-### For Local Development
+#### For Local Development
 
 1. **Update to latest version:**
    ```bash
    git pull origin main
-   docker-compose down
-   docker-compose build --no-cache
+   docker compose down
+   docker compose build --no-cache
    ```
 
 2. **Start with new configuration:**
    ```bash
-   docker-compose up
+   docker compose up -d
    ```
 
-The new configuration will create `./data` and `./logs` directories automatically.
+The new configuration will create Docker named volumes automatically.
 
 ### For Azure Deployment
 
@@ -337,8 +610,12 @@ Your existing data and logs in `/home` will continue to work without migration.
 
 ## Summary
 
+- **Volume Type**: Docker named volumes (default) or bind mounts (alternative)
 - **Default container paths**: `/app/logs` for logs, `/app/data` for database
 - **Environment variables**: `LOG_PATH` and `ConnectionStrings__DefaultConnection` for customization
-- **Docker Compose**: Automatically mounts `./data` and `./logs` from the host
+- **Docker Compose**: Uses named volumes `taskflow-data` and `taskflow-logs` for persistence
+- **Persistence**: Data persists across container removal/recreation until volumes are explicitly deleted
+- **Management**: Use `docker volume` commands to manage, backup, and restore volumes
 - **Azure App Service**: Override paths to use `/home` for persistent storage
-- **Best practice**: Use the defaults for local development, override for specific deployment environments
+- **Best practice**: Use Docker named volumes for most scenarios, bind mounts for advanced debugging
+- **Migration**: Follow the migration guide above if upgrading from bind mounts
