@@ -280,7 +280,7 @@ docker volume rm taskflow-data
 docker volume prune
 
 # Remove volumes when stopping compose
-docker-compose down -v
+docker compose down -v
 ```
 
 ### Backup and restore volumes
@@ -306,7 +306,7 @@ docker run --rm \
 **Restore a volume:**
 ```bash
 # Stop the application
-docker-compose down
+docker compose down
 
 # Restore database volume
 docker run --rm \
@@ -315,7 +315,7 @@ docker run --rm \
   alpine tar xzf /backup/taskflow-data-20240101.tar.gz -C /data
 
 # Restart application
-docker-compose up -d
+docker compose up -d
 ```
 
 ### Copy files from volumes
@@ -476,7 +476,7 @@ If you were previously using bind mounts (host directories `./data` and `./logs`
 
 1. **Stop the running containers:**
    ```bash
-   docker-compose down
+   docker compose down
    ```
 
 2. **Create the new named volumes:**
@@ -526,7 +526,7 @@ If you were previously using bind mounts (host directories `./data` and `./logs`
 
 6. **Start with the new configuration:**
    ```bash
-   docker-compose up -d
+   docker compose up -d
    ```
 
 7. **Verify the application is working:**
@@ -554,14 +554,14 @@ If you don't need to preserve existing data:
 
 1. **Stop and remove containers:**
    ```bash
-   docker-compose down
+   docker compose down
    ```
 
 2. **Update docker-compose.yml** to use named volumes (if not already updated)
 
 3. **Start with new named volumes:**
    ```bash
-   docker-compose up -d
+   docker compose up -d
    ```
 
 4. **Optional: Remove old bind mount directories:**
