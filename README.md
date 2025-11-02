@@ -360,7 +360,7 @@ The workflow uses a **standardized naming convention** for Azure resources. All 
 - **Environment**: `prod`
 - **Resource Group**: `nevridge-taskflow-prod-rg` (location: `eastus`)
 - **Azure Container Registry (ACR)**: `nevridgetaskflowprodacr`
-- **App Service Plan**: `nevridge-taskflow-prod-plan` (Linux, F1 SKU - Free tier)
+- **App Service Plan**: `nevridge-taskflow-prod-plan` (Linux, F1 SKU)
 - **Web App**: `nevridge-taskflow-prod-web`
 - **ACR Image**: `taskflowapi`
 
@@ -390,7 +390,7 @@ git push origin v1.0.0
 2. **Creates Azure resources** if they don't exist:
    - Resource Group
    - Azure Container Registry (Basic SKU)
-   - App Service Plan (Linux F1 - Free tier)
+   - App Service Plan (Linux F1 SKU)
    - Web App with Linux container
 3. **Configures managed identity**: Enables system-assigned managed identity for the Web App
 4. **Grants ACR access**: Assigns AcrPull role to the Web App identity
@@ -811,7 +811,7 @@ To customize deployment for your environment:
 2. **Change Azure region**: Update `LOCATION` environment variable
 
 3. **Adjust App Service SKU**: Modify the `--sku` parameter in the App Service Plan creation step
-   - `F1`: Free tier (no quota required, limited features)
+   - `F1`: Free tier (no quota required, limited compute time and storage)
    - `B1`: Basic (requires quota, suitable for small production workloads)
    - `S1`: Standard (requires quota, production with scaling)
    - `P1V2`: Premium (requires quota, high performance)
