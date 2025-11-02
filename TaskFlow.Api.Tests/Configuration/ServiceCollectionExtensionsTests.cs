@@ -105,8 +105,6 @@ public class ServiceCollectionExtensionsTests
 
         // Act
         services.AddSwagger();
-        var serviceProvider = services.BuildServiceProvider();
-
         // Assert
         // Swagger services are registered internally
         // We verify by checking if the service collection has the expected services
