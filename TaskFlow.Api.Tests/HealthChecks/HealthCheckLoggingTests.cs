@@ -12,8 +12,17 @@ using TaskFlow.Api.HealthChecks;
 namespace TaskFlow.Api.Tests.HealthChecks;
 
 /// <summary>
+/// Collection definition to ensure tests run sequentially (InMemorySink is global)
+/// </summary>
+[CollectionDefinition("HealthCheckLogging", DisableParallelization = true)]
+public class HealthCheckLoggingCollection
+{
+}
+
+/// <summary>
 /// Tests to verify health check failures are logged by Serilog
 /// </summary>
+[Collection("HealthCheckLogging")]
 public class HealthCheckLoggingTests : IDisposable
 {
     private readonly ILogger _originalLogger;
@@ -37,7 +46,7 @@ public class HealthCheckLoggingTests : IDisposable
     {
         // Clear in-memory logs
         InMemorySink.Instance.Dispose();
-        
+
         // Restore the original logger
         Log.Logger = _originalLogger;
     }
@@ -87,7 +96,7 @@ public class HealthCheckLoggingTests : IDisposable
 
         var errorLog = logEvents.FirstOrDefault(e => e.Level == LogEventLevel.Error);
         errorLog.Should().NotBeNull("unhealthy status should be logged at Error level");
-        
+
         var message = errorLog?.RenderMessage();
         message.Should().Contain("Health check FAILED", "log should indicate failure");
         message.Should().Contain("/health", "log should include endpoint");
@@ -124,7 +133,7 @@ public class HealthCheckLoggingTests : IDisposable
 
         var warningLog = logEvents.FirstOrDefault(e => e.Level == LogEventLevel.Warning);
         warningLog.Should().NotBeNull("degraded status should be logged at Warning level");
-        
+
         var message = warningLog?.RenderMessage();
         message.Should().Contain("Health check DEGRADED", "log should indicate degradation");
         message.Should().Contain("/health/ready", "log should include endpoint");
@@ -196,7 +205,7 @@ public class HealthCheckLoggingTests : IDisposable
         var logEvents = InMemorySink.Instance.LogEvents.ToList();
         var errorLog = logEvents.FirstOrDefault(e => e.Level == LogEventLevel.Error);
         errorLog.Should().NotBeNull();
-        
+
         var message = errorLog?.RenderMessage();
         message.Should().Contain("database", "log should include first failed check");
         message.Should().Contain("external-api", "log should include second failed check");
@@ -230,7 +239,7 @@ public class HealthCheckLoggingTests : IDisposable
         // Assert
         var logEvents = InMemorySink.Instance.LogEvents.ToList();
         var errorLog = logEvents.FirstOrDefault(e => e.Level == LogEventLevel.Error);
-        
+
         var message = errorLog?.RenderMessage();
         message.Should().Contain(exceptionMessage, "log should include exception message from health check");
     }
