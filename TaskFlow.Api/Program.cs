@@ -1,28 +1,12 @@
-using FluentValidation;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Diagnostics.HealthChecks;
-using Microsoft.OpenApi.Models;
 using Serilog;
+using TaskFlow.Api.Configuration;
 using TaskFlow.Api.Data;
 using TaskFlow.Api.HealthChecks;
 using TaskFlow.Api.Middleware;
-using TaskFlow.Api.Repositories;
-using TaskFlow.Api.Services;
-using TaskFlow.Api.Validators;
-using TaskFlow.Api.Configuration;
 
-// Configure Serilog with safe paths for containers
-// LOG_PATH can be overridden via environment variable for flexibility
-const string DefaultLogPath = "/app/logs/log.txt";
-var logPath = Environment.GetEnvironmentVariable("LOG_PATH") ?? DefaultLogPath;
-Log.Logger = new LoggerConfiguration()
-    .WriteTo.Console()
-    .WriteTo.File(
-        path: logPath,
-        rollingInterval: RollingInterval.Day,
-        shared: true,
-        flushToDiskInterval: TimeSpan.FromSeconds(1))
-    .CreateLogger();
+// Configure Serilog bootstrap logger
+LoggingServiceExtensions.ConfigureBootstrapLogger();
 
 try
 {
@@ -30,43 +14,16 @@ try
 
     var builder = WebApplication.CreateBuilder(args);
 
-    // Use Serilog as the host logger (will use the static Log.Logger)
-    builder.Host.UseSerilog();
+    // Configure Serilog as the host logger
+    builder.Host.AddSerilog();
 
-    // Add services to the container.
+    // Add services to the container
     builder.Services.AddControllers();
-    builder.Services.AddEndpointsApiExplorer();
-    builder.Services.AddSwaggerGen(options =>
-    {
-        options.SwaggerDoc("v1", new OpenApiInfo { Title = "TaskFlow API", Version = "v1" });
-    });
-
-    // Read connection string from configuration
-    // Default to /app/data/tasks.db for consistent container paths
-    var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
-                           ?? "Data Source=/app/data/tasks.db";
-
-    Log.Information("Using connection string: {ConnectionString}", connectionString);
-
-    // Register SQLite DB context
-    builder.Services.AddDbContext<TaskDbContext>(options =>
-        options.UseSqlite(connectionString));
-
-    builder.Services.AddScoped<ITaskRepository, TaskRepository>();
-    builder.Services.AddScoped<ITaskService, TaskService>();
-    // Register validators
-    builder.Services.AddValidatorsFromAssemblyContaining<TaskItemValidator>();
-
-    // Add health checks with database connectivity validation
-    builder.Services.AddHealthChecks()
-        .AddDbContextCheck<TaskDbContext>(
-            name: "database",
-            tags: ["ready"])
-        .AddCheck(
-            name: "self",
-            check: () => HealthCheckResult.Healthy("Application is running"),
-            tags: ["live"]);
-
+    builder.Services.AddSwagger();
+    builder.Services.AddPersistence(builder.Configuration);
+    builder.Services.AddApplicationServices();
+    builder.Services.AddValidation();
+    builder.Services.AddApplicationHealthChecks();
     builder.Services.ConfigureJsonSerialization();
 
     var app = builder.Build();
