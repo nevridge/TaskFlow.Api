@@ -63,7 +63,7 @@ Manual trigger via GitHub Actions workflow_dispatch
 
 ### Environment Variables Set by Workflow
 
-The workflow follows the [Resource Naming Convention](./DEPLOY.md) and computes resource names automatically.
+The workflow follows the [Resource Naming Convention](DEPLOY.md) and computes resource names automatically.
 
 | Variable | Computed Value | Description |
 |----------|----------------|-------------|
