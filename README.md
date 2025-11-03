@@ -333,23 +333,23 @@ Configure GitHub Actions to authenticate using OIDC:
 ```bash
 APP_ID=$(az ad app list --display-name "TaskFlowDeployment" --query "[0].appId" -o tsv)
 
-# For main branch deployments
+# For QA environment deployments
 az ad app federated-credential create \
   --id $APP_ID \
   --parameters '{
-    "name": "TaskFlowGitHubActionsMain",
+    "name": "TaskFlowGitHubActionsQA",
     "issuer": "https://token.actions.githubusercontent.com",
-    "subject": "repo:nevridge/TaskFlow.Api:ref:refs/heads/main",
+    "subject": "repo:nevridge/TaskFlow.Api:environment:qa",
     "audiences": ["api://AzureADTokenExchange"]
   }'
 
-# For tag-based releases
+# For production environment deployments
 az ad app federated-credential create \
   --id $APP_ID \
   --parameters '{
-    "name": "TaskFlowGitHubActionsTags",
+    "name": "TaskFlowGitHubActionsProduction",
     "issuer": "https://token.actions.githubusercontent.com",
-    "subject": "repo:nevridge/TaskFlow.Api:ref:refs/tags/v*",
+    "subject": "repo:nevridge/TaskFlow.Api:environment:production",
     "audiences": ["api://AzureADTokenExchange"]
   }'
 ```
@@ -360,6 +360,14 @@ Add these secrets in GitHub (**Settings → Secrets and variables → Actions**)
 - `AZURE_CLIENT_ID` - The `appId` from Step 1
 - `AZURE_TENANT_ID` - The `tenant` from Step 1
 - `AZURE_SUBSCRIPTION_ID` - Your Azure subscription ID
+
+**Step 4: Configure GitHub Environments**
+
+The workflows use GitHub Environments for OIDC authentication. Create these environments in GitHub (**Settings → Environments**):
+- `qa` - For QA deployments (matches the federated credential subject `repo:nevridge/TaskFlow.Api:environment:qa`)
+- `production` - For production deployments (matches the federated credential subject `repo:nevridge/TaskFlow.Api:environment:production`)
+
+**Note**: The environment names must match exactly as they are used in the OIDC federated credential subjects configured in Step 2.
 
 **For detailed setup instructions and troubleshooting, see [Azure OIDC Authentication Guide](docs/AZURE_OIDC_AUTHENTICATION.md).**
 
