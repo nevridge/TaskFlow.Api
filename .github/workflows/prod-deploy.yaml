@@ -186,22 +186,23 @@ jobs:
               
               # Capture output for error reporting
               CREATE_OUTPUT=$(mktemp)
+              trap "rm -f $CREATE_OUTPUT" EXIT
+              
               if az appservice plan create \
                 -n ${{ env.PLAN_NAME }} \
                 -g ${{ env.RG_NAME }} \
                 --is-linux \
                 --sku F1 2>&1 | tee "$CREATE_OUTPUT"; then
-                # Success - clean up temp file
-                rm -f "$CREATE_OUTPUT"
+                # Success
+                echo "App Service Plan created successfully"
               else
-                # Failure - display error and clean up
+                # Failure - display error
                 echo ""
                 echo "=========================================="
                 echo "ERROR: Failed to create App Service Plan"
                 echo "=========================================="
                 echo ""
                 cat "$CREATE_OUTPUT"
-                rm -f "$CREATE_OUTPUT"
                 echo ""
                 echo "This deployment requires an App Service Plan, but your Azure subscription"
                 echo "does not have quota to create one."
