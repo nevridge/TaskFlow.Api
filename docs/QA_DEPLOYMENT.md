@@ -410,7 +410,7 @@ To use a different DNS name (e.g., `taskflow-staging`):
 4. Update documentation references
 5. Update test configurations
 
-See [DEPLOY.md](./DEPLOY.md) for details on the naming convention.
+See [DEPLOY.md](DEPLOY.md) for details on the naming convention.
 
 ### Deploying to Multiple Regions
 
