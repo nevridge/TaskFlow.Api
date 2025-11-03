@@ -42,8 +42,8 @@ jobs:
           
           # Computed names following naming convention: {org}-{app}-{env}-{type}
           RG_NAME="${ORG}-${APP}-${ENV}-rg"
-          WEB_NAME="${ORG}-${APP}-${ENV}-web"
-          PLAN_NAME="${ORG}-${APP}-${ENV}-plan"
+          ACI_NAME="${ORG}-${APP}-${ENV}-aci"
+          DNS_NAME_LABEL="${APP}-${ENV}"
           
           # Special: ACR (no hyphens, alphanumeric only)
           ACR_NAME="${ORG}${APP}${ENV}acr"
@@ -53,8 +53,8 @@ jobs:
           
           # Export to environment
           echo "RG_NAME=$RG_NAME" >> $GITHUB_ENV
-          echo "WEB_NAME=$WEB_NAME" >> $GITHUB_ENV
-          echo "PLAN_NAME=$PLAN_NAME" >> $GITHUB_ENV
+          echo "ACI_NAME=$ACI_NAME" >> $GITHUB_ENV
+          echo "DNS_NAME_LABEL=$DNS_NAME_LABEL" >> $GITHUB_ENV
           echo "ACR_NAME=$ACR_NAME" >> $GITHUB_ENV
           echo "ACR_IMAGE_NAME=$ACR_IMAGE_NAME" >> $GITHUB_ENV
           
@@ -63,8 +63,9 @@ jobs:
           echo "Computed Azure Resource Names:"
           echo "=========================================="
           echo "Resource Group:     $RG_NAME"
-          echo "Web App:            $WEB_NAME"
-          echo "App Service Plan:   $PLAN_NAME"
+          echo "ACI Container:      $ACI_NAME"
+          echo "DNS Label:          $DNS_NAME_LABEL"
+          echo "Full DNS:           $DNS_NAME_LABEL.${{ env.LOCATION }}.azurecontainer.io"
           echo "Container Registry: $ACR_NAME"
           echo "Image Name:         $ACR_IMAGE_NAME"
           echo "Location:           ${{ env.LOCATION }}"
@@ -95,12 +96,12 @@ jobs:
             fi
           }
           
-          # Function to validate alphanumeric with hyphens
-          validate_alphanumeric_hyphen() {
+          # Function to validate DNS label format
+          validate_dns_label() {
             local name=$1
             local resource=$2
-            if ! [[ "$name" =~ ^[a-z0-9]([a-z0-9-]*[a-z0-9])?$ ]]; then
-              echo "ERROR: $resource name '$name' must start and end with lowercase alphanumeric, can contain hyphens"
+            if ! [[ "$name" =~ ^[a-zA-Z0-9]([a-zA-Z0-9-]*[a-zA-Z0-9])?$ ]]; then
+              echo "ERROR: $resource name '$name' must start and end with alphanumeric (upper/lowercase allowed), can contain hyphens"
               exit 1
             fi
           }
@@ -111,13 +112,13 @@ jobs:
           validate_length "$ACR_NAME" 5 50 "ACR"
           validate_alphanumeric "$ACR_NAME" "ACR"
           
-          # Validate Web App name (2-60 chars, alphanumeric and hyphens)
-          validate_length "$WEB_NAME" 2 60 "Web App"
-          validate_alphanumeric_hyphen "$WEB_NAME" "Web App"
+          # Validate ACI name (1-63 chars, alphanumeric and hyphens)
+          validate_length "$ACI_NAME" 1 63 "ACI"
+          validate_dns_label "$ACI_NAME" "ACI"
           
-          # Validate App Service Plan name (1-40 chars, alphanumeric and hyphens)
-          validate_length "$PLAN_NAME" 1 40 "App Service Plan"
-          validate_alphanumeric_hyphen "$PLAN_NAME" "App Service Plan"
+          # Validate DNS label (1-63 chars, alphanumeric and hyphens)
+          validate_length "$DNS_NAME_LABEL" 1 63 "DNS Label"
+          validate_dns_label "$DNS_NAME_LABEL" "DNS Label"
           
           # Validate Resource Group name (1-90 chars)
           validate_length "$RG_NAME" 1 90 "Resource Group"
@@ -134,6 +135,12 @@ jobs:
       - name: Verify subscription
         run: |
           az account show
+
+      - name: Register Azure Container Instances provider
+        run: |
+          echo "Registering Microsoft.ContainerInstance provider"
+          az provider register --namespace Microsoft.ContainerInstance --wait || true
+          az provider show --namespace Microsoft.ContainerInstance --query "registrationState" -o tsv
 
       - name: Ensure resource group exists
         run: |
@@ -162,149 +169,93 @@ jobs:
             --file TaskFlow.Api/Dockerfile \
             .
 
-      - name: Ensure App Service Plan exists
+      - name: Delete existing ACI if it exists
         run: |
-          if az appservice plan show -n ${{ env.PLAN_NAME }} -g ${{ env.RG_NAME }} >/dev/null 2>&1; then
-            echo "App Service Plan ${{ env.PLAN_NAME }} exists"
-          else
-            echo "App Service Plan ${{ env.PLAN_NAME }} does not exist"
-            echo "Checking for existing App Service Plans in resource group that can be reused..."
-            
-            # Try to find any existing Linux App Service Plan in the resource group
-            EXISTING_PLAN=$(az appservice plan list -g ${{ env.RG_NAME }} --query "[?contains(toLower(kind), 'linux')].name" -o tsv | head -n 1)
-            
-            if [ -n "$EXISTING_PLAN" ]; then
-              echo "Found existing Linux App Service Plan: $EXISTING_PLAN"
-              echo "Original intended plan name: ${{ env.PLAN_NAME }}"
-              echo "Using existing plan instead of creating a new one"
-              echo "PLAN_NAME=$EXISTING_PLAN" >> $GITHUB_ENV
-            else
-              echo "No existing Linux App Service Plans found in resource group"
-              echo "Attempting to create new App Service Plan ${{ env.PLAN_NAME }}"
-              echo "NOTE: Using Free tier (F1) due to Azure subscription quota limitations."
-              echo "To use Basic (B1) or higher tiers, request quota increase in Azure Portal."
-              
-              # Capture output for error reporting
-              CREATE_OUTPUT=$(mktemp)
-              trap "rm -f $CREATE_OUTPUT" EXIT
-              
-              if az appservice plan create \
-                -n ${{ env.PLAN_NAME }} \
-                -g ${{ env.RG_NAME }} \
-                --is-linux \
-                --sku F1 2>&1 | tee "$CREATE_OUTPUT"; then
-                # Success
-                echo "App Service Plan created successfully"
-              else
-                # Failure - display error
-                echo ""
-                echo "=========================================="
-                echo "ERROR: Failed to create App Service Plan"
-                echo "=========================================="
-                echo ""
-                cat "$CREATE_OUTPUT"
-                echo ""
-                echo "This deployment requires an App Service Plan, but your Azure subscription"
-                echo "does not have quota to create one."
-                echo ""
-                echo "ACTION REQUIRED:"
-                echo "1. Go to Azure Portal (https://portal.azure.com)"
-                echo "2. Navigate to: Subscriptions > Your Subscription > Usage + quotas"
-                echo "3. Search for 'App Service' or 'Web App' quotas"
-                echo "4. Request a quota increase for at least 1 Free (F1) or Basic (B1) App Service Plan"
-                echo ""
-                echo "Alternatively, you can manually create an App Service Plan in the resource"
-                echo "group '${{ env.RG_NAME }}' and re-run this deployment."
-                echo "=========================================="
+          echo "Pre-deployment cleanup: Checking for existing ACI container '${{ env.ACI_NAME }}'"
+          if az container show -g ${{ env.RG_NAME }} -n ${{ env.ACI_NAME }} >/dev/null 2>&1; then
+            echo "Found existing ACI container '${{ env.ACI_NAME }}'. Deleting to ensure fresh deployment..."
+            az container delete -g ${{ env.RG_NAME }} -n ${{ env.ACI_NAME }} --yes
+            echo "Waiting for container deletion to complete (polling for up to 60 seconds)..."
+            TIMEOUT=60
+            INTERVAL=2
+            ELAPSED=0
+            while az container show -g ${{ env.RG_NAME }} -n ${{ env.ACI_NAME }} >/dev/null 2>&1; do
+              if [ $ELAPSED -ge $TIMEOUT ]; then
+                echo "Timeout waiting for container deletion. Exiting with error."
                 exit 1
               fi
-            fi
-          fi
-
-      - name: Ensure Web App exists
-        run: |
-          if az webapp show -n ${{ env.WEB_NAME }} -g ${{ env.RG_NAME }} >/dev/null 2>&1; then
-            echo "Web App ${{ env.WEB_NAME }} exists"
+              sleep $INTERVAL
+              ELAPSED=$((ELAPSED + INTERVAL))
+            done
+            echo "✓ Container deletion confirmed. DNS label is now available."
           else
-            echo "Creating Web App ${{ env.WEB_NAME }}"
-            az webapp create \
-              -n ${{ env.WEB_NAME }} \
-              -g ${{ env.RG_NAME }} \
-              --plan ${{ env.PLAN_NAME }} \
-              --deployment-container-image-name ${{ env.ACR_NAME }}.azurecr.io/${{ env.ACR_IMAGE_NAME }}:latest
+            echo "No existing ACI container found with name '${{ env.ACI_NAME }}'. Proceeding with deployment."
           fi
 
-      - name: Enable system-assigned identity
+      - name: Create ACI from ACR image
         run: |
-          az webapp identity assign \
+          echo "Creating ACI container '${{ env.ACI_NAME }}' with DNS label '${{ env.DNS_NAME_LABEL }}'..."
+          az container create \
             --resource-group ${{ env.RG_NAME }} \
-            --name ${{ env.WEB_NAME }}
+            --name ${{ env.ACI_NAME }} \
+            --image ${{ env.ACR_NAME }}.azurecr.io/${{ env.ACR_IMAGE_NAME }}:latest \
+            --registry-login-server ${{ env.ACR_NAME }}.azurecr.io \
+            --registry-username $(az acr credential show -n ${{ env.ACR_NAME }} --query username -o tsv) \
+            --registry-password $(az acr credential show -n ${{ env.ACR_NAME }} --query "passwords[0].value" -o tsv) \
+            --cpu 1 --memory 1.5 \
+            --os-type Linux \
+            --ports 8080 \
+            --dns-name-label ${{ env.DNS_NAME_LABEL }}
+          echo "✓ ACI container created successfully"
 
-      - name: Get webapp managed identity principal ID
-        id: get_principal
+      - name: Wait for ACI to be ready
         run: |
-          principalId=$(az webapp show \
-            --resource-group ${{ env.RG_NAME }} \
-            --name ${{ env.WEB_NAME }} \
-            --query identity.principalId -o tsv)
-          echo "PRINCIPAL_ID=$principalId" >> $GITHUB_ENV
-
-      - name: Grant AcrPull role to webapp identity
-        continue-on-error: true
-        run: |
-          az role assignment create \
-            --assignee ${{ env.PRINCIPAL_ID }} \
-            --role AcrPull \
-            --scope $(az acr show --name ${{ env.ACR_NAME }} --query id -o tsv) || true
-
-      - name: Configure webapp to use managed identity for ACR
-        run: |
-          az resource update \
-            --ids /subscriptions/$(az account show --query id -o tsv)/resourceGroups/${{ env.RG_NAME }}/providers/Microsoft.Web/sites/${{ env.WEB_NAME }}/config/web \
-            --set properties.acrUseManagedIdentityCreds=true
-
-      - name: Set the container image
-        run: |
-          az webapp config container set \
-            --name ${{ env.WEB_NAME }} \
-            --resource-group ${{ env.RG_NAME }} \
-            --container-image-name ${{ env.ACR_NAME }}.azurecr.io/${{ env.ACR_IMAGE_NAME }}:latest \
-            --container-registry-url https://${{ env.ACR_NAME }}.azurecr.io
-
-      - name: Configure health check path
-        run: |
-          az webapp config set \
-            --resource-group ${{ env.RG_NAME }} \
-            --name ${{ env.WEB_NAME }} \
-            --generic-configurations '{"healthCheckPath": "/health"}'
-
-      - name: Restart webapp
-        run: |
-          az webapp restart \
-            --resource-group ${{ env.RG_NAME }} \
-            --name ${{ env.WEB_NAME }}
+          echo "========================================"
+          echo "Waiting for production deployment to be ready..."
+          echo "========================================"
+          for i in {1..30}; do
+            fqdn=$(az container show -g ${{ env.RG_NAME }} -n ${{ env.ACI_NAME }} --query ipAddress.fqdn -o tsv)
+            if [ -n "$fqdn" ] && [ "$fqdn" != "null" ]; then
+              echo "FQDN=$fqdn" >> $GITHUB_ENV
+              echo ""
+              echo "========================================"
+              echo "Production Deployment Ready!"
+              echo "========================================"
+              echo "Resource Group:     ${{ env.RG_NAME }}"
+              echo "ACI Container:      ${{ env.ACI_NAME }}"
+              echo "DNS Label:          ${{ env.DNS_NAME_LABEL }}"
+              echo "Full DNS (FQDN):    $fqdn"
+              echo "API Endpoint:       http://$fqdn:8080"
+              echo "Health Check:       http://$fqdn:8080/health"
+              echo "========================================"
+              break
+            fi
+            echo "Waiting for ACI... (attempt $i/30)"
+            sleep 5
+          done
+          if [ -z "$fqdn" ] || [ "$fqdn" = "null" ]; then
+            echo "Error: FQDN was not obtained after waiting for ACI. Exiting."
+            exit 1
+          fi
 
       - name: Verify health check
         run: |
-          echo "Waiting for app to restart..."
-          sleep 30
-          echo "Checking health endpoint..."
+          echo "Testing http://$FQDN:8080/health"
           for i in {1..10}; do
-            status=$(curl -s -o /dev/null -w '%{http_code}' --max-time 10 https://${{ env.WEB_NAME }}.azurewebsites.net/health || echo "000")
+            status=$(curl -s -o /dev/null -w '%{http_code}' --max-time 5 http://$FQDN:8080/health || echo "000")
             echo "Health check status: $status"
             if [ "$status" = "200" ]; then
-              echo "Health check passed"
               echo ""
               echo "=========================================="
               echo "Production Deployment Complete!"
               echo "=========================================="
-              echo "Web App URL: https://${{ env.WEB_NAME }}.azurewebsites.net"
-              echo "Health Check: https://${{ env.WEB_NAME }}.azurewebsites.net/health"
+              echo "API Endpoint:   http://$FQDN:8080"
+              echo "Health Check:   http://$FQDN:8080/health"
               echo "=========================================="
               exit 0
             fi
             echo "Attempt $i failed, retrying..."
-            sleep 5
+            sleep 3
           done
           echo "Health check failed after 10 attempts"
           exit 1
