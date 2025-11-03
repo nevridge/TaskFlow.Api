@@ -1,5 +1,8 @@
 # Azure Resource Naming Convention
 
+> **📖 Reference Documentation** - This document details Azure resource naming standards. For deployment instructions, see the [Deployment Guide](DEPLOYMENT.md).
+
+
 This document defines the standardized naming convention for all Azure resources deployed by TaskFlow.Api workflows.
 
 ## Overview
@@ -273,3 +276,7 @@ If you are migrating from legacy resource names, follow these steps:
 
 - [QA Deployment Guide](./QA_DEPLOYMENT.md)
 - [Main README](../README.md)
+
+---
+
+[← Back to README](../README.md) | [Deployment Guide](DEPLOYMENT.md)
