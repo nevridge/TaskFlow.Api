@@ -816,7 +816,7 @@ To customize deployment for your environment:
    - `S1`: Standard (requires quota, production with scaling)
    - `P1V2`: Premium (requires quota, high performance)
    
-   **Important**: Basic (B1) and higher tiers require Azure quota allocation. See [Azure Quota Limitations](#azure-quota-limitations) below.
+   **Important**: Basic (B1) and higher tiers require Azure quota allocation. See [Azure Quota Limitations](#azure-quota-limitations) for details.
 
 4. **Add deployment slots**: Add steps to create and use deployment slots for zero-downtime deployments
 
