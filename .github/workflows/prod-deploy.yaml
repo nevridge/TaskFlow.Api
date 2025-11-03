@@ -213,10 +213,11 @@ jobs:
           echo "========================================"
           echo "Waiting for production deployment to be ready..."
           echo "========================================"
+          FQDN_VALUE=""
           for i in {1..30}; do
-            fqdn=$(az container show -g ${{ env.RG_NAME }} -n ${{ env.ACI_NAME }} --query ipAddress.fqdn -o tsv)
-            if [ -n "$fqdn" ] && [ "$fqdn" != "null" ]; then
-              echo "FQDN=$fqdn" >> $GITHUB_ENV
+            FQDN_VALUE=$(az container show -g ${{ env.RG_NAME }} -n ${{ env.ACI_NAME }} --query ipAddress.fqdn -o tsv)
+            if [ -n "$FQDN_VALUE" ] && [ "$FQDN_VALUE" != "null" ]; then
+              echo "FQDN=$FQDN_VALUE" >> $GITHUB_ENV
               echo ""
               echo "========================================"
               echo "Production Deployment Ready!"
@@ -224,16 +225,16 @@ jobs:
               echo "Resource Group:     ${{ env.RG_NAME }}"
               echo "ACI Container:      ${{ env.ACI_NAME }}"
               echo "DNS Label:          ${{ env.DNS_NAME_LABEL }}"
-              echo "Full DNS (FQDN):    $fqdn"
-              echo "API Endpoint:       http://$fqdn:8080"
-              echo "Health Check:       http://$fqdn:8080/health"
+              echo "Full DNS (FQDN):    $FQDN_VALUE"
+              echo "API Endpoint:       http://$FQDN_VALUE:8080"
+              echo "Health Check:       http://$FQDN_VALUE:8080/health"
               echo "========================================"
               break
             fi
             echo "Waiting for ACI... (attempt $i/30)"
             sleep 5
           done
-          if [ -z "$fqdn" ] || [ "$fqdn" = "null" ]; then
+          if [ -z "$FQDN_VALUE" ] || [ "$FQDN_VALUE" = "null" ]; then
             echo "Error: FQDN was not obtained after waiting for ACI. Exiting."
             exit 1
           fi
