@@ -1,4 +1,4 @@
-name: Ephemeral ACI deploy - create test teardown
+name: Deploy to Azure QA
 
 on:
   workflow_dispatch:
@@ -41,6 +41,7 @@ permissions:
 jobs:
   run-ephemeral:
     runs-on: ubuntu-latest
+    environment: qa
     steps:
       - name: Checkout
         uses: actions/checkout@v4
