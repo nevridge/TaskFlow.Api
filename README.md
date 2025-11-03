@@ -295,19 +295,23 @@ The production deployment workflow (`.github/workflows/deploy.yaml`) automatical
 #### Prerequisites
 1. **Azure subscription** with permissions to create resources
 2. **Azure service principal** with Contributor access to your subscription
-3. **GitHub repository secret** named `AZURE_CREDENTIALS` containing service principal JSON
+3. **GitHub repository secrets** for OIDC authentication:
+   - `AZURE_CLIENT_ID` - Application (client) ID
+   - `AZURE_TENANT_ID` - Directory (tenant) ID
+   - `AZURE_SUBSCRIPTION_ID` - Subscription ID
 
-#### Creating the Azure service principal
+#### Creating the Azure service principal with OIDC authentication
 
-**Note**: The workflows currently use the legacy `--sdk-auth` format. While this format still works, it's deprecated. Here's the command:
+The application uses OpenID Connect (OIDC) for secure, passwordless authentication to Azure. This modern approach eliminates the need to store and rotate credentials.
+
+**Step 1: Create the service principal**
 
 **Bash:**
 ```bash
 az ad sp create-for-rbac \
   --name "TaskFlowDeployment" \
   --role contributor \
-  --scopes /subscriptions/{subscription-id} \
-  --sdk-auth
+  --scopes /subscriptions/{subscription-id}
 ```
 
 **PowerShell:**
@@ -315,40 +319,49 @@ az ad sp create-for-rbac \
 az ad sp create-for-rbac `
   --name "TaskFlowDeployment" `
   --role contributor `
-  --scopes /subscriptions/{subscription-id} `
-  --sdk-auth
+  --scopes /subscriptions/{subscription-id}
 ```
 
-Copy the output JSON and add it as a repository secret named `AZURE_CREDENTIALS` in GitHub:
-- Go to **Settings → Secrets and variables → Actions → New repository secret**
-- Name: `AZURE_CREDENTIALS`
-- Value: Paste the entire JSON output from the command above
+Save the output - you'll need the `appId` (Client ID) and `tenant` (Tenant ID).
 
-**Modern alternative**: For new deployments, consider migrating to OpenID Connect (OIDC) authentication which doesn't require storing credentials:
+**Step 2: Configure federated credentials**
 
-**Bash:**
+Configure GitHub Actions to authenticate using OIDC:
+
+**Note**: The Azure CLI (`az`) commands below work cross-platform on Windows (PowerShell/CMD), macOS, and Linux.
+
 ```bash
-# Create the service principal (without --sdk-auth)
-az ad sp create-for-rbac \
-  --name "TaskFlowDeployment" \
-  --role contributor \
-  --scopes /subscriptions/{subscription-id}
+APP_ID=$(az ad app list --display-name "TaskFlowDeployment" --query "[0].appId" -o tsv)
 
-# Then configure federated credentials for GitHub Actions
-# See: https://docs.github.com/en/actions/deployment/security-hardening-your-deployments/configuring-openid-connect-in-azure
+# For main branch deployments
+az ad app federated-credential create \
+  --id $APP_ID \
+  --parameters '{
+    "name": "TaskFlowGitHubActionsMain",
+    "issuer": "https://token.actions.githubusercontent.com",
+    "subject": "repo:nevridge/TaskFlow.Api:ref:refs/heads/main",
+    "audiences": ["api://AzureADTokenExchange"]
+  }'
+
+# For tag-based releases
+az ad app federated-credential create \
+  --id $APP_ID \
+  --parameters '{
+    "name": "TaskFlowGitHubActionsTags",
+    "issuer": "https://token.actions.githubusercontent.com",
+    "subject": "repo:nevridge/TaskFlow.Api:ref:refs/tags/v*",
+    "audiences": ["api://AzureADTokenExchange"]
+  }'
 ```
 
-**PowerShell:**
-```powershell
-# Create the service principal (without --sdk-auth)
-az ad sp create-for-rbac `
-  --name "TaskFlowDeployment" `
-  --role contributor `
-  --scopes /subscriptions/{subscription-id}
+**Step 3: Configure GitHub secrets**
 
-# Then configure federated credentials for GitHub Actions
-# See: https://docs.github.com/en/actions/deployment/security-hardening-your-deployments/configuring-openid-connect-in-azure
-```
+Add these secrets in GitHub (**Settings → Secrets and variables → Actions**):
+- `AZURE_CLIENT_ID` - The `appId` from Step 1
+- `AZURE_TENANT_ID` - The `tenant` from Step 1
+- `AZURE_SUBSCRIPTION_ID` - Your Azure subscription ID
+
+**For detailed setup instructions and troubleshooting, see [Azure OIDC Authentication Guide](docs/AZURE_OIDC_AUTHENTICATION.md).**
 
 #### Deployment workflow configuration
 
@@ -647,7 +660,7 @@ Once your quota is approved, you can update the workflow to use a higher SKU by 
 
 If deployment fails:
 1. **Check workflow logs** in GitHub Actions for detailed error messages
-2. **Verify Azure credentials**: Ensure `AZURE_CREDENTIALS` secret is valid and has proper permissions
+2. **Verify Azure credentials**: Ensure OIDC secrets (`AZURE_CLIENT_ID`, `AZURE_TENANT_ID`, `AZURE_SUBSCRIPTION_ID`) are configured correctly and the service principal has proper permissions
 3. **Check resource quotas**: Ensure your subscription has available quota
 4. **Health check failures**: Check App Service logs in Azure Portal
 5. **Container logs**: View logs via Azure CLI:
@@ -739,7 +752,9 @@ The project includes three GitHub Actions workflows for continuous deployment an
 - Automatic trigger on tags matching `v*` (e.g., `v1.0.0`, `v2.1.3`)
 
 **Required secrets**:
-- `AZURE_CREDENTIALS`: Service principal JSON with subscription access
+- `AZURE_CLIENT_ID`: Application (client) ID
+- `AZURE_TENANT_ID`: Directory (tenant) ID
+- `AZURE_SUBSCRIPTION_ID`: Subscription ID
 
 **Key features**:
 - Builds Docker image using Azure Container Registry build (no local Docker needed)
@@ -757,7 +772,9 @@ The project includes three GitHub Actions workflows for continuous deployment an
 - Manual trigger only via workflow_dispatch with parameters
 
 **Required secrets**:
-- `AZURE_CREDENTIALS`: Service principal JSON with subscription access
+- `AZURE_CLIENT_ID`: Application (client) ID
+- `AZURE_TENANT_ID`: Directory (tenant) ID
+- `AZURE_SUBSCRIPTION_ID`: Subscription ID
 
 **Input parameters**:
 - `action`: `deploy` or `teardown`
