@@ -171,7 +171,7 @@ jobs:
             echo "Checking for existing App Service Plans in resource group that can be reused..."
             
             # Try to find any existing Linux App Service Plan in the resource group
-            EXISTING_PLAN=$(az appservice plan list -g ${{ env.RG_NAME }} --query "[?contains(kind, 'linux')].name" -o tsv | head -n 1)
+            EXISTING_PLAN=$(az appservice plan list -g ${{ env.RG_NAME }} --query "[?contains(toLower(kind), 'linux')].name" -o tsv | head -n 1)
             
             if [ -n "$EXISTING_PLAN" ]; then
               echo "Found existing Linux App Service Plan: $EXISTING_PLAN"
@@ -186,12 +186,15 @@ jobs:
               
               # Capture output for error reporting
               CREATE_OUTPUT=$(mktemp)
-              if ! az appservice plan create \
+              if az appservice plan create \
                 -n ${{ env.PLAN_NAME }} \
                 -g ${{ env.RG_NAME }} \
                 --is-linux \
                 --sku F1 2>&1 | tee "$CREATE_OUTPUT"; then
-                
+                # Success - clean up temp file
+                rm -f "$CREATE_OUTPUT"
+              else
+                # Failure - display error and clean up
                 echo ""
                 echo "=========================================="
                 echo "ERROR: Failed to create App Service Plan"
