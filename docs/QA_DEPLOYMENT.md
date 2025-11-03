@@ -433,9 +433,9 @@ To enable HTTPS for the QA endpoint:
 ## Related Documentation
 
 - [Main README](../README.md) - General project documentation
-- [Deployment Guide](./DEPLOYMENT.md) - Comprehensive deployment guide
-- [Volume Configuration](./VOLUMES.md) - Docker volume and persistence setup
-- [Volume Testing Guide](./VOLUME_TESTING.md) - Testing volume persistence
+- [Deployment Guide](DEPLOYMENT.md) - Comprehensive deployment guide
+- [Volume Configuration](VOLUMES.md) - Docker volume and persistence setup
+- [Volume Testing Guide](VOLUME_TESTING.md) - Testing volume persistence
 - [GitHub Workflows](../.github/workflows/) - All CI/CD workflows
 
 ## Support
