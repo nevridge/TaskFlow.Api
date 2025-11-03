@@ -1,5 +1,7 @@
 # Docker Configuration Guide
 
+> **📖 Reference Documentation** - This is a detailed technical reference for understanding Docker configuration differences. For quick start deployment, see the [Deployment Guide](DEPLOYMENT.md).
+
 This document provides a comprehensive comparison of Docker configurations for local development and production environments, ensuring consistency and clarity.
 
 ## Overview
@@ -8,6 +10,12 @@ TaskFlow.Api supports multiple Docker configurations optimized for different dep
 
 - **Development**: Fast iteration with automatic migrations and development settings
 - **Production**: Optimized build with production settings and manual migration control
+
+**When to use this guide:**
+- Understanding intentional configuration differences
+- Troubleshooting Docker issues
+- Customizing Docker setup for specific needs
+- Learning Docker best practices
 
 ## Configuration Comparison
 
@@ -458,6 +466,7 @@ docker run ...
 ## Related Documentation
 
 - [Main README](../README.md) - Getting started and deployment
+- [Deployment Guide](DEPLOYMENT.md) - Quick start deployment instructions
 - [Volume Configuration](./volumes.md) - Detailed volume setup
 - [Kubernetes Deployment](../k8s/README.md) - K8s-specific configuration
 - [Security Scanning](SECURITY_SCANNING.md) - Docker image security
@@ -469,3 +478,7 @@ If you encounter configuration inconsistencies not covered in this document, ple
 2. Verify environment variables match your intended environment
 3. Review the troubleshooting section
 4. Open an issue with details about the discrepancy
+
+---
+
+[← Back to Documentation Index](README.md) | [Deployment Guide](DEPLOYMENT.md) | [Volume Configuration →](volumes.md)

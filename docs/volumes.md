@@ -1,10 +1,18 @@
 # Volume Mount Configuration
 
+> **📖 Reference Documentation** - This is a detailed technical reference for Docker volume configuration. For quick start deployment, see the [Deployment Guide](DEPLOYMENT.md).
+
 This document describes the volume configuration for TaskFlow.Api, including Docker named volumes, environment variables, and best practices for local development and deployment.
 
 ## Overview
 
 TaskFlow.Api uses **Docker named volumes** to persist data and logs across container restarts, removals, and redeployments. The application follows industry-standard practices by using `/app` as the base directory for application files, with subdirectories for persistent data.
+
+**When to use this guide:**
+- Configuring persistent storage for Docker deployments
+- Understanding volume paths and environment variables
+- Troubleshooting data persistence issues
+- Migrating from bind mounts to named volumes
 
 ## Docker Volumes vs Bind Mounts
 
@@ -619,3 +627,7 @@ Your existing data and logs in `/home` will continue to work without migration.
 - **Azure App Service**: Override paths to use `/home` for persistent storage
 - **Best practice**: Use Docker named volumes for most scenarios, bind mounts for advanced debugging
 - **Migration**: Follow the migration guide above if upgrading from bind mounts
+
+---
+
+[← Back to Documentation Index](README.md) | [Docker Configuration](DOCKER_CONFIGURATION.md) | [Volume Testing →](VOLUME_TESTING.md)

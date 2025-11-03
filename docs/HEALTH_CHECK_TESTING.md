@@ -1,5 +1,8 @@
 # Health Check Configuration Testing Guide
 
+> **📖 Reference Documentation** - This is a detailed testing guide. For deployment basics, see the [Deployment Guide](DEPLOYMENT.md).
+
+
 This document describes how to test and verify the health check configurations across different orchestrators.
 
 ## Overview
@@ -269,3 +272,7 @@ Set up alerts for:
 - [README.md](../README.md) - Main documentation including health check configuration
 - [k8s/README.md](../k8s/README.md) - Kubernetes-specific deployment guide
 - [Docker Compose Configuration](../docker-compose.yml) - Docker Compose setup with health checks
+
+---
+
+[← Back to Documentation Index](README.md) | [Architecture](ARCHITECTURE.md) | [Deployment →](DEPLOYMENT.md)
