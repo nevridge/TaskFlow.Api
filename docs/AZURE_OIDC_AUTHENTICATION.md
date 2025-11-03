@@ -28,23 +28,15 @@ Replace `nevridge/TaskFlow.Api` with your repository if different:
 ```bash
 APP_ID=$(az ad app list --display-name "TaskFlowGitHubActions" --query "[0].appId" -o tsv)
 
-# For main branch deployments
+# For QA environment deployments
 az ad app federated-credential create --id $APP_ID --parameters '{
-  "name": "TaskFlowMain",
+  "name": "TaskFlowQA",
   "issuer": "https://token.actions.githubusercontent.com",
-  "subject": "repo:nevridge/TaskFlow.Api:ref:refs/heads/main",
+  "subject": "repo:nevridge/TaskFlow.Api:environment:qa",
   "audiences": ["api://AzureADTokenExchange"]
 }'
 
-# For version tag releases (v*)
-az ad app federated-credential create --id $APP_ID --parameters '{
-  "name": "TaskFlowTags",
-  "issuer": "https://token.actions.githubusercontent.com",
-  "subject": "repo:nevridge/TaskFlow.Api:ref:refs/tags/v*",
-  "audiences": ["api://AzureADTokenExchange"]
-}'
-
-# For production environment (manual/ephemeral workflows)
+# For production environment deployments
 az ad app federated-credential create --id $APP_ID --parameters '{
   "name": "TaskFlowProduction",
   "issuer": "https://token.actions.githubusercontent.com",
@@ -61,11 +53,28 @@ In GitHub repository **Settings → Secrets and variables → Actions**, add:
 - `AZURE_TENANT_ID` - The `tenant` from step 1
 - `AZURE_SUBSCRIPTION_ID` - Run `az account show --query id -o tsv`
 
-### 4. Verify Workflows
+### 4. Configure GitHub Environments
+
+Create GitHub Environments that match the federated credential subjects. In GitHub repository **Settings → Environments**, create:
+
+- `qa` - For QA deployments
+- `production` - For production deployments
+
+**Important**: The environment names must exactly match the subjects configured in step 2:
+- QA subject: `repo:nevridge/TaskFlow.Api:environment:qa`
+- Production subject: `repo:nevridge/TaskFlow.Api:environment:production`
+
+The workflows reference these environments:
+- `.github/workflows/qa-deploy.yaml` uses `environment: qa`
+- `.github/workflows/prod-deploy.yaml` uses `environment: production`
+- `.github/workflows/prod-teardown.yaml` uses `environment: production`
+
+### 5. Verify Workflows
 
 The workflows in this repository already have the correct configuration:
 - `permissions.id-token: write` is set (required for OIDC)
 - `azure/login@v2` uses individual parameters (not JSON creds)
+- Each workflow specifies the appropriate `environment` that matches the federated credential subject
 
 ## Common Issues
 

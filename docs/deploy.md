@@ -266,8 +266,8 @@ If you are migrating from legacy resource names, follow these steps:
 
 ## Workflow Files
 
-- Production: `.github/workflows/deploy.yaml`
-- QA: `.github/workflows/ephemeral-deploy.yaml`
+- Production: `.github/workflows/prod-deploy.yaml`
+- QA: `.github/workflows/qa-deploy.yaml`
 
 ## Related Documentation
 

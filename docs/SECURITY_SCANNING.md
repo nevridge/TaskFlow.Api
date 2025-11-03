@@ -230,7 +230,7 @@ Security scanning runs before deployment:
 4. Trivy scans Docker image
 5. If all pass, deployment can proceed
 
-For production deployments (`.github/workflows/deploy.yaml`), consider:
+For production deployments (`.github/workflows/prod-deploy.yaml`), consider:
 - Requiring all security checks to pass before deployment
 - Adding branch protection rules to enforce security scans
 

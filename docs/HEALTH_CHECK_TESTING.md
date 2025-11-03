@@ -241,7 +241,7 @@ livenessProbe:
 ```
 
 ### Azure Workflow
-Edit `.github/workflows/deploy.yaml`:
+Edit `.github/workflows/prod-deploy.yaml`:
 ```yaml
 - name: Verify health check
   run: |

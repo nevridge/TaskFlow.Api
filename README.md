@@ -290,7 +290,7 @@ The project includes automated deployment workflows for Azure App Service using 
 
 ### Production deployment to Azure App Service
 
-The production deployment workflow (`.github/workflows/deploy.yaml`) automatically deploys to Azure when you push a tag or manually trigger the workflow.
+The production deployment workflow (`.github/workflows/prod-deploy.yaml`) automatically deploys to Azure when you push a tag or manually trigger the workflow.
 
 #### Prerequisites
 1. **Azure subscription** with permissions to create resources
@@ -333,23 +333,23 @@ Configure GitHub Actions to authenticate using OIDC:
 ```bash
 APP_ID=$(az ad app list --display-name "TaskFlowDeployment" --query "[0].appId" -o tsv)
 
-# For main branch deployments
+# For QA environment deployments
 az ad app federated-credential create \
   --id $APP_ID \
   --parameters '{
-    "name": "TaskFlowGitHubActionsMain",
+    "name": "TaskFlowGitHubActionsQA",
     "issuer": "https://token.actions.githubusercontent.com",
-    "subject": "repo:nevridge/TaskFlow.Api:ref:refs/heads/main",
+    "subject": "repo:nevridge/TaskFlow.Api:environment:qa",
     "audiences": ["api://AzureADTokenExchange"]
   }'
 
-# For tag-based releases
+# For production environment deployments
 az ad app federated-credential create \
   --id $APP_ID \
   --parameters '{
-    "name": "TaskFlowGitHubActionsTags",
+    "name": "TaskFlowGitHubActionsProduction",
     "issuer": "https://token.actions.githubusercontent.com",
-    "subject": "repo:nevridge/TaskFlow.Api:ref:refs/tags/v*",
+    "subject": "repo:nevridge/TaskFlow.Api:environment:production",
     "audiences": ["api://AzureADTokenExchange"]
   }'
 ```
@@ -361,19 +361,27 @@ Add these secrets in GitHub (**Settings → Secrets and variables → Actions**)
 - `AZURE_TENANT_ID` - The `tenant` from Step 1
 - `AZURE_SUBSCRIPTION_ID` - Your Azure subscription ID
 
+**Step 4: Configure GitHub Environments**
+
+The workflows use GitHub Environments for OIDC authentication. Create these environments in GitHub (**Settings → Environments**):
+- `qa` - For QA deployments (matches the federated credential subject `repo:nevridge/TaskFlow.Api:environment:qa`)
+- `production` - For production deployments (matches the federated credential subject `repo:nevridge/TaskFlow.Api:environment:production`)
+
+**Note**: The environment names must match exactly as they are used in the OIDC federated credential subjects configured in Step 2.
+
 **For detailed setup instructions and troubleshooting, see [Azure OIDC Authentication Guide](docs/AZURE_OIDC_AUTHENTICATION.md).**
 
 #### Deployment workflow configuration
 
 The workflow uses a **standardized naming convention** for Azure resources. All resource names are computed automatically based on organization, application, and environment identifiers. See [docs/deploy.md](docs/deploy.md) for complete details.
 
-**Default production resource names** (in `.github/workflows/deploy.yaml`):
+**Default production resource names** (in `.github/workflows/prod-deploy.yaml`):
 - **Organization**: `nevridge`
 - **Application**: `taskflow`
 - **Environment**: `prod`
 - **Resource Group**: `nevridge-taskflow-prod-rg` (location: `eastus`)
 - **Azure Container Registry (ACR)**: `nevridgetaskflowprodacr`
-- **App Service Plan**: `nevridge-taskflow-prod-plan` (Linux, B1 SKU)
+- **App Service Plan**: `nevridge-taskflow-prod-plan` (Linux, F1 SKU)
 - **Web App**: `nevridge-taskflow-prod-web`
 - **ACR Image**: `taskflowapi`
 
@@ -403,12 +411,14 @@ git push origin v1.0.0
 2. **Creates Azure resources** if they don't exist:
    - Resource Group
    - Azure Container Registry (Basic SKU)
-   - App Service Plan (Linux B1)
+   - App Service Plan (Linux F1 SKU)
    - Web App with Linux container
 3. **Configures managed identity**: Enables system-assigned managed identity for the Web App
 4. **Grants ACR access**: Assigns AcrPull role to the Web App identity
 5. **Deploys container**: Updates the Web App with the latest image
 6. **Verifies deployment**: Checks the `/health` endpoint for successful startup
+
+**Note**: The deployment uses the Free tier (F1) App Service Plan due to Azure subscription quota limitations. To use Basic (B1) or higher tiers, you need to request a quota increase in the Azure Portal. See the [Azure Quota Limitations](#azure-quota-limitations) section below for details.
 
 #### Post-deployment
 
@@ -423,7 +433,7 @@ The workflow automatically verifies the deployment by checking the health endpoi
 
 ### Ephemeral deployment to Azure Container Instances (ACI)
 
-The ephemeral deployment workflow (`.github/workflows/ephemeral-deploy.yaml`) creates a QA test environment using Azure Container Instances with a **fixed, predictable DNS name**.
+The ephemeral deployment workflow (`.github/workflows/qa-deploy.yaml`) creates a QA test environment using Azure Container Instances with a **fixed, predictable DNS name**.
 
 #### Use cases
 - QA testing with a stable endpoint
@@ -548,7 +558,7 @@ Update your Postman environments and test configurations to match the region you
 
 A separate workflow is available to tear down production Azure resources. This is useful for cleaning up after testing or when you want to completely remove the production deployment to avoid costs.
 
-**File**: `.github/workflows/production-teardown.yaml`
+**File**: `.github/workflows/prod-teardown.yaml`
 
 #### Triggering production teardown
 
@@ -594,6 +604,56 @@ After tearing down production resources, you can redeploy by:
 
 The deployment workflow will recreate all necessary resources automatically.
 
+### Azure quota limitations
+
+The deployment workflow uses the **Free tier (F1)** App Service Plan by default because many Azure subscriptions have a quota limit of 0 for Basic VMs, which prevents creating Basic (B1) or higher tier App Service Plans.
+
+#### Symptoms of quota limitations
+
+If you see an error like this during deployment:
+```
+ERROR: Operation cannot be completed without additional quota.
+Current limit (Basic VMs): 0
+Current Usage: 0
+Amount required for this deployment (Basic VMs): 1
+```
+
+This means your Azure subscription doesn't have quota allocated for the requested SKU tier.
+
+#### How to request quota increase
+
+To use Basic (B1), Standard (S1), or Premium tiers, you need to request a quota increase:
+
+1. **Open Azure Portal** and navigate to **Subscriptions**
+2. Select your subscription
+3. Go to **Usage + quotas** in the left menu
+4. Search for "**App Service**" or "**Basic VMs**"
+5. Click on the quota you want to increase
+6. Click **Request increase**
+7. Fill out the form with your requirements:
+   - **New quota limit**: At least 1 (or more if you plan multiple instances)
+   - **Business justification**: Provide a brief explanation (e.g., "Need dedicated compute for production workload")
+8. Submit the request
+
+**Processing time**: Quota increase requests typically take 1-3 business days to be reviewed and approved.
+
+#### Alternative: Use Free tier for testing
+
+The Free tier (F1) has limitations but works well for:
+- Initial testing and validation
+- Development environments
+- Low-traffic demos
+- Proof of concept deployments
+
+**Free tier limitations**:
+- 60 minutes/day compute time
+- Shared compute resources
+- No custom domains
+- No always-on feature
+- 1 GB storage
+
+Once your quota is approved, you can update the workflow to use a higher SKU by editing `.github/workflows/prod-deploy.yaml` and changing `--sku F1` to `--sku B1` (or higher).
+
 ### Azure deployment best practices
 
 1. **Resource naming**: Customize resource names in workflow files before first deployment
@@ -602,6 +662,7 @@ The deployment workflow will recreate all necessary resources automatically.
 4. **Monitoring**: Enable Application Insights for production deployments
 5. **Scaling**: Adjust App Service Plan SKU based on your traffic requirements
 6. **Cost optimization**: Use ephemeral deployments for testing to minimize costs
+7. **Quota planning**: Request quota increases early if you plan to use Basic or higher tiers
 
 ### Troubleshooting Azure deployments
 
@@ -692,7 +753,7 @@ The repository includes automated security scanning to identify vulnerabilities:
 The project includes three GitHub Actions workflows for continuous deployment and teardown:
 
 ### Workflow: Deploy to Azure Production
-**File**: `.github/workflows/deploy.yaml`
+**File**: `.github/workflows/prod-deploy.yaml`
 
 **Triggers**:
 - Manual trigger via workflow_dispatch
@@ -713,7 +774,7 @@ The project includes three GitHub Actions workflows for continuous deployment an
 **Environment**: `production` (configure in GitHub repository settings)
 
 ### Workflow: Ephemeral ACI deploy - create test teardown
-**File**: `.github/workflows/ephemeral-deploy.yaml`
+**File**: `.github/workflows/qa-deploy.yaml`
 
 **Triggers**:
 - Manual trigger only via workflow_dispatch with parameters
@@ -738,7 +799,7 @@ The project includes three GitHub Actions workflows for continuous deployment an
 - Generates unique resource names using GitHub run ID
 
 ### Workflow: Production Teardown
-**File**: `.github/workflows/production-teardown.yaml`
+**File**: `.github/workflows/prod-teardown.yaml`
 
 **Triggers**:
 - Manual trigger only via workflow_dispatch with confirmation
@@ -775,10 +836,12 @@ To customize deployment for your environment:
 2. **Change Azure region**: Update `LOCATION` environment variable
 
 3. **Adjust App Service SKU**: Modify the `--sku` parameter in the App Service Plan creation step
-   - `F1`: Free tier (limited, not for production)
-   - `B1`: Basic (suitable for small production workloads)
-   - `S1`: Standard (production with scaling)
-   - `P1V2`: Premium (high performance)
+   - `F1`: Free tier (no quota required, limited compute time and storage)
+   - `B1`: Basic (requires quota, suitable for small production workloads)
+   - `S1`: Standard (requires quota, production with scaling)
+   - `P1V2`: Premium (requires quota, high performance)
+   
+   **Important**: Basic (B1) and higher tiers require Azure quota allocation. See [Azure Quota Limitations](#azure-quota-limitations) for details.
 
 4. **Add deployment slots**: Add steps to create and use deployment slots for zero-downtime deployments
 
@@ -1083,7 +1146,7 @@ For production deployments, test with your actual migration scenarios and adjust
 
 #### Azure App Service health check
 
-Azure App Service health checks are configured in the deployment workflow (`.github/workflows/deploy.yaml`):
+Azure App Service health checks are configured in the deployment workflow (`.github/workflows/prod-deploy.yaml`):
 
 ```bash
 az webapp config set \
