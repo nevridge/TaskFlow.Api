@@ -71,8 +71,6 @@ DNS name labels for Azure Container Instances should be predictable for QA/testi
 | ACI | 1-63 | Alphanumeric, hyphen | Insensitive | Within resource group |
 | ACR | 5-50 | Alphanumeric only | Insensitive | Global |
 | DNS Label | 1-63 | Alphanumeric, hyphen (not at start/end) | Insensitive | Per region |
-| App Service | 2-60 | Alphanumeric, hyphen | Insensitive | Global |
-| App Service Plan | 1-40 | Alphanumeric, hyphen | Insensitive | Within resource group |
 | Storage Account | 3-24 | Lowercase alphanumeric only | Insensitive | Global |
 
 ## Workflow Implementation
@@ -105,8 +103,6 @@ Workflows compute resource names from these base variables:
     RG_NAME="${ORG}-${APP}-${ENV}-rg"
     ACI_NAME="${ORG}-${APP}-${ENV}-aci"
     DNS_NAME_LABEL="${APP}-${ENV}"
-    WEB_NAME="${ORG}-${APP}-${ENV}-web"
-    PLAN_NAME="${ORG}-${APP}-${ENV}-plan"
     
     # Special: ACR (no hyphens, alphanumeric only)
     ACR_NAME="${ORG}${APP}${ENV}acr"
@@ -116,8 +112,6 @@ Workflows compute resource names from these base variables:
     echo "ACI_NAME=$ACI_NAME" >> $GITHUB_ENV
     echo "DNS_NAME_LABEL=$DNS_NAME_LABEL" >> $GITHUB_ENV
     echo "ACR_NAME=$ACR_NAME" >> $GITHUB_ENV
-    echo "WEB_NAME=$WEB_NAME" >> $GITHUB_ENV
-    echo "PLAN_NAME=$PLAN_NAME" >> $GITHUB_ENV
     
     # Log computed names
     echo "Computed resource names:"
@@ -125,8 +119,6 @@ Workflows compute resource names from these base variables:
     echo "  ACI Container: $ACI_NAME"
     echo "  DNS Label: $DNS_NAME_LABEL"
     echo "  ACR: $ACR_NAME"
-    echo "  Web App: $WEB_NAME"
-    echo "  App Service Plan: $PLAN_NAME"
 ```
 
 ### Validation Step
@@ -210,15 +202,15 @@ The QA workflow includes a pre-deployment cleanup step to remove existing contai
 
 ## Production Environment Specifics
 
-### Web App Naming
+### ACI Naming
 
-Production uses Azure App Service (Web Apps) instead of ACI:
+Production uses Azure Container Instances (ACI), consistent with the QA environment:
 
 - **Resource Group**: `nevridge-taskflow-prod-rg`
-- **App Service Plan**: `nevridge-taskflow-prod-plan`
-- **Web App**: `nevridge-taskflow-prod-web`
+- **ACI Container**: `nevridge-taskflow-prod-aci`
+- **DNS Label**: `taskflow-prod`
 - **ACR**: `nevridgetaskflowprodacr`
-- **Public URL**: `https://nevridge-taskflow-prod-web.azurewebsites.net`
+- **Public URL**: `http://taskflow-prod.eastus.azurecontainer.io:8080`
 
 ## Migration from Legacy Names
 
@@ -245,10 +237,10 @@ If you are migrating from legacy resource names, follow these steps:
 | Old Name | New Name | Resource Type |
 |----------|----------|---------------|
 | `TaskFlowRG` | `nevridge-taskflow-prod-rg` | Resource Group |
-| `taskflowapi2074394909` | `nevridge-taskflow-prod-web` | Web App |
+| `taskflowapi2074394909` | `nevridge-taskflow-prod-aci` | ACI Container (was Web App) |
 | `taskflowregistry` | `nevridgetaskflowprodacr` | ACR |
 | `taskflowapi` | `taskflowapi` | ACR Image Name |
-| `TaskFlowAppServicePlan` | `nevridge-taskflow-prod-plan` | App Service Plan |
+| `TaskFlowAppServicePlan` | *(removed)* | App Service Plan (no longer used) |
 | `taskflow-qa` (ACI) | `nevridge-taskflow-qa-aci` | Container Instance |
 
 ## Best Practices

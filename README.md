@@ -106,7 +106,7 @@ TaskFlow.Api/
 - **Testing:** xUnit, Moq, Coverlet (code coverage)
 - **Monitoring:** Health checks, Application Insights
 - **Documentation:** Swagger/OpenAPI
-- **Deployment:** Docker, Azure App Service/ACI
+- **Deployment:** Docker, Azure Container Instances (ACI)
 - **CI/CD:** GitHub Actions
 
 ## Portfolio Highlights

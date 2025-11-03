@@ -46,16 +46,14 @@ jobs:
           
           # Computed names following naming convention: {org}-{app}-{env}-{type}
           RG_NAME="${ORG}-${APP}-${ENV}-rg"
-          WEB_NAME="${ORG}-${APP}-${ENV}-web"
-          PLAN_NAME="${ORG}-${APP}-${ENV}-plan"
+          ACI_NAME="${ORG}-${APP}-${ENV}-aci"
           
           # Special: ACR (no hyphens, alphanumeric only)
           ACR_NAME="${ORG}${APP}${ENV}acr"
           
           # Export to environment
           echo "RG_NAME=$RG_NAME" >> $GITHUB_ENV
-          echo "WEB_NAME=$WEB_NAME" >> $GITHUB_ENV
-          echo "PLAN_NAME=$PLAN_NAME" >> $GITHUB_ENV
+          echo "ACI_NAME=$ACI_NAME" >> $GITHUB_ENV
           echo "ACR_NAME=$ACR_NAME" >> $GITHUB_ENV
           
           # Log computed names for confirmation
@@ -63,8 +61,7 @@ jobs:
           echo "Production Resources to Delete:"
           echo "=========================================="
           echo "Resource Group:     $RG_NAME"
-          echo "Web App:            $WEB_NAME"
-          echo "App Service Plan:   $PLAN_NAME"
+          echo "ACI Container:      $ACI_NAME"
           echo "Container Registry: $ACR_NAME"
           echo "Location:           ${{ env.LOCATION }}"
           echo "=========================================="
@@ -100,8 +97,7 @@ jobs:
           echo "Resource Group: ${{ env.RG_NAME }}"
           echo ""
           echo "This will delete ALL resources in the group:"
-          echo "  - Web App: ${{ env.WEB_NAME }}"
-          echo "  - App Service Plan: ${{ env.PLAN_NAME }}"
+          echo "  - ACI Container: ${{ env.ACI_NAME }}"
           echo "  - Container Registry: ${{ env.ACR_NAME }}"
           echo "  - All associated data and configurations"
           echo ""
