@@ -31,10 +31,9 @@ The following secrets are **actively referenced** in workflows:
 
 | Secret Name | Used In | Purpose |
 |------------|---------|---------|
-| `AZURE_CLIENT_ID` | `prod-deploy.yaml`, `qa-deploy.yaml` | OpenID Connect authentication for Azure login |
-| `AZURE_TENANT_ID` | `prod-deploy.yaml`, `qa-deploy.yaml` | Azure tenant identification for OIDC auth |
-| `AZURE_SUBSCRIPTION_ID` | `prod-deploy.yaml`, `qa-deploy.yaml` | Azure subscription for OIDC auth |
-| `AZURE_CREDENTIALS` | `prod-teardown.yaml` | Service principal credentials for Azure login (legacy format) |
+| `AZURE_CLIENT_ID` | `prod-deploy.yaml`, `qa-deploy.yaml`, `prod-teardown.yaml` | OpenID Connect authentication for Azure login |
+| `AZURE_TENANT_ID` | `prod-deploy.yaml`, `qa-deploy.yaml`, `prod-teardown.yaml` | Azure tenant identification for OIDC auth |
+| `AZURE_SUBSCRIPTION_ID` | `prod-deploy.yaml`, `qa-deploy.yaml`, `prod-teardown.yaml` | Azure subscription for OIDC auth |
 
 #### ❌ Unused Secrets (Safe to Delete)
 
@@ -43,24 +42,19 @@ The following secrets are **NOT referenced anywhere** in workflows or applicatio
 1. **`ACR_LOGIN_SERVER`** - Not used; ACR login server is dynamically computed from naming convention
 2. **`ACR_PASSWORD`** - Not used; ACR authentication now uses managed identity or dynamic credentials retrieval
 3. **`ACR_USERNAME`** - Not used; ACR authentication now uses managed identity or dynamic credentials retrieval
-4. **`AZURE_RESOURCE_GROUP`** - Not used; resource group names are dynamically computed from naming convention
-5. **`AZURE_WEBAPP_NAME`** - Not used; web app names are dynamically computed from naming convention
+4. **`AZURE_CREDENTIALS`** - Not used; all workflows now use OIDC authentication
+5. **`AZURE_RESOURCE_GROUP`** - Not used; resource group names are dynamically computed from naming convention
+6. **`AZURE_WEBAPP_NAME`** - Not used; web app names are dynamically computed from naming convention
 
 ### Migration Notes
 
 The workflows have transitioned to:
 - **Computed resource names** based on standardized naming conventions (`{org}-{app}-{env}-{type}`)
-- **OpenID Connect (OIDC)** authentication for production and QA deployments
+- **OpenID Connect (OIDC)** authentication for all Azure deployments (production, QA, and teardown)
 - **Managed identity** for ACR pull permissions in production
 - **Dynamic credential retrieval** using Azure CLI for ACR authentication in QA
 
-The legacy secrets (ACR_*, AZURE_RESOURCE_GROUP, AZURE_WEBAPP_NAME) were likely used in older workflow versions but are now obsolete.
-
-### Special Case: AZURE_CREDENTIALS
-
-`AZURE_CREDENTIALS` is used only in `prod-teardown.yaml` for service principal authentication. Consider:
-- Migrating `prod-teardown.yaml` to use OIDC authentication (like prod-deploy and qa-deploy)
-- Once migrated, `AZURE_CREDENTIALS` can also be removed
+The legacy secrets (ACR_*, AZURE_CREDENTIALS, AZURE_RESOURCE_GROUP, AZURE_WEBAPP_NAME) were used in older workflow versions but are now obsolete following the migration to OIDC authentication and computed resource names.
 
 ## Environment Variables Analysis
 
@@ -98,22 +92,19 @@ The environment variables are properly scoped:
    - `ACR_LOGIN_SERVER`
    - `ACR_PASSWORD`
    - `ACR_USERNAME`
+   - `AZURE_CREDENTIALS`
    - `AZURE_RESOURCE_GROUP`
    - `AZURE_WEBAPP_NAME`
 
 ### Future Improvements
 
-2. **Migrate prod-teardown.yaml to OIDC:**
-   - Update `prod-teardown.yaml` to use OIDC authentication (matching prod-deploy and qa-deploy)
-   - Once migrated, delete `AZURE_CREDENTIALS` secret
-
-3. **Documentation:**
+2. **Documentation:**
    - Document the required secrets in the README or deployment guide
    - Document the naming convention used for resource name computation
 
 ## Conclusion
 
-- **5 GitHub secrets** can be safely deleted immediately
+- **6 GitHub secrets** can be safely deleted immediately
 - **0 unused environment variables** were found - all are actively used
 - The repository has successfully transitioned to modern authentication patterns (OIDC, managed identity)
 - No security concerns identified regarding credential management
