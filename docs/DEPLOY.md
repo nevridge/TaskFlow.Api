@@ -71,8 +71,6 @@ DNS name labels for Azure Container Instances should be predictable for QA/testi
 | ACI | 1-63 | Alphanumeric, hyphen | Insensitive | Within resource group |
 | ACR | 5-50 | Alphanumeric only | Insensitive | Global |
 | DNS Label | 1-63 | Alphanumeric, hyphen (not at start/end) | Insensitive | Per region |
-| App Service | 2-60 | Alphanumeric, hyphen | Insensitive | Global |
-| App Service Plan | 1-40 | Alphanumeric, hyphen | Insensitive | Within resource group |
 | Storage Account | 3-24 | Lowercase alphanumeric only | Insensitive | Global |
 
 ## Workflow Implementation
@@ -105,8 +103,6 @@ Workflows compute resource names from these base variables:
     RG_NAME="${ORG}-${APP}-${ENV}-rg"
     ACI_NAME="${ORG}-${APP}-${ENV}-aci"
     DNS_NAME_LABEL="${APP}-${ENV}"
-    WEB_NAME="${ORG}-${APP}-${ENV}-web"
-    PLAN_NAME="${ORG}-${APP}-${ENV}-plan"
     
     # Special: ACR (no hyphens, alphanumeric only)
     ACR_NAME="${ORG}${APP}${ENV}acr"
@@ -116,8 +112,6 @@ Workflows compute resource names from these base variables:
     echo "ACI_NAME=$ACI_NAME" >> $GITHUB_ENV
     echo "DNS_NAME_LABEL=$DNS_NAME_LABEL" >> $GITHUB_ENV
     echo "ACR_NAME=$ACR_NAME" >> $GITHUB_ENV
-    echo "WEB_NAME=$WEB_NAME" >> $GITHUB_ENV
-    echo "PLAN_NAME=$PLAN_NAME" >> $GITHUB_ENV
     
     # Log computed names
     echo "Computed resource names:"
@@ -125,8 +119,6 @@ Workflows compute resource names from these base variables:
     echo "  ACI Container: $ACI_NAME"
     echo "  DNS Label: $DNS_NAME_LABEL"
     echo "  ACR: $ACR_NAME"
-    echo "  Web App: $WEB_NAME"
-    echo "  App Service Plan: $PLAN_NAME"
 ```
 
 ### Validation Step

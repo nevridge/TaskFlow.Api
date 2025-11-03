@@ -279,7 +279,6 @@ For detailed security scanning documentation, see [SECURITY_SCANNING.md](SECURIT
 |----------|---------|
 | `ApplicationInsights__ConnectionString` | Enable Application Insights telemetry |
 | `ASPNETCORE_URLS` | Configure Kestrel listen URLs |
-| `WEBSITE_PORT` | Azure App Service port configuration |
 
 ### Configuration Files
 
@@ -424,8 +423,8 @@ docker logs taskflow-api --follow
 # Docker Compose
 docker compose logs -f taskflow-api
 
-# Azure App Service
-az webapp log tail --name {WEBAPP_NAME} --resource-group {RESOURCE_GROUP}
+# Azure Container Instances
+az container logs --name {ACI_NAME} --resource-group {RESOURCE_GROUP} --follow
 ```
 
 **Check health check logs:**
