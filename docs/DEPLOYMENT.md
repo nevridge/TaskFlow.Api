@@ -105,9 +105,9 @@ TaskFlow.Api uses OpenID Connect (OIDC) for secure, passwordless authentication 
 
 > **📖 For detailed OIDC setup with complete commands, see [AZURE_OIDC_AUTHENTICATION.md](AZURE_OIDC_AUTHENTICATION.md)**
 
-### Production Deployment to Azure App Service
+### Production Deployment to Azure Container Instances
 
-The production deployment workflow automatically deploys to Azure App Service.
+The production deployment workflow deploys to Azure Container Instances (ACI), providing a cost-effective solution without App Service Plan quota limitations.
 
 **Trigger deployment:**
 
@@ -125,18 +125,22 @@ Option 2: Manual trigger
 **What gets deployed:**
 - **Resource Group:** `nevridge-taskflow-prod-rg`
 - **Azure Container Registry:** `nevridgetaskflowprodacr`
-- **App Service Plan:** `nevridge-taskflow-prod-plan` (F1 SKU)
-- **Web App:** `nevridge-taskflow-prod-web`
-- **Public URL:** `https://nevridge-taskflow-prod-web.azurewebsites.net`
+- **ACI Container:** `nevridge-taskflow-prod-aci`
+- **DNS Label:** `taskflow-prod`
+- **Public URL:** `http://taskflow-prod.eastus.azurecontainer.io:8080`
 
 **Workflow steps:**
 1. Builds Docker image via Azure Container Registry
-2. Creates Azure resources (if they don't exist)
-3. Configures managed identity for ACR access
-4. Deploys container to Web App
+2. Creates Azure resources (resource group and ACR if they don't exist)
+3. Deletes existing ACI container (if present)
+4. Creates new ACI container with latest image
 5. Verifies deployment via health check
 
-**Note:** The deployment uses Free tier (F1) by default due to common Azure quota limitations. To use Basic (B1) or higher tiers, request quota increase in Azure Portal.
+**Benefits:**
+- **No App Service Plan quota requirements**
+- **Cost-effective for deploy/test/teardown workflows**
+- **Fast deployment and teardown cycles**
+- **Consistent with QA environment approach**
 
 ### QA Deployment to Azure Container Instances
 
@@ -169,7 +173,7 @@ A separate workflow safely tears down production resources.
 
 **What gets deleted:**
 - Entire production resource group
-- Web App and App Service Plan
+- ACI Container
 - Container Registry
 - All data, logs, and configurations
 
@@ -242,13 +246,13 @@ For detailed security scanning documentation, see [SECURITY_SCANNING.md](SECURIT
 - File: `.github/workflows/prod-deploy.yaml`
 - Triggers: Tags matching `v*`, manual
 - Environment: `production`
-- Deploys to Azure App Service
+- Deploys to Azure Container Instances (ACI)
 
 **QA Deploy:**
 - File: `.github/workflows/qa-deploy.yaml`
 - Triggers: Manual only
 - Environment: `qa`
-- Deploys to Azure Container Instances
+- Deploys to Azure Container Instances (ACI)
 
 **Production Teardown:**
 - File: `.github/workflows/prod-teardown.yaml`
@@ -357,32 +361,20 @@ docker logs taskflow-api --tail 100
 - Ensure service principal has Contributor role
 - Check federated credentials match GitHub environment names
 
-**Quota limitations:**
-```
-ERROR: Operation cannot be completed without additional quota.
-Current limit (Basic VMs): 0
-```
-
-Solution: Request quota increase in Azure Portal:
-1. Navigate to **Subscriptions** → Your subscription
-2. Go to **Usage + quotas**
-3. Search for "App Service" or "Basic VMs"
-4. Click **Request increase**
-5. Submit with justification
-
 **Health check failures post-deployment:**
 ```bash
-# View App Service logs
-az webapp log tail --name {WEBAPP_NAME} --resource-group {RESOURCE_GROUP}
+# View ACI logs
+az container logs --name {ACI_NAME} --resource-group {RESOURCE_GROUP}
 
-# Check application logs
-az webapp log download --name {WEBAPP_NAME} --resource-group {RESOURCE_GROUP}
+# Get detailed container info
+az container show --name {ACI_NAME} --resource-group {RESOURCE_GROUP}
 ```
 
 **Container deployment issues:**
-- Verify ACR access: Check managed identity has `AcrPull` role
+- Verify ACR credentials are accessible
 - Confirm image exists: `az acr repository show -n {ACR_NAME} --image taskflowapi:latest`
-- Check Web App configuration: `az webapp config show --name {WEBAPP_NAME}`
+- Check ACI container state: `az container show --name {ACI_NAME} --query instanceView.state`
+- View container events: `az container show --name {ACI_NAME} --query instanceView.events`
 
 ### Migration Issues
 

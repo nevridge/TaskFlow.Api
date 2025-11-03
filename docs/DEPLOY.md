@@ -210,15 +210,15 @@ The QA workflow includes a pre-deployment cleanup step to remove existing contai
 
 ## Production Environment Specifics
 
-### Web App Naming
+### ACI Naming
 
-Production uses Azure App Service (Web Apps) instead of ACI:
+Production uses Azure Container Instances (ACI), consistent with the QA environment:
 
 - **Resource Group**: `nevridge-taskflow-prod-rg`
-- **App Service Plan**: `nevridge-taskflow-prod-plan`
-- **Web App**: `nevridge-taskflow-prod-web`
+- **ACI Container**: `nevridge-taskflow-prod-aci`
+- **DNS Label**: `taskflow-prod`
 - **ACR**: `nevridgetaskflowprodacr`
-- **Public URL**: `https://nevridge-taskflow-prod-web.azurewebsites.net`
+- **Public URL**: `http://taskflow-prod.eastus.azurecontainer.io:8080`
 
 ## Migration from Legacy Names
 
@@ -245,10 +245,10 @@ If you are migrating from legacy resource names, follow these steps:
 | Old Name | New Name | Resource Type |
 |----------|----------|---------------|
 | `TaskFlowRG` | `nevridge-taskflow-prod-rg` | Resource Group |
-| `taskflowapi2074394909` | `nevridge-taskflow-prod-web` | Web App |
+| `taskflowapi2074394909` | `nevridge-taskflow-prod-aci` | ACI Container (was Web App) |
 | `taskflowregistry` | `nevridgetaskflowprodacr` | ACR |
 | `taskflowapi` | `taskflowapi` | ACR Image Name |
-| `TaskFlowAppServicePlan` | `nevridge-taskflow-prod-plan` | App Service Plan |
+| `TaskFlowAppServicePlan` | *(removed)* | App Service Plan (no longer used) |
 | `taskflow-qa` (ACI) | `nevridge-taskflow-qa-aci` | Container Instance |
 
 ## Best Practices
