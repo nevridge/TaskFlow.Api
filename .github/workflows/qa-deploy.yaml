@@ -1,4 +1,4 @@
-name: Ephemeral ACI deploy - create test teardown
+name: Deploy to Azure QA
 
 on:
   workflow_dispatch:
@@ -41,6 +41,7 @@ permissions:
 jobs:
   run-ephemeral:
     runs-on: ubuntu-latest
+    environment: qa
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -51,7 +52,6 @@ jobs:
           client-id: ${{ secrets.AZURE_CLIENT_ID }}
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-          allow-no-subscriptions: true
 
       - name: Verify subscription
         run: |
