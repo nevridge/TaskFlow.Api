@@ -86,7 +86,7 @@ TaskFlow.Api supports multiple Docker configurations optimized for different dep
 - These directories are created automatically on first run
 - Both are excluded from version control via `.gitignore`
 - Database files differ by environment: `tasks.dev.db` vs `tasks.db`
-- For detailed volume configuration, see [VOLUMES.md](./VOLUMES.md)
+- For detailed volume configuration, see [VOLUMES.md](VOLUMES.md)
 
 ### Health Checks
 
