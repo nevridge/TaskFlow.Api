@@ -43,7 +43,7 @@ This ensures that:
 ## Workflow Configuration
 
 ### Workflow File
-`.github/workflows/ephemeral-deploy.yaml`
+`.github/workflows/qa-deploy.yaml`
 
 ### Trigger Method
 Manual trigger via GitHub Actions workflow_dispatch
@@ -393,7 +393,7 @@ The workflow should automatically handle this, but if it doesn't:
 
 To use a different DNS name (e.g., `taskflow-staging`):
 
-1. Edit `.github/workflows/ephemeral-deploy.yaml`
+1. Edit `.github/workflows/qa-deploy.yaml`
 2. Update the `ENV` variable at the top:
    ```yaml
    env:

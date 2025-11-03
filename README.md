@@ -290,7 +290,7 @@ The project includes automated deployment workflows for Azure App Service using 
 
 ### Production deployment to Azure App Service
 
-The production deployment workflow (`.github/workflows/deploy.yaml`) automatically deploys to Azure when you push a tag or manually trigger the workflow.
+The production deployment workflow (`.github/workflows/prod-deploy.yaml`) automatically deploys to Azure when you push a tag or manually trigger the workflow.
 
 #### Prerequisites
 1. **Azure subscription** with permissions to create resources
@@ -367,7 +367,7 @@ Add these secrets in GitHub (**Settings → Secrets and variables → Actions**)
 
 The workflow uses a **standardized naming convention** for Azure resources. All resource names are computed automatically based on organization, application, and environment identifiers. See [docs/deploy.md](docs/deploy.md) for complete details.
 
-**Default production resource names** (in `.github/workflows/deploy.yaml`):
+**Default production resource names** (in `.github/workflows/prod-deploy.yaml`):
 - **Organization**: `nevridge`
 - **Application**: `taskflow`
 - **Environment**: `prod`
@@ -425,7 +425,7 @@ The workflow automatically verifies the deployment by checking the health endpoi
 
 ### Ephemeral deployment to Azure Container Instances (ACI)
 
-The ephemeral deployment workflow (`.github/workflows/ephemeral-deploy.yaml`) creates a QA test environment using Azure Container Instances with a **fixed, predictable DNS name**.
+The ephemeral deployment workflow (`.github/workflows/qa-deploy.yaml`) creates a QA test environment using Azure Container Instances with a **fixed, predictable DNS name**.
 
 #### Use cases
 - QA testing with a stable endpoint
@@ -550,7 +550,7 @@ Update your Postman environments and test configurations to match the region you
 
 A separate workflow is available to tear down production Azure resources. This is useful for cleaning up after testing or when you want to completely remove the production deployment to avoid costs.
 
-**File**: `.github/workflows/production-teardown.yaml`
+**File**: `.github/workflows/prod-teardown.yaml`
 
 #### Triggering production teardown
 
@@ -644,7 +644,7 @@ The Free tier (F1) has limitations but works well for:
 - No always-on feature
 - 1 GB storage
 
-Once your quota is approved, you can update the workflow to use a higher SKU by editing `.github/workflows/deploy.yaml` and changing `--sku F1` to `--sku B1` (or higher).
+Once your quota is approved, you can update the workflow to use a higher SKU by editing `.github/workflows/prod-deploy.yaml` and changing `--sku F1` to `--sku B1` (or higher).
 
 ### Azure deployment best practices
 
@@ -745,7 +745,7 @@ The repository includes automated security scanning to identify vulnerabilities:
 The project includes three GitHub Actions workflows for continuous deployment and teardown:
 
 ### Workflow: Deploy to Azure Production
-**File**: `.github/workflows/deploy.yaml`
+**File**: `.github/workflows/prod-deploy.yaml`
 
 **Triggers**:
 - Manual trigger via workflow_dispatch
@@ -766,7 +766,7 @@ The project includes three GitHub Actions workflows for continuous deployment an
 **Environment**: `production` (configure in GitHub repository settings)
 
 ### Workflow: Ephemeral ACI deploy - create test teardown
-**File**: `.github/workflows/ephemeral-deploy.yaml`
+**File**: `.github/workflows/qa-deploy.yaml`
 
 **Triggers**:
 - Manual trigger only via workflow_dispatch with parameters
@@ -791,7 +791,7 @@ The project includes three GitHub Actions workflows for continuous deployment an
 - Generates unique resource names using GitHub run ID
 
 ### Workflow: Production Teardown
-**File**: `.github/workflows/production-teardown.yaml`
+**File**: `.github/workflows/prod-teardown.yaml`
 
 **Triggers**:
 - Manual trigger only via workflow_dispatch with confirmation
@@ -1138,7 +1138,7 @@ For production deployments, test with your actual migration scenarios and adjust
 
 #### Azure App Service health check
 
-Azure App Service health checks are configured in the deployment workflow (`.github/workflows/deploy.yaml`):
+Azure App Service health checks are configured in the deployment workflow (`.github/workflows/prod-deploy.yaml`):
 
 ```bash
 az webapp config set \
