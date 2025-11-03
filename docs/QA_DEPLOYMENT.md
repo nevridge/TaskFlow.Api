@@ -13,7 +13,7 @@ The ephemeral QA deployment workflow creates a predictable test environment usin
 
 ### Fixed DNS Name
 
-The QA environment uses a **standardized naming convention** for all Azure resources. See [DEPLOY.md](./DEPLOY.md) for complete details.
+The QA environment uses a **standardized naming convention** for all Azure resources. See [DEPLOY.md](DEPLOY.md) for complete details.
 
 **QA Resource Names**:
 - **Resource Group**: `nevridge-taskflow-qa-rg`
