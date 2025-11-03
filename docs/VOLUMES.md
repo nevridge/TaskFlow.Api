@@ -630,4 +630,4 @@ Your existing data and logs in `/home` will continue to work without migration.
 
 ---
 
-[← Back to Documentation Index](README.md) | [Docker Configuration](DOCKER_CONFIGURATION.md) | [Volume Testing →](VOLUME_TESTING.md)
+[← Back to README](../README.md) | [Docker Configuration](DOCKER_CONFIGURATION.md) | [Volume Testing →](VOLUME_TESTING.md)

@@ -13,7 +13,7 @@ The ephemeral QA deployment workflow creates a predictable test environment usin
 
 ### Fixed DNS Name
 
-The QA environment uses a **standardized naming convention** for all Azure resources. See [deploy.md](./deploy.md) for complete details.
+The QA environment uses a **standardized naming convention** for all Azure resources. See [DEPLOY.md](./DEPLOY.md) for complete details.
 
 **QA Resource Names**:
 - **Resource Group**: `nevridge-taskflow-qa-rg`
@@ -63,7 +63,7 @@ Manual trigger via GitHub Actions workflow_dispatch
 
 ### Environment Variables Set by Workflow
 
-The workflow follows the [Resource Naming Convention](./deploy.md) and computes resource names automatically.
+The workflow follows the [Resource Naming Convention](./DEPLOY.md) and computes resource names automatically.
 
 | Variable | Computed Value | Description |
 |----------|----------------|-------------|
@@ -410,7 +410,7 @@ To use a different DNS name (e.g., `taskflow-staging`):
 4. Update documentation references
 5. Update test configurations
 
-See [deploy.md](./deploy.md) for details on the naming convention.
+See [DEPLOY.md](./DEPLOY.md) for details on the naming convention.
 
 ### Deploying to Multiple Regions
 
@@ -434,7 +434,7 @@ To enable HTTPS for the QA endpoint:
 
 - [Main README](../README.md) - General project documentation
 - [Deployment Guide](./DEPLOYMENT.md) - Comprehensive deployment guide
-- [Volume Configuration](./volumes.md) - Docker volume and persistence setup
+- [Volume Configuration](./VOLUMES.md) - Docker volume and persistence setup
 - [Volume Testing Guide](./VOLUME_TESTING.md) - Testing volume persistence
 - [GitHub Workflows](../.github/workflows/) - All CI/CD workflows
 

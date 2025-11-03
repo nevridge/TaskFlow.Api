@@ -275,4 +275,4 @@ Set up alerts for:
 
 ---
 
-[← Back to Documentation Index](README.md) | [Architecture](ARCHITECTURE.md) | [Deployment →](DEPLOYMENT.md)
+[← Back to README](../README.md) | [Architecture](ARCHITECTURE.md) | [Deployment →](DEPLOYMENT.md)

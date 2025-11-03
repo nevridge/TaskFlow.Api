@@ -279,4 +279,4 @@ If you are migrating from legacy resource names, follow these steps:
 
 ---
 
-[← Back to Documentation Index](README.md) | [Deployment Guide](DEPLOYMENT.md)
+[← Back to README](../README.md) | [Deployment Guide](DEPLOYMENT.md)

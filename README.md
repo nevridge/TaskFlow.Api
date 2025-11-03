@@ -60,13 +60,26 @@ Access the API at `http://localhost:8080`. Data persists in Docker volumes acros
 
 ## Documentation
 
-- **[Getting Started Guide](docs/GETTING_STARTED.md)** - Detailed setup instructions
-- **[Architecture & Design](docs/ARCHITECTURE.md)** - Design decisions, patterns, and quality practices
-- **[Deployment Guide](docs/DEPLOYMENT.md)** - Docker, Azure, and CI/CD details
-- **[Developer Guide](docs/CONTRIBUTING.md)** - Contributing guidelines and development workflow
-- **[API Reference](docs/API.md)** - Endpoint documentation and usage examples
-- **[Security Scanning](docs/SECURITY_SCANNING.md)** - CodeQL and Trivy integration
-- **[Logging Guide](docs/logging.md)** - Serilog configuration and log management
+### Primary Guides
+
+- **[Getting Started](docs/GETTING_STARTED.md)** - Setup and run locally in 5 minutes
+- **[API Reference](docs/API.md)** - Complete endpoint documentation with examples
+- **[Architecture](docs/ARCHITECTURE.md)** - Design decisions, patterns, and quality practices
+- **[Deployment](docs/DEPLOYMENT.md)** - Docker, Azure, and CI/CD workflows
+- **[Contributing](docs/CONTRIBUTING.md)** - Development workflow and standards
+
+### Reference Documentation
+
+- **[Docker Configuration](docs/DOCKER_CONFIGURATION.md)** - Detailed dev vs prod Docker comparison
+- **[Volumes](docs/VOLUMES.md)** - Volume configuration and persistence
+- **[Health Checks](docs/HEALTH_CHECK_TESTING.md)** - Health check setup and testing
+- **[Azure OIDC](docs/AZURE_OIDC_AUTHENTICATION.md)** - Azure authentication setup
+- **[QA Deployment](docs/QA_DEPLOYMENT.md)** - Ephemeral QA environments
+- **[Resource Naming](docs/DEPLOY.md)** - Azure naming standards
+- **[Service Registration](docs/SERVICE_REGISTRATION_PATTERN.md)** - DI extension pattern
+- **[Security Scanning](docs/SECURITY_SCANNING.md)** - CodeQL and Trivy
+- **[Logging](docs/LOGGING.md)** - Serilog configuration
+- **[Volume Testing](docs/VOLUME_TESTING.md)** - Testing volume persistence
 
 ## Project Structure
 

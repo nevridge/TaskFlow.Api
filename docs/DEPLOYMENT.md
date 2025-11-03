@@ -26,157 +26,58 @@ docker compose -f docker-compose.prod.yml up
 
 ### Docker Configuration Overview
 
-TaskFlow.Api provides two Docker configurations:
+TaskFlow.Api provides two Docker configurations for different deployment scenarios.
 
-| Configuration | Dockerfile | Compose File | Use Case |
-|--------------|------------|--------------|----------|
-| **Development** | `Dockerfile.dev` | `docker-compose.yml` | Local development, fast iteration |
-| **Production** | `Dockerfile` | `docker-compose.prod.yml` | Production builds, Azure deployment |
+> **📖 For detailed Docker configuration, see:**
+> - [DOCKER_CONFIGURATION.md](DOCKER_CONFIGURATION.md) - Comprehensive dev vs prod comparison
+> - [VOLUMES.md](VOLUMES.md) - Volume configuration and persistence
+> - [HEALTH_CHECK_TESTING.md](HEALTH_CHECK_TESTING.md) - Health check setup and testing
 
-**Key Differences:**
-- **Build context:** Dev uses `TaskFlow.Api/`, prod uses repository root
-- **Auto-migrations:** Enabled in dev, disabled in prod
-- **Swagger UI:** Enabled in dev, disabled in prod
-- **Database file:** `tasks.dev.db` vs `tasks.db`
+**Quick comparison:**
+
+| Configuration | Use Case | Auto-migrations | Swagger |
+|--------------|----------|----------------|---------|
+| **Development** (`docker-compose.yml`) | Local dev, fast iteration | ✅ Enabled | ✅ Enabled |
+| **Production** (`docker-compose.prod.yml`) | Production builds, Azure | ❌ Manual | ❌ Disabled |
 
 ### Development Deployment
 
-#### Using Docker Compose (Recommended)
-
-1. **Start the application:**
-   ```bash
-   docker compose up
-   ```
-
-2. **Access the API:**
-   - API: `http://localhost:8080`
-   - Swagger UI: `http://localhost:8080`
-   - Health check: `http://localhost:8080/health`
-
-3. **View logs:**
-   ```bash
-   docker compose logs -f
-   ```
-
-4. **Stop and clean up:**
-   ```bash
-   # Stop and remove containers (preserves data)
-   docker compose down
-   
-   # Remove data volumes as well
-   docker compose down -v
-   ```
-
-**Features:**
-- Automatic database migrations
-- Persistent data via Docker volumes
-- Hot reload support
-- Development-optimized logging
-
-#### Using Docker CLI
-
+**Quick start:**
 ```bash
-# Build image
-cd TaskFlow.Api
-docker build -f Dockerfile.dev -t taskflow-api:dev .
-
-# Create volumes (optional - Docker creates automatically)
-docker volume create taskflow-data
-docker volume create taskflow-logs
-
-# Run container
-docker run -p 8080:8080 \
-  -v taskflow-data:/app/data \
-  -v taskflow-logs:/app/logs \
-  -e ASPNETCORE_ENVIRONMENT=Development \
-  -e Database__MigrateOnStartup=true \
-  taskflow-api:dev
+docker compose up
 ```
+
+Access at `http://localhost:8080` (Swagger UI enabled)
+
+**Common commands:**
+```bash
+# View logs
+docker compose logs -f
+
+# Stop (preserves data)
+docker compose down
+
+# Stop and remove data
+docker compose down -v
+```
+
+> **📖 For detailed instructions, see [DOCKER_CONFIGURATION.md](DOCKER_CONFIGURATION.md)**
 
 ### Production Deployment
 
-#### Using Docker Compose
-
-1. **Apply migrations first:**
-   ```bash
-   # Option 1: Using .NET CLI (if installed locally)
-   dotnet ef database update --project TaskFlow.Api
-   
-   # Option 2: Run container with migrations enabled once
-   docker compose -f docker-compose.prod.yml run --rm \
-     -e Database__MigrateOnStartup=true taskflow-api
-   ```
-
-2. **Start production containers:**
-   ```bash
-   docker compose -f docker-compose.prod.yml up -d
-   ```
-
-3. **Verify deployment:**
-   ```bash
-   curl http://localhost:8080/health
-   ```
-
-#### Using Docker CLI
-
+**Quick start:**
 ```bash
-# Build production image from repository root
-docker build -f TaskFlow.Api/Dockerfile -t taskflow-api:latest .
+# Apply migrations first (one-time)
+dotnet ef database update --project TaskFlow.Api
 
-# Create production volumes
-docker volume create taskflow-prod-data
-docker volume create taskflow-prod-logs
+# Start production containers
+docker compose -f docker-compose.prod.yml up -d
 
-# Run with production configuration
-docker run -d -p 8080:8080 \
-  -v taskflow-prod-data:/app/data \
-  -v taskflow-prod-logs:/app/logs \
-  -e ASPNETCORE_ENVIRONMENT=Production \
-  -e Database__MigrateOnStartup=false \
-  --name taskflow-api taskflow-api:latest
+# Verify
+curl http://localhost:8080/health
 ```
 
-### Volume Persistence
-
-Both configurations use Docker volumes to persist data:
-
-| Volume | Container Path | Purpose |
-|--------|---------------|---------|
-| `taskflow-data` | `/app/data` | SQLite database files |
-| `taskflow-logs` | `/app/logs` | Application logs |
-
-**Managing volumes:**
-```bash
-# List volumes
-docker volume ls
-
-# Inspect volume
-docker volume inspect taskflow-data
-
-# Remove volume (deletes data!)
-docker volume rm taskflow-data
-```
-
-**Important:** Data persists across container stops and removals. Use `docker compose down -v` to remove volumes and data.
-
-### Health Checks
-
-Docker health checks ensure containers are ready:
-
-```yaml
-healthcheck:
-  test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
-  interval: 30s
-  timeout: 10s
-  retries: 3
-  start_period: 40s  # Grace period for migrations
-```
-
-Check container health:
-```bash
-docker ps  # Shows "healthy" or "unhealthy" status
-docker inspect --format='{{.State.Health.Status}}' taskflow-api
-```
+> **📖 For detailed instructions including Docker CLI usage, see [DOCKER_CONFIGURATION.md](DOCKER_CONFIGURATION.md)**
 
 ## Azure Deployment
 
@@ -196,55 +97,13 @@ TaskFlow.Api supports automated Azure deployment using GitHub Actions workflows.
 
 TaskFlow.Api uses OpenID Connect (OIDC) for secure, passwordless authentication to Azure.
 
-**Step 1: Create service principal**
-```bash
-az ad sp create-for-rbac \
-  --name "TaskFlowDeployment" \
-  --role contributor \
-  --scopes /subscriptions/{subscription-id}
-```
+**Quick setup:**
+1. Create Azure service principal with Contributor role
+2. Configure federated credentials for GitHub Actions
+3. Add secrets to GitHub: `AZURE_CLIENT_ID`, `AZURE_TENANT_ID`, `AZURE_SUBSCRIPTION_ID`
+4. Create GitHub environments: `qa` and `production`
 
-Save the `appId` and `tenant` from the output.
-
-**Step 2: Configure federated credentials**
-```bash
-APP_ID=$(az ad app list --display-name "TaskFlowDeployment" --query "[0].appId" -o tsv)
-
-# For QA environment
-az ad app federated-credential create \
-  --id $APP_ID \
-  --parameters '{
-    "name": "TaskFlowGitHubActionsQA",
-    "issuer": "https://token.actions.githubusercontent.com",
-    "subject": "repo:nevridge/TaskFlow.Api:environment:qa",
-    "audiences": ["api://AzureADTokenExchange"]
-  }'
-
-# For production environment
-az ad app federated-credential create \
-  --id $APP_ID \
-  --parameters '{
-    "name": "TaskFlowGitHubActionsProduction",
-    "issuer": "https://token.actions.githubusercontent.com",
-    "subject": "repo:nevridge/TaskFlow.Api:environment:production",
-    "audiences": ["api://AzureADTokenExchange"]
-  }'
-```
-
-**Step 3: Configure GitHub secrets**
-
-In your GitHub repository, go to **Settings → Secrets and variables → Actions** and add:
-- `AZURE_CLIENT_ID` - The `appId` from Step 1
-- `AZURE_TENANT_ID` - The `tenant` from Step 1
-- `AZURE_SUBSCRIPTION_ID` - Your Azure subscription ID
-
-**Step 4: Create GitHub environments**
-
-In **Settings → Environments**, create:
-- `qa` - For QA deployments
-- `production` - For production deployments (consider adding protection rules)
-
-For detailed OIDC setup instructions, see [AZURE_OIDC_AUTHENTICATION.md](AZURE_OIDC_AUTHENTICATION.md).
+> **📖 For detailed OIDC setup with complete commands, see [AZURE_OIDC_AUTHENTICATION.md](AZURE_OIDC_AUTHENTICATION.md)**
 
 ### Production Deployment to Azure App Service
 
@@ -281,35 +140,19 @@ Option 2: Manual trigger
 
 ### QA Deployment to Azure Container Instances
 
-The QA workflow creates ephemeral test environments with predictable DNS names.
+The QA workflow creates ephemeral test environments with **fixed, predictable DNS names** for consistent testing.
 
-**Trigger QA deployment:**
-1. Go to **Actions** tab in GitHub
-2. Select **Ephemeral ACI deploy - create test teardown** workflow
-3. Click **Run workflow**
-4. Configure:
-   - **action:** `deploy`
-   - **resource_group:** Optional (default: `TaskFlowRG`)
-   - **location:** Azure region (default: `eastus`)
-   - **image_tag:** Docker image tag (default: `latest`)
+**Quick start:**
+1. Go to **Actions** → **Ephemeral ACI deploy - create test teardown**
+2. Click **Run workflow** with `action: deploy`
+3. Access QA endpoint: `http://taskflow-qa.{region}.azurecontainer.io:8080`
 
-**QA endpoint:**
-- **DNS name:** `taskflow-qa.{region}.azurecontainer.io`
-- **Example:** `http://taskflow-qa.eastus.azurecontainer.io:8080`
-- **Health check:** `http://taskflow-qa.eastus.azurecontainer.io:8080/health`
-
-The DNS name is fixed and predictable, making it ideal for:
+**Use cases:**
 - Postman collections with static QA URLs
-- Automated test suites
+- Automated test suites with consistent endpoints
 - Demo environments
-- Integration testing
 
-**Teardown QA environment:**
-1. Run the same workflow with **action:** `teardown`
-2. Specify the resource group name
-3. All QA resources will be deleted
-
-For more details on QA deployments, see [QA_DEPLOYMENT.md](QA_DEPLOYMENT.md).
+> **📖 For detailed QA deployment instructions, Postman setup, and troubleshooting, see [QA_DEPLOYMENT.md](QA_DEPLOYMENT.md)**
 
 ### Production Teardown
 
@@ -355,7 +198,7 @@ To customize, edit the workflow files and update these variables:
 - `APP_NAME` - Application name (e.g., `taskflow`)
 - `ENV` - Environment (e.g., `prod`, `qa`)
 
-For complete naming convention details, see [deploy.md](deploy.md).
+For complete naming convention details, see [DEPLOY.md](DEPLOY.md).
 
 ## CI/CD Workflows
 
@@ -600,15 +443,15 @@ Health check failures are automatically logged. Look for:
 [WRN] Health check database is Degraded
 ```
 
-For comprehensive logging documentation, see [logging.md](logging.md).
+For comprehensive logging documentation, see [LOGGING.md](LOGGING.md).
 
 ## Additional Resources
 
 - [Docker Configuration Details](DOCKER_CONFIGURATION.md) - Detailed Docker configuration comparison
-- [Volume Configuration](volumes.md) - Docker volume management
+- [Volume Configuration](VOLUMES.md) - Docker volume management
 - [Azure OIDC Authentication](AZURE_OIDC_AUTHENTICATION.md) - Detailed OIDC setup
 - [QA Deployment Guide](QA_DEPLOYMENT.md) - Ephemeral QA environment details
-- [Resource Naming Convention](deploy.md) - Azure naming standards
+- [Resource Naming Convention](DEPLOY.md) - Azure naming standards
 - [Security Scanning](SECURITY_SCANNING.md) - CodeQL and Trivy configuration
 
 ---

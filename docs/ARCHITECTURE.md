@@ -523,7 +523,7 @@ Health check failures are automatically logged:
 - Includes exception details
 - Timestamped for correlation
 
-For detailed logging documentation, see [Logging Guide](logging.md).
+For detailed logging documentation, see [Logging Guide](LOGGING.md).
 
 ## Quality Practices
 

@@ -459,7 +459,7 @@ When updating documentation:
 | `API.md` | Endpoint reference | Developers, API Users |
 | `CONTRIBUTING.md` | Development workflow | Contributors |
 | `SECURITY_SCANNING.md` | CodeQL, Trivy setup | DevOps, Security |
-| `logging.md` | Serilog configuration | Developers, Ops |
+| `LOGGING.md` | Serilog configuration | Developers, Ops |
 
 ## Additional Guidelines
 

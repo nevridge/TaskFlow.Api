@@ -86,7 +86,7 @@ TaskFlow.Api supports multiple Docker configurations optimized for different dep
 - These directories are created automatically on first run
 - Both are excluded from version control via `.gitignore`
 - Database files differ by environment: `tasks.dev.db` vs `tasks.db`
-- For detailed volume configuration, see [volumes.md](./volumes.md)
+- For detailed volume configuration, see [VOLUMES.md](./VOLUMES.md)
 
 ### Health Checks
 
@@ -467,7 +467,7 @@ docker run ...
 
 - [Main README](../README.md) - Getting started and deployment
 - [Deployment Guide](DEPLOYMENT.md) - Quick start deployment instructions
-- [Volume Configuration](./volumes.md) - Detailed volume setup
+- [Volume Configuration](./VOLUMES.md) - Detailed volume setup
 - [Kubernetes Deployment](../k8s/README.md) - K8s-specific configuration
 - [Security Scanning](SECURITY_SCANNING.md) - Docker image security
 
@@ -481,4 +481,4 @@ If you encounter configuration inconsistencies not covered in this document, ple
 
 ---
 
-[← Back to Documentation Index](README.md) | [Deployment Guide](DEPLOYMENT.md) | [Volume Configuration →](volumes.md)
+[← Back to README](../README.md) | [Deployment Guide](DEPLOYMENT.md) | [Volume Configuration →](VOLUMES.md)

@@ -398,10 +398,10 @@ A successful volume persistence test should demonstrate:
 
 ## See Also
 
-- [Volume Configuration Guide](volumes.md) - Comprehensive volume setup documentation
+- [Volume Configuration Guide](VOLUMES.md) - Comprehensive volume setup documentation
 - [Docker Volumes Documentation](https://docs.docker.com/storage/volumes/) - Official Docker documentation
 - [README.md](../README.md) - Main project documentation
 
 ---
 
-[← Back to Documentation Index](README.md) | [Deployment Guide](DEPLOYMENT.md) | [Volumes →](volumes.md)
+[← Back to README](../README.md) | [Deployment Guide](DEPLOYMENT.md) | [Volumes →](VOLUMES.md)
