@@ -202,7 +202,7 @@ jobs:
             --registry-login-server ${{ env.ACR_NAME }}.azurecr.io \
             --registry-username $(az acr credential show -n ${{ env.ACR_NAME }} --query username -o tsv) \
             --registry-password $(az acr credential show -n ${{ env.ACR_NAME }} --query "passwords[0].value" -o tsv) \
-            --cpu 1 --memory 1.5 \
+            --cpu 1 --memory 1.5Gi \
             --os-type Linux \
             --ports 8080 \
             --dns-name-label ${{ env.DNS_NAME_LABEL }}
