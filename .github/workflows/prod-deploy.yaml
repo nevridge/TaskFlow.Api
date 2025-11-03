@@ -167,14 +167,50 @@ jobs:
           if az appservice plan show -n ${{ env.PLAN_NAME }} -g ${{ env.RG_NAME }} >/dev/null 2>&1; then
             echo "App Service Plan ${{ env.PLAN_NAME }} exists"
           else
-            echo "Creating App Service Plan ${{ env.PLAN_NAME }}"
-            echo "NOTE: Using Free tier (F1) due to Azure subscription quota limitations."
-            echo "To use Basic (B1) or higher tiers, request quota increase in Azure Portal."
-            az appservice plan create \
-              -n ${{ env.PLAN_NAME }} \
-              -g ${{ env.RG_NAME }} \
-              --is-linux \
-              --sku F1
+            echo "App Service Plan ${{ env.PLAN_NAME }} does not exist"
+            echo "Checking for existing App Service Plans in resource group that can be reused..."
+            
+            # Try to find any existing Linux App Service Plan in the resource group
+            EXISTING_PLAN=$(az appservice plan list -g ${{ env.RG_NAME }} --query "[?kind=='linux'].name" -o tsv | head -n 1)
+            
+            if [ -n "$EXISTING_PLAN" ]; then
+              echo "Found existing Linux App Service Plan: $EXISTING_PLAN"
+              echo "Using existing plan instead of creating a new one"
+              echo "PLAN_NAME=$EXISTING_PLAN" >> $GITHUB_ENV
+            else
+              echo "No existing Linux App Service Plans found in resource group"
+              echo "Attempting to create new App Service Plan ${{ env.PLAN_NAME }}"
+              echo "NOTE: Using Free tier (F1) due to Azure subscription quota limitations."
+              echo "To use Basic (B1) or higher tiers, request quota increase in Azure Portal."
+              
+              if ! az appservice plan create \
+                -n ${{ env.PLAN_NAME }} \
+                -g ${{ env.RG_NAME }} \
+                --is-linux \
+                --sku F1 2>&1 | tee /tmp/plan_create.log; then
+                
+                echo ""
+                echo "=========================================="
+                echo "ERROR: Failed to create App Service Plan"
+                echo "=========================================="
+                echo ""
+                cat /tmp/plan_create.log
+                echo ""
+                echo "This deployment requires an App Service Plan, but your Azure subscription"
+                echo "does not have quota to create one."
+                echo ""
+                echo "ACTION REQUIRED:"
+                echo "1. Go to Azure Portal (https://portal.azure.com)"
+                echo "2. Navigate to: Subscriptions > Your Subscription > Usage + quotas"
+                echo "3. Search for 'App Service' or 'Web App' quotas"
+                echo "4. Request a quota increase for at least 1 Free (F1) or Basic (B1) App Service Plan"
+                echo ""
+                echo "Alternatively, you can manually create an App Service Plan in the resource"
+                echo "group '${{ env.RG_NAME }}' and re-run this deployment."
+                echo "=========================================="
+                exit 1
+              fi
+            fi
           fi
 
       - name: Ensure Web App exists
