@@ -1,6 +1,50 @@
+Flow.Api\TaskFlow.Api.http
 @TaskFlow.Api_HostAddress = http://localhost:5290
 
-GET {{TaskFlow.Api_HostAddress}}/weatherforecast/
+### Get all tasks (v1)
+GET {{TaskFlow.Api_HostAddress}}/api/v1/taskitems
+Accept: application/json
+
+###
+
+### Get task by ID (v1)
+GET {{TaskFlow.Api_HostAddress}}/api/v1/taskitems/1
+Accept: application/json
+
+###
+
+### Create task (v1)
+POST {{TaskFlow.Api_HostAddress}}/api/v1/taskitems
+Content-Type: application/json
+
+{
+  "title": "Test Task",
+  "description": "Testing from .http file",
+  "dueDate": "2025-12-31T00:00:00Z"
+}
+
+###
+
+### Update task (v1)
+PUT {{TaskFlow.Api_HostAddress}}/api/v1/taskitems/1
+Content-Type: application/json
+
+{
+  "title": "Updated Task",
+  "description": "Updated description",
+  "isCompleted": true,
+  "dueDate": "2025-12-31T00:00:00Z"
+}
+
+###
+
+### Delete task (v1)
+DELETE {{TaskFlow.Api_HostAddress}}/api/v1/taskitems/1
+
+###
+
+### Health check
+GET {{TaskFlow.Api_HostAddress}}/health
 Accept: application/json
 
 ###
