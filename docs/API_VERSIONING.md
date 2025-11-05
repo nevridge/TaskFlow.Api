@@ -69,7 +69,7 @@ GET /api/v2/TaskItems
 Alternative method using custom header:
 
 ```bash
-curl -H "x-api-version: 1.0" http://localhost:5290/api/TaskItems
+curl -H "x-api-version: 1.0" http://localhost:8080/api/TaskItems
 ```
 
 **Use cases:**
