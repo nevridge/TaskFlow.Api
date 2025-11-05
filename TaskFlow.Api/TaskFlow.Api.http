@@ -1,4 +1,3 @@
-Flow.Api\TaskFlow.Api.http
 @TaskFlow.Api_HostAddress = http://localhost:5290
 
 ### Get all tasks (v1)
