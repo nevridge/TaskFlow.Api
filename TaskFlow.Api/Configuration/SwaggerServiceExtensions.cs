@@ -97,7 +97,7 @@ public class SwaggerDefaultValues : IOperationFilter
 
             if (parameter.Schema.Default == null && description.DefaultValue != null)
             {
-                var defaultValueString = description.DefaultValue.ToString();
+                var defaultValueString = description.DefaultValue?.ToString();
                 if (!string.IsNullOrEmpty(defaultValueString))
                 {
                     parameter.Schema.Default = new Microsoft.OpenApi.Any.OpenApiString(defaultValueString);
