@@ -49,6 +49,9 @@ public class HealthCheckLoggingTests : IDisposable
 
         // Restore the original logger
         Log.Logger = _originalLogger;
+
+        // Suppress finalization
+        GC.SuppressFinalize(this);
     }
 
     private static DefaultHttpContext CreateHttpContextWithServices()
