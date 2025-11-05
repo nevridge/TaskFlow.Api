@@ -21,10 +21,10 @@ public static class SwaggerServiceExtensions
     public static IServiceCollection AddSwagger(this IServiceCollection services)
     {
         services.AddEndpointsApiExplorer();
-        
+
         // Register Swagger configuration for API versioning
         services.AddTransient<IConfigureOptions<SwaggerGenOptions>, ConfigureSwaggerOptions>();
-        
+
         services.AddSwaggerGen(options =>
         {
             // Add a custom operation filter to add version parameter in UI
@@ -58,8 +58,8 @@ public class ConfigureSwaggerOptions : IConfigureOptions<SwaggerGenOptions>
                 {
                     Title = "TaskFlow API",
                     Version = description.ApiVersion.ToString(),
-                    Description = description.IsDeprecated 
-                        ? "This API version has been deprecated." 
+                    Description = description.IsDeprecated
+                        ? "This API version has been deprecated."
                         : "A RESTful task management API demonstrating modern .NET practices."
                 });
         }
@@ -87,7 +87,7 @@ public class SwaggerDefaultValues : IOperationFilter
         {
             var description = apiDescription.ParameterDescriptions
                 .FirstOrDefault(p => p.Name == parameter.Name);
-            
+
             if (description == null)
             {
                 continue;

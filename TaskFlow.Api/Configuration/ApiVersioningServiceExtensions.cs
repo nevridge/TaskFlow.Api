@@ -20,13 +20,13 @@ public static class ApiVersioningServiceExtensions
         {
             // Set default API version to 1.0
             options.DefaultApiVersion = new ApiVersion(1, 0);
-            
+
             // Assume default version when clients don't specify version
             options.AssumeDefaultVersionWhenUnspecified = true;
-            
+
             // Report API versions in response headers (api-supported-versions, api-deprecated-versions)
             options.ReportApiVersions = true;
-            
+
             // Configure how API version is read from requests
             // URL segment is the primary method (e.g., /api/v1/TaskItems)
             // Header is supported as fallback (x-api-version: 1.0)
@@ -40,7 +40,7 @@ public static class ApiVersioningServiceExtensions
             // Format API version as "'v'major[.minor][-status]"
             // Example: v1.0, v2.0, v1.0-beta
             options.GroupNameFormat = "'v'VVV";
-            
+
             // Substitute API version in URL
             options.SubstituteApiVersionInUrl = true;
         });
