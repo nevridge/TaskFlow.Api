@@ -1,5 +1,4 @@
 using Microsoft.ApplicationInsights.AspNetCore.Extensions;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace TaskFlow.Api.Configuration;
 

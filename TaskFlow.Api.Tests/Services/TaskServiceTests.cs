@@ -40,7 +40,7 @@ public class TaskServiceTests
     public async Task GetAllTasksAsync_ShouldReturnEmptyList_WhenNoTasksExist()
     {
         // Arrange
-        _mockRepo.Setup(r => r.GetAllAsync()).ReturnsAsync(new List<TaskItem>());
+        _mockRepo.Setup(r => r.GetAllAsync()).ReturnsAsync([]);
 
         // Act
         var result = await _service.GetAllTasksAsync();
