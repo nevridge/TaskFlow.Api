@@ -109,7 +109,7 @@ POST /api/v1/TaskItems
 ### Header Versioning
 
 ```bash
-curl -H "x-api-version: 1.0" http://localhost:5290/api/TaskItems
+curl -H "x-api-version: 1.0" http://localhost:8080/api/TaskItems
 ```
 
 For complete usage examples and request/response formats, see [API Reference](API.md).
