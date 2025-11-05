@@ -21,6 +21,6 @@ public class TaskItemResponseDto
 /// </summary>
 public class ResponseMetadata
 {
-    public string ApiVersion { get; set; } = "2.0";
-    public DateTime Timestamp { get; set; } = DateTime.UtcNow;
+    public string ApiVersion { get; set; } = string.Empty;
+    public DateTime Timestamp { get; set; }
 }

@@ -12,6 +12,8 @@ namespace TaskFlow.Api.Controllers.V2;
 [Route("api/v{version:apiVersion}/[controller]")]
 public class TaskItemsController(ITaskService taskService, IValidator<TaskItem> validator) : ControllerBase
 {
+    private const string ApiVersionString = "2.0";
+    
     private readonly ITaskService _taskService = taskService;
     private readonly IValidator<TaskItem> _validator = validator;
 
@@ -54,7 +56,7 @@ public class TaskItemsController(ITaskService taskService, IValidator<TaskItem> 
         var createdItem = await _taskService.CreateTaskAsync(item);
         var response = MapToResponseDto(createdItem);
 
-        return CreatedAtRoute("GetTaskV2", new { version = "2.0", id = createdItem.Id }, response);
+        return CreatedAtRoute("GetTaskV2", new { version = ApiVersionString, id = createdItem.Id }, response);
     }
 
     // PUT: api/v2/TaskItems/5
@@ -105,7 +107,7 @@ public class TaskItemsController(ITaskService taskService, IValidator<TaskItem> 
             IsComplete = item.IsComplete,
             Metadata = new ResponseMetadata
             {
-                ApiVersion = "2.0",
+                ApiVersion = ApiVersionString,
                 Timestamp = DateTime.UtcNow
             }
         };
