@@ -17,9 +17,9 @@ public class ApiVersioningServiceExtensionsTests
 
         // Assert
         result.Should().BeSameAs(services);
-        
+
         // Verify that API versioning services are registered by checking the service collection
-        services.Should().Contain(s => s.ServiceType.FullName != null && 
+        services.Should().Contain(s => s.ServiceType.FullName != null &&
                                        s.ServiceType.FullName.Contains("ApiVersion"));
     }
 
