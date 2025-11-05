@@ -91,67 +91,28 @@ These endpoints support version 1.0 and maintain the original API contract.
 
 ### Version 1.0
 
-Current version with core functionality:
+Current version with core functionality. For detailed endpoint documentation, see [API Reference](API.md).
 
-- **Endpoints:**
-  - `GET /api/v1/TaskItems` - List all tasks
-  - `GET /api/v1/TaskItems/{id}` - Get task by ID
-  - `POST /api/v1/TaskItems` - Create task
-  - `PUT /api/v1/TaskItems/{id}` - Update task
-  - `DELETE /api/v1/TaskItems/{id}` - Delete task
-
-- **Response format:**
-  ```json
-  {
-    "id": 1,
-    "title": "Task Title",
-    "description": "Task Description",
-    "isComplete": false
-  }
-  ```
+**Endpoints:** `/api/v1/TaskItems` with full CRUD operations (GET, POST, PUT, DELETE)
 
 **Note:** The versioning infrastructure is in place to support future API versions. When new versions are needed, they can be added by creating new controllers with the `[ApiVersion("X.0")]` attribute.
 
-## Using API Versions
+## Usage Examples
 
-### Example: Creating a Task (V1)
-
-```bash
-curl -X POST http://localhost:5290/api/v1/TaskItems \
-  -H "Content-Type: application/json" \
-  -d '{
-    "title": "My Task",
-    "description": "Task description",
-    "isComplete": false
-  }'
-```
-
-**Response:**
-```json
-{
-  "id": 1,
-  "title": "My Task",
-  "description": "Task description",
-  "isComplete": false
-}
-```
-
-### Example: Using Header Versioning
+### URL Path Versioning
 
 ```bash
-curl -X GET http://localhost:5290/api/TaskItems \
-  -H "x-api-version: 1.0"
+GET /api/v1/TaskItems
+POST /api/v1/TaskItems
 ```
 
-**Response:**
-```json
-{
-  "id": 1,
-  "title": "My Task",
-  "description": "Task description",
-  "isComplete": false
-}
+### Header Versioning
+
+```bash
+curl -H "x-api-version: 1.0" http://localhost:5290/api/TaskItems
 ```
+
+For complete usage examples and request/response formats, see [API Reference](API.md).
 
 ## API Version Discovery
 
@@ -208,40 +169,15 @@ public class TaskItemsController : ControllerBase
 
 ## Best Practices
 
-### For API Consumers
+**For API Consumers:**
+- Always specify version explicitly (`/api/v1/`)
+- Check `api-supported-versions` header for available versions
+- Design clients to ignore unknown fields for forward compatibility
 
-1. **Always specify version** - Use explicit version in URL (`/api/v1/` or `/api/v2/`)
-2. **Handle additional fields** - Design clients to ignore unknown fields for forward compatibility
-3. **Monitor version headers** - Check `api-supported-versions` header for available versions
-4. **Test before migrating** - Thoroughly test your application with new versions
-5. **Have a rollback plan** - Keep V1 implementation ready if issues arise
-
-### For API Maintainers
-
-1. **No breaking changes in minor versions** - Only add, never remove or change existing fields
-2. **Document all changes** - Clear migration guides for each version
-3. **Deprecation warnings** - Announce version deprecation well in advance
-4. **Support multiple versions** - Maintain at least two versions during transitions
-5. **Monitor usage** - Track which versions are actively used
-
-## Deprecation Policy
-
-When deprecating an API version:
-
-1. **Announce deprecation** - At least 6 months notice
-2. **Mark as deprecated** - Use `[ApiVersion("1.0", Deprecated = true)]`
-3. **Update documentation** - Clear migration path to current version
-4. **Set sunset header** - Indicate when version will be removed
-5. **Monitor usage** - Ensure minimal impact before removal
-
-Example deprecation annotation:
-```csharp
-[ApiVersion("1.0", Deprecated = true)]
-public class TaskItemsController : ControllerBase
-{
-    // ...
-}
-```
+**For API Maintainers:**
+- No breaking changes in minor versions
+- Announce deprecation at least 6 months in advance using `[ApiVersion("1.0", Deprecated = true)]`
+- Maintain at least two versions during transitions
 
 ## Technical Architecture
 
@@ -275,42 +211,15 @@ The Swagger UI is automatically configured to:
 
 ## Testing
 
-### Unit Tests
+Version-specific tests: `TaskFlow.Api.Tests/Controllers/V1/TaskItemsControllerV1Tests.cs`
 
-Version-specific tests validate each controller independently:
-
-- `TaskFlow.Api.Tests/Controllers/V1/TaskItemsControllerV1Tests.cs`
-- Additional version tests as new versions are added
-
-### Integration Testing
-
-Test version selection mechanisms:
-
-```csharp
-// Test URL versioning
-var response = await client.GetAsync("/api/v1/TaskItems");
-
-// Test header versioning
-client.DefaultRequestHeaders.Add("x-api-version", "1.0");
-var response = await client.GetAsync("/api/TaskItems");
-
-// Verify response headers
-Assert.Contains("api-supported-versions", response.Headers.Select(h => h.Key));
-```
+Test both URL versioning (`/api/v1/TaskItems`) and header versioning (`x-api-version: 1.0`).
 
 ## Troubleshooting
 
-### Issue: "Unsupported API version" error
+**"Unsupported API version" error:** Check `api-supported-versions` header or Swagger docs. Currently only v1.0 is supported.
 
-**Cause:** Requested version doesn't exist
-
-**Solution:** Check `api-supported-versions` header or Swagger docs for available versions. Currently only v1.0 is supported.
-
-### Issue: Version not specified in URL
-
-**Cause:** Using legacy endpoint without version
-
-**Solution:** For new integrations, use versioned endpoint: `/api/v1/TaskItems`. Legacy endpoints (`/api/TaskItems`) will continue to work for backward compatibility.
+**Using legacy endpoints:** For new integrations, use versioned routes (`/api/v1/TaskItems`). Legacy routes (`/api/TaskItems`) continue to work for backward compatibility.
 
 ## References
 
