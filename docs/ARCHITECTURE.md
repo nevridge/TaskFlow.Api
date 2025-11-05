@@ -144,7 +144,8 @@ TaskFlow.Api uses the **ServiceCollection Extension Pattern** to organize depend
 | `ApplicationServiceExtensions` | Business logic services | `ITaskService` |
 | `ValidationServiceExtensions` | Input validation | FluentValidation validators |
 | `HealthCheckServiceExtensions` | Health monitoring | Database and self health checks |
-| `SwaggerServiceExtensions` | API documentation | Swagger/OpenAPI services |
+| `ApiVersioningServiceExtensions` | API versioning | API versioning middleware and explorer |
+| `SwaggerServiceExtensions` | API documentation | Swagger/OpenAPI with versioning support |
 | `LoggingServiceExtensions` | Logging infrastructure | Serilog configuration |
 | `JsonConfigurationExtensions` | JSON serialization | JSON serializer options |
 
@@ -155,6 +156,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Clean, readable service registration
 builder.Services.AddControllers();
+builder.Services.AddApiVersioningConfiguration();
 builder.Services.AddSwagger();
 builder.Services.AddPersistence(builder.Configuration);
 builder.Services.AddApplicationServices();
@@ -610,16 +612,37 @@ See [Security Scanning Documentation](SECURITY_SCANNING.md) for details.
 
 ### 6. API Versioning
 
-Not currently implemented, but easily added:
+**Implemented using Microsoft's Asp.Versioning packages** following official best practices:
 
+**Configuration:**
 ```csharp
-builder.Services.AddApiVersioning(options =>
-{
-    options.DefaultApiVersion = new ApiVersion(1, 0);
-    options.AssumeDefaultVersionWhenUnspecified = true;
-    options.ReportApiVersions = true;
-});
+builder.Services.AddApiVersioningConfiguration();
 ```
+
+**Features:**
+- URL path versioning (primary): `/api/v1/TaskItems`, `/api/v2/TaskItems`
+- Header versioning (fallback): `x-api-version: 1.0`
+- Default version: 1.0
+- Version discovery via response headers: `api-supported-versions`
+- Multi-version Swagger documentation
+
+**Controller implementation:**
+```csharp
+[ApiVersion("1.0")]
+[Route("api/v{version:apiVersion}/[controller]")]
+public class TaskItemsController : ControllerBase
+{
+    // Version 1.0 endpoints
+}
+```
+
+**Benefits:**
+- Backward compatibility for existing clients
+- Gradual migration path for API consumers
+- Multiple versions coexist safely
+- Clear version visibility in URLs
+
+See [API Versioning Guide](API_VERSIONING.md) for complete documentation.
 
 ## Documentation Philosophy
 

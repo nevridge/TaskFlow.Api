@@ -15,8 +15,9 @@ While functional as a task management system, this project serves as a portfolio
 ## Key Features
 
 - ✅ Full CRUD operations for task items via REST API
+- 🔄 **API versioning** with URL path and header support (v1.0, v2.0)
 - 🗄️ Entity Framework Core with SQLite persistence
-- 🔍 OpenAPI/Swagger documentation
+- 🔍 OpenAPI/Swagger documentation with multi-version support
 - 📊 Structured logging with Serilog
 - 🏥 Health check endpoints for container orchestration
 - 🐳 Docker support for local and production deployment
@@ -64,6 +65,7 @@ Access the API at `http://localhost:8080`. Data persists in Docker volumes acros
 
 - **[Getting Started](docs/GETTING_STARTED.md)** - Setup and run locally in 5 minutes
 - **[API Reference](docs/API.md)** - Complete endpoint documentation with examples
+- **[API Versioning](docs/API_VERSIONING.md)** - Versioning strategy and migration guide
 - **[Architecture](docs/ARCHITECTURE.md)** - Design decisions, patterns, and quality practices
 - **[Deployment](docs/DEPLOYMENT.md)** - Docker, Azure, and CI/CD workflows
 - **[Contributing](docs/CONTRIBUTING.md)** - Development workflow and standards
@@ -141,18 +143,43 @@ If you're evaluating this project for hiring or collaboration, here's what to no
 
 ## API Endpoints
 
+### Versioned Endpoints (Recommended)
+
+TaskFlow.Api uses **URL path versioning** for API evolution. Two versions are available:
+
+| Version | Method | Endpoint | Description |
+|---------|--------|----------|-------------|
+| V1 | GET | `/api/v1/TaskItems` | List all tasks |
+| V1 | GET | `/api/v1/TaskItems/{id}` | Get task by ID |
+| V1 | POST | `/api/v1/TaskItems` | Create new task |
+| V1 | PUT | `/api/v1/TaskItems/{id}` | Update task |
+| V1 | DELETE | `/api/v1/TaskItems/{id}` | Delete task |
+| V2 | GET | `/api/v2/TaskItems` | List all tasks (with metadata) |
+| V2 | GET | `/api/v2/TaskItems/{id}` | Get task by ID (with metadata) |
+| V2 | POST | `/api/v2/TaskItems` | Create new task (with metadata) |
+| V2 | PUT | `/api/v2/TaskItems/{id}` | Update task |
+| V2 | DELETE | `/api/v2/TaskItems/{id}` | Delete task |
+
+**What's new in V2:**
+- Enhanced responses include `metadata` object with `apiVersion` and `timestamp`
+- All V1 functionality remains available and compatible
+
+### Health Check Endpoints
+
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| GET | `/api/TaskItems` | List all tasks |
-| GET | `/api/TaskItems/{id}` | Get task by ID |
-| POST | `/api/TaskItems` | Create new task |
-| PUT | `/api/TaskItems/{id}` | Update task |
-| DELETE | `/api/TaskItems/{id}` | Delete task |
 | GET | `/health` | Overall health status |
 | GET | `/health/ready` | Readiness probe |
 | GET | `/health/live` | Liveness probe |
 
-See [API Reference](docs/API.md) for detailed endpoint documentation and examples.
+### Legacy Endpoints (Backward Compatible)
+
+Version-neutral endpoints default to V1:
+- `/api/TaskItems` → Maps to V1 behavior
+
+**Recommendation:** Use explicit versioned endpoints (`/api/v1/` or `/api/v2/`) for new integrations.
+
+See [API Reference](docs/API.md) for detailed endpoint documentation and [API Versioning Guide](docs/API_VERSIONING.md) for migration information.
 
 ## Configuration
 
