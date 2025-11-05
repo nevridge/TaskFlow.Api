@@ -1,3 +1,4 @@
+using Asp.Versioning;
 using Microsoft.AspNetCore.Mvc;
 using FluentValidation;
 using TaskFlow.Api.DTOs;
@@ -6,7 +7,12 @@ using TaskFlow.Api.Services;
 
 namespace TaskFlow.Api.Controllers;
 
+/// <summary>
+/// Legacy TaskItems controller - defaults to v1.0 for backward compatibility
+/// Clients should use versioned routes: /api/v1/TaskItems or /api/v2/TaskItems
+/// </summary>
 [ApiController]
+[ApiVersionNeutral]
 [Route("api/[controller]")]
 public class TaskItemsController(ITaskService taskService, IValidator<TaskItem> validator) : ControllerBase
 {

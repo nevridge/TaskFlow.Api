@@ -19,6 +19,7 @@ try
 
     // Add services to the container
     builder.Services.AddControllers();
+    builder.Services.AddApiVersioningConfiguration();
     builder.Services.AddSwagger();
     builder.Services.AddPersistence(builder.Configuration);
     builder.Services.AddApplicationServices();
@@ -68,7 +69,14 @@ try
         app.UseSwagger();
         app.UseSwaggerUI(c =>
         {
-            c.SwaggerEndpoint("/swagger/v1/swagger.json", "TaskFlow API v1");
+            // Build a Swagger endpoint for each discovered API version
+            var provider = app.Services.GetRequiredService<Asp.Versioning.ApiExplorer.IApiVersionDescriptionProvider>();
+            foreach (var description in provider.ApiVersionDescriptions)
+            {
+                c.SwaggerEndpoint(
+                    $"/swagger/{description.GroupName}/swagger.json",
+                    $"TaskFlow API {description.GroupName.ToUpperInvariant()}");
+            }
             c.RoutePrefix = string.Empty;
         });
     }
