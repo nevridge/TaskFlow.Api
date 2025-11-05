@@ -15,8 +15,9 @@ While functional as a task management system, this project serves as a portfolio
 ## Key Features
 
 - ✅ Full CRUD operations for task items via REST API
+- 🔄 **API versioning** with URL path and header support (v1.0, with infrastructure for future versions)
 - 🗄️ Entity Framework Core with SQLite persistence
-- 🔍 OpenAPI/Swagger documentation
+- 🔍 OpenAPI/Swagger documentation with multi-version support
 - 📊 Structured logging with Serilog
 - 🏥 Health check endpoints for container orchestration
 - 🐳 Docker support for local and production deployment
@@ -64,6 +65,7 @@ Access the API at `http://localhost:8080`. Data persists in Docker volumes acros
 
 - **[Getting Started](docs/GETTING_STARTED.md)** - Setup and run locally in 5 minutes
 - **[API Reference](docs/API.md)** - Complete endpoint documentation with examples
+- **[API Versioning](docs/API_VERSIONING.md)** - Versioning strategy and migration guide
 - **[Architecture](docs/ARCHITECTURE.md)** - Design decisions, patterns, and quality practices
 - **[Deployment](docs/DEPLOYMENT.md)** - Docker, Azure, and CI/CD workflows
 - **[Contributing](docs/CONTRIBUTING.md)** - Development workflow and standards
@@ -141,18 +143,33 @@ If you're evaluating this project for hiring or collaboration, here's what to no
 
 ## API Endpoints
 
+### Task Management Endpoints
+
+TaskFlow.Api supports **URL path versioning** for API evolution. Current version: 1.0
+
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| GET | `/api/TaskItems` | List all tasks |
-| GET | `/api/TaskItems/{id}` | Get task by ID |
-| POST | `/api/TaskItems` | Create new task |
-| PUT | `/api/TaskItems/{id}` | Update task |
-| DELETE | `/api/TaskItems/{id}` | Delete task |
+| GET | `/api/v1/TaskItems` | List all tasks |
+| GET | `/api/v1/TaskItems/{id}` | Get task by ID |
+| POST | `/api/v1/TaskItems` | Create new task |
+| PUT | `/api/v1/TaskItems/{id}` | Update task |
+| DELETE | `/api/v1/TaskItems/{id}` | Delete task |
+
+**Versioning Support:**
+- Use versioned routes (`/api/v1/TaskItems`) for new integrations
+- Legacy routes (`/api/TaskItems`) remain available for backward compatibility
+- Header versioning supported via `x-api-version` header
+- Infrastructure in place to add future versions (v2, v3, etc.)
+
+### Health Check Endpoints
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
 | GET | `/health` | Overall health status |
 | GET | `/health/ready` | Readiness probe |
 | GET | `/health/live` | Liveness probe |
 
-See [API Reference](docs/API.md) for detailed endpoint documentation and examples.
+See [API Reference](docs/API.md) for detailed endpoint documentation and [API Versioning Guide](docs/API_VERSIONING.md) for versioning strategy.
 
 ## Configuration
 

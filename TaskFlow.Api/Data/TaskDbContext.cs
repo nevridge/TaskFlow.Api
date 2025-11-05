@@ -7,4 +7,3 @@ public class TaskDbContext(DbContextOptions<TaskDbContext> options) : DbContext(
 {
     public DbSet<TaskItem> TaskItems => Set<TaskItem>();
 }
-

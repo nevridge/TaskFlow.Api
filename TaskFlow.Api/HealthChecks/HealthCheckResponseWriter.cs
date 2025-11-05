@@ -72,7 +72,7 @@ public static class HealthCheckResponseWriter
             .Select(e => new
             {
                 Name = e.Key,
-                Description = e.Value.Description,
+                e.Value.Description,
                 Duration = e.Value.Duration.TotalMilliseconds,
                 Exception = e.Value.Exception?.Message
             });
@@ -91,7 +91,7 @@ public static class HealthCheckResponseWriter
             .Select(e => new
             {
                 Name = e.Key,
-                Description = e.Value.Description,
+                e.Value.Description,
                 Duration = e.Value.Duration.TotalMilliseconds
             });
 

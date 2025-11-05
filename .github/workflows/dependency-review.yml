@@ -22,4 +22,4 @@ jobs:
           # Fail the action if vulnerabilities are found
           fail-on-severity: moderate
           # Allow licenses that are commonly used
-          allow-licenses: MIT, Apache-2.0, BSD-2-Clause, BSD-3-Clause, ISC, 0BSD
+          allow-licenses: MIT, Apache-2.0, BSD-2-Clause, BSD-3-Clause, ISC, 0BSD, LicenseRef-scancode-ms-typescript-msbuild-4.1.4

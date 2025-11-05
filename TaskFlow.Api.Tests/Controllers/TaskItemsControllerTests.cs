@@ -6,7 +6,6 @@ using Moq;
 using TaskFlow.Api.Controllers;
 using TaskFlow.Api.DTOs;
 using TaskFlow.Api.Models;
-using TaskFlow.Api.Repositories;
 using TaskFlow.Api.Services;
 
 namespace TaskFlow.Api.Tests.Controllers;
@@ -48,7 +47,7 @@ public class TaskItemsControllerTests
     public async Task GetAll_ShouldReturnOkWithEmptyList_WhenNoTasks()
     {
         // Arrange
-        _mockService.Setup(s => s.GetAllTasksAsync()).ReturnsAsync(new List<TaskItem>());
+        _mockService.Setup(s => s.GetAllTasksAsync()).ReturnsAsync([]);
 
         // Act
         var result = await _controller.GetAll();

@@ -8,7 +8,7 @@ namespace TaskFlow.Api.Tests.Repositories;
 
 public class TaskRepositoryTests
 {
-    private TaskDbContext CreateInMemoryContext()
+    private static TaskDbContext CreateInMemoryContext()
     {
         var options = new DbContextOptionsBuilder<TaskDbContext>()
             .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
