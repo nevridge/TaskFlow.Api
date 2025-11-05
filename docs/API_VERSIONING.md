@@ -77,21 +77,21 @@ curl -H "x-api-version: 1.0" http://localhost:5290/api/TaskItems
 - For advanced API consumers
 - Testing different versions
 
-### Version-Neutral Endpoints
+### Legacy Endpoints
 
-Legacy endpoints without version prefix continue to work:
+Endpoints without version prefix continue to work for backward compatibility:
 
 ```
 GET /api/TaskItems  # Defaults to v1.0
 ```
 
-These are marked with `[ApiVersionNeutral]` for backward compatibility.
+These endpoints support version 1.0 and maintain the original API contract.
 
 ## Available Versions
 
 ### Version 1.0
 
-Base version with core functionality:
+Current version with core functionality:
 
 - **Endpoints:**
   - `GET /api/v1/TaskItems` - List all tasks
@@ -110,30 +110,7 @@ Base version with core functionality:
   }
   ```
 
-### Version 2.0
-
-Enhanced version with additional metadata:
-
-- **Endpoints:**
-  - `GET /api/v2/TaskItems` - List all tasks with metadata
-  - `GET /api/v2/TaskItems/{id}` - Get task by ID with metadata
-  - `POST /api/v2/TaskItems` - Create task (returns enhanced response)
-  - `PUT /api/v2/TaskItems/{id}` - Update task
-  - `DELETE /api/v2/TaskItems/{id}` - Delete task
-
-- **Enhanced response format:**
-  ```json
-  {
-    "id": 1,
-    "title": "Task Title",
-    "description": "Task Description",
-    "isComplete": false,
-    "metadata": {
-      "apiVersion": "2.0",
-      "timestamp": "2025-11-05T03:03:40.5116771Z"
-    }
-  }
-  ```
+**Note:** The versioning infrastructure is in place to support future API versions. When new versions are needed, they can be added by creating new controllers with the `[ApiVersion("X.0")]` attribute.
 
 ## Using API Versions
 
@@ -159,16 +136,11 @@ curl -X POST http://localhost:5290/api/v1/TaskItems \
 }
 ```
 
-### Example: Creating a Task (V2)
+### Example: Using Header Versioning
 
 ```bash
-curl -X POST http://localhost:5290/api/v2/TaskItems \
-  -H "Content-Type: application/json" \
-  -d '{
-    "title": "My Task",
-    "description": "Task description",
-    "isComplete": false
-  }'
+curl -X GET http://localhost:5290/api/TaskItems \
+  -H "x-api-version: 1.0"
 ```
 
 **Response:**
@@ -177,19 +149,8 @@ curl -X POST http://localhost:5290/api/v2/TaskItems \
   "id": 1,
   "title": "My Task",
   "description": "Task description",
-  "isComplete": false,
-  "metadata": {
-    "apiVersion": "2.0",
-    "timestamp": "2025-11-05T03:03:40.5116771Z"
-  }
+  "isComplete": false
 }
-```
-
-### Example: Using Header Versioning
-
-```bash
-curl -X GET http://localhost:5290/api/TaskItems \
-  -H "x-api-version: 2.0"
 ```
 
 ## API Version Discovery
@@ -199,47 +160,51 @@ curl -X GET http://localhost:5290/api/TaskItems \
 All API responses include version information headers:
 
 ```
-api-supported-versions: 1.0, 2.0
+api-supported-versions: 1.0
 ```
 
 This header lists all supported API versions, helping clients discover available versions.
 
 ### Swagger/OpenAPI Documentation
 
-Each API version has its own Swagger documentation:
+Swagger UI automatically documents all API versions:
 
 - **V1 Documentation:** Select "TaskFlow API V1" in Swagger UI dropdown
-- **V2 Documentation:** Select "TaskFlow API V2" in Swagger UI dropdown
+- Additional versions will appear as they are added
 
 Access Swagger UI at: `http://localhost:{port}` (in Development mode)
 
-## Migration Guide
+## Adding New Versions
 
-### Upgrading from V1 to V2
+When you need to add a new API version:
 
-**Changes in V2:**
-1. Response includes `metadata` object
-2. Metadata contains `apiVersion` and `timestamp`
-3. All request/response schemas remain compatible
+1. **Create a new versioned controller** in a new namespace (e.g., `Controllers/V2/`)
+2. **Add the ApiVersion attribute**: `[ApiVersion("2.0")]`
+3. **Use versioned route**: `[Route("api/v{version:apiVersion}/[controller]")]`
+4. **Update route names** to avoid conflicts (e.g., `"GetTaskV2"` instead of `"GetTask"`)
+5. **Update tests** to cover the new version
 
-**Migration steps:**
-1. Update client code to handle `metadata` in responses (optional)
-2. Change URLs from `/api/v1/` to `/api/v2/`
-3. Test thoroughly before deploying
+**Example:**
+```csharp
+namespace TaskFlow.Api.Controllers.V2;
 
-**Backward compatibility:**
-- V1 endpoints remain fully functional
-- No breaking changes in request format
-- V2 is additive (adds fields, doesn't remove)
+[ApiController]
+[ApiVersion("2.0")]
+[Route("api/v{version:apiVersion}/[controller]")]
+public class TaskItemsController : ControllerBase
+{
+    // Implement V2 endpoints
+}
+```
 
 ### Handling Multiple Versions
 
-**Recommended approach:**
-1. Start with V1 for all clients
-2. Test V2 in non-production environments
-3. Gradually migrate clients to V2
-4. Monitor usage of both versions
-5. Plan deprecation of V1 after sufficient adoption
+**Best practices:**
+1. Keep existing versions stable - don't modify them
+2. Add new versions for breaking changes
+3. Clearly document what changed between versions
+4. Deprecate old versions with adequate notice
+5. Monitor usage to understand migration patterns
 
 ## Best Practices
 
@@ -284,20 +249,20 @@ public class TaskItemsController : ControllerBase
 
 ```
 Controllers/
-├── TaskItemsController.cs      # Version-neutral (legacy)
-├── V1/
-│   └── TaskItemsController.cs  # Version 1.0
-└── V2/
-    └── TaskItemsController.cs  # Version 2.0
+├── TaskItemsController.cs      # Supports v1.0 (legacy route /api/TaskItems)
+└── V1/
+    └── TaskItemsController.cs  # Version 1.0 (versioned route /api/v1/TaskItems)
 ```
+
+Future versions can be added in new namespaces (e.g., `V2/`, `V3/`).
 
 ### Version Attributes
 
 ```csharp
-[ApiVersion("1.0")]                    // Supports v1.0
-[ApiVersion("2.0")]                    // Supports v2.0
-[ApiVersionNeutral]                    // Version-independent
-[Route("api/v{version:apiVersion}/[controller]")]  // URL template
+[ApiVersion("1.0")]                    // Declares controller supports v1.0
+[ApiVersion("2.0")]                    // Declares controller supports v2.0
+[Route("api/v{version:apiVersion}/[controller]")]  // Versioned URL template
+[Route("api/[controller]")]            // Legacy non-versioned route
 ```
 
 ### Swagger Integration
@@ -315,7 +280,7 @@ The Swagger UI is automatically configured to:
 Version-specific tests validate each controller independently:
 
 - `TaskFlow.Api.Tests/Controllers/V1/TaskItemsControllerV1Tests.cs`
-- `TaskFlow.Api.Tests/Controllers/V2/TaskItemsControllerV2Tests.cs`
+- Additional version tests as new versions are added
 
 ### Integration Testing
 
@@ -323,11 +288,14 @@ Test version selection mechanisms:
 
 ```csharp
 // Test URL versioning
-var response = await client.GetAsync("/api/v2/TaskItems");
+var response = await client.GetAsync("/api/v1/TaskItems");
 
 // Test header versioning
-client.DefaultRequestHeaders.Add("x-api-version", "2.0");
+client.DefaultRequestHeaders.Add("x-api-version", "1.0");
 var response = await client.GetAsync("/api/TaskItems");
+
+// Verify response headers
+Assert.Contains("api-supported-versions", response.Headers.Select(h => h.Key));
 ```
 
 ## Troubleshooting
@@ -336,19 +304,13 @@ var response = await client.GetAsync("/api/TaskItems");
 
 **Cause:** Requested version doesn't exist
 
-**Solution:** Check `api-supported-versions` header or Swagger docs for available versions
-
-### Issue: Unexpected response format
-
-**Cause:** Using wrong version
-
-**Solution:** Verify URL contains correct version (`/api/v1/` vs `/api/v2/`)
+**Solution:** Check `api-supported-versions` header or Swagger docs for available versions. Currently only v1.0 is supported.
 
 ### Issue: Version not specified in URL
 
 **Cause:** Using legacy endpoint without version
 
-**Solution:** Update to versioned endpoint: `/api/v1/TaskItems`
+**Solution:** For new integrations, use versioned endpoint: `/api/v1/TaskItems`. Legacy endpoints (`/api/TaskItems`) will continue to work for backward compatibility.
 
 ## References
 
@@ -363,12 +325,12 @@ TaskFlow.Api implements robust API versioning using Microsoft's recommended prac
 
 ✅ URL path versioning as primary method  
 ✅ Header versioning as fallback  
-✅ Multiple versions coexist safely  
-✅ Clear documentation for each version  
+✅ Infrastructure ready for multiple versions  
+✅ Clear documentation for versioning strategy  
 ✅ Backward compatibility maintained  
-✅ Easy migration path for clients  
+✅ Easy path to add new versions  
 
-This approach ensures API evolution without disrupting existing consumers.
+This approach provides the foundation for API evolution without disrupting existing consumers. Currently, version 1.0 is available, and the infrastructure is in place to add additional versions as needed.
 
 ---
 

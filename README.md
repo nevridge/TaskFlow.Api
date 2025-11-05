@@ -143,26 +143,23 @@ If you're evaluating this project for hiring or collaboration, here's what to no
 
 ## API Endpoints
 
-### Versioned Endpoints (Recommended)
+### Task Management Endpoints
 
-TaskFlow.Api uses **URL path versioning** for API evolution. Two versions are available:
+TaskFlow.Api supports **URL path versioning** for API evolution. Current version: 1.0
 
-| Version | Method | Endpoint | Description |
-|---------|--------|----------|-------------|
-| V1 | GET | `/api/v1/TaskItems` | List all tasks |
-| V1 | GET | `/api/v1/TaskItems/{id}` | Get task by ID |
-| V1 | POST | `/api/v1/TaskItems` | Create new task |
-| V1 | PUT | `/api/v1/TaskItems/{id}` | Update task |
-| V1 | DELETE | `/api/v1/TaskItems/{id}` | Delete task |
-| V2 | GET | `/api/v2/TaskItems` | List all tasks (with metadata) |
-| V2 | GET | `/api/v2/TaskItems/{id}` | Get task by ID (with metadata) |
-| V2 | POST | `/api/v2/TaskItems` | Create new task (with metadata) |
-| V2 | PUT | `/api/v2/TaskItems/{id}` | Update task |
-| V2 | DELETE | `/api/v2/TaskItems/{id}` | Delete task |
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/v1/TaskItems` | List all tasks |
+| GET | `/api/v1/TaskItems/{id}` | Get task by ID |
+| POST | `/api/v1/TaskItems` | Create new task |
+| PUT | `/api/v1/TaskItems/{id}` | Update task |
+| DELETE | `/api/v1/TaskItems/{id}` | Delete task |
 
-**What's new in V2:**
-- Enhanced responses include `metadata` object with `apiVersion` and `timestamp`
-- All V1 functionality remains available and compatible
+**Versioning Support:**
+- Use versioned routes (`/api/v1/TaskItems`) for new integrations
+- Legacy routes (`/api/TaskItems`) remain available for backward compatibility
+- Header versioning supported via `x-api-version` header
+- Infrastructure in place to add future versions (v2, v3, etc.)
 
 ### Health Check Endpoints
 
@@ -172,14 +169,7 @@ TaskFlow.Api uses **URL path versioning** for API evolution. Two versions are av
 | GET | `/health/ready` | Readiness probe |
 | GET | `/health/live` | Liveness probe |
 
-### Legacy Endpoints (Backward Compatible)
-
-Version-neutral endpoints default to V1:
-- `/api/TaskItems` → Maps to V1 behavior
-
-**Recommendation:** Use explicit versioned endpoints (`/api/v1/` or `/api/v2/`) for new integrations.
-
-See [API Reference](docs/API.md) for detailed endpoint documentation and [API Versioning Guide](docs/API_VERSIONING.md) for migration information.
+See [API Reference](docs/API.md) for detailed endpoint documentation and [API Versioning Guide](docs/API_VERSIONING.md) for versioning strategy.
 
 ## Configuration
 
