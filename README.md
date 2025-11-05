@@ -15,7 +15,7 @@ While functional as a task management system, this project serves as a portfolio
 ## Key Features
 
 - ✅ Full CRUD operations for task items via REST API
-- 🔄 **API versioning** with URL path and header support (v1.0, v2.0)
+- 🔄 **API versioning** with URL path and header support (v1.0, with infrastructure for future versions)
 - 🗄️ Entity Framework Core with SQLite persistence
 - 🔍 OpenAPI/Swagger documentation with multi-version support
 - 📊 Structured logging with Serilog
