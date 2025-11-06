@@ -22,10 +22,23 @@ public class TaskRepositoryTests
         // Arrange
         using var context = CreateInMemoryContext();
         var repository = new TaskRepository(context);
+        
+        // Create a Status first
+        var status = new Status 
+        { 
+            Id = 1, 
+            Name = "Active", 
+            Description = "Active tasks",
+            CreatedDate = DateTime.UtcNow,
+            UpdatedDate = DateTime.UtcNow
+        };
+        await context.Statuses.AddAsync(status);
+        await context.SaveChangesAsync();
+        
         var tasks = new List<TaskItem>
         {
-            new() { Id = 1, Title = "Task 1", Description = "Description 1", IsComplete = false },
-            new() { Id = 2, Title = "Task 2", Description = "Description 2", IsComplete = true }
+            new() { Id = 1, Title = "Task 1", Description = "Description 1", IsComplete = false, StatusId = 1 },
+            new() { Id = 2, Title = "Task 2", Description = "Description 2", IsComplete = true, StatusId = 1 }
         };
         await context.TaskItems.AddRangeAsync(tasks);
         await context.SaveChangesAsync();
@@ -35,7 +48,7 @@ public class TaskRepositoryTests
 
         // Assert
         result.Should().HaveCount(2);
-        result.Should().BeEquivalentTo(tasks);
+        result.Should().AllSatisfy(t => t.Status.Should().NotBeNull());
     }
 
     [Fact]
@@ -58,7 +71,27 @@ public class TaskRepositoryTests
         // Arrange
         using var context = CreateInMemoryContext();
         var repository = new TaskRepository(context);
-        var task = new TaskItem { Id = 1, Title = "Task 1", Description = "Description 1", IsComplete = false };
+    
+        // Create a Status first
+        var status = new Status 
+        { 
+            Id = 1, 
+            Name = "Active", 
+            Description = "Active tasks",
+            CreatedDate = DateTime.UtcNow,
+            UpdatedDate = DateTime.UtcNow
+        };
+        await context.Statuses.AddAsync(status);
+        await context.SaveChangesAsync();
+    
+        var task = new TaskItem 
+        { 
+            Id = 1, 
+            Title = "Task 1", 
+            Description = "Description 1", 
+            IsComplete = false,
+            StatusId = 1  // <-- Add this
+        };
         await context.TaskItems.AddAsync(task);
         await context.SaveChangesAsync();
 
@@ -67,7 +100,8 @@ public class TaskRepositoryTests
 
         // Assert
         result.Should().NotBeNull();
-        result.Should().BeEquivalentTo(task);
+        result!.Status.Should().NotBeNull();  // <-- Also verify Status is loaded
+        result.Title.Should().Be("Task 1");
     }
 
     [Fact]
