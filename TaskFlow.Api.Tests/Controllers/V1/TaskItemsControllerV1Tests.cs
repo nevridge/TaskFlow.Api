@@ -106,7 +106,8 @@ public class TaskItemsControllerV1Tests
             Title = createDto.Title,
             Description = createDto.Description,
             IsComplete = createDto.IsComplete,
-            StatusId = createDto.StatusId
+            StatusId = createDto.StatusId,
+            Status = new Status { Id = 1, Name = "Todo" }
         };
         _mockValidator.Setup(v => v.ValidateAsync(It.IsAny<TaskItem>(), default))
             .ReturnsAsync(new ValidationResult());
@@ -121,11 +122,18 @@ public class TaskItemsControllerV1Tests
         createdResult.RouteName.Should().Be("GetTaskV1");
         createdResult.RouteValues.Should().ContainKey("version").WhoseValue.Should().Be("1.0");
         createdResult.RouteValues.Should().ContainKey("id").WhoseValue.Should().Be(1);
-        createdResult.Value.Should().BeEquivalentTo(createdTask);
+
+        // Controller now returns TaskItemResponseDto, not TaskItem
+        var responseDto = createdResult.Value.Should().BeOfType<TaskItemResponseDto>().Subject;
+        responseDto.Id.Should().Be(1);
+        responseDto.Title.Should().Be("New Task");
+        responseDto.Description.Should().Be("New Description");
+        responseDto.IsComplete.Should().BeFalse();
+        responseDto.StatusName.Should().Be("Todo");
     }
 
     [Fact]
-    public async Task Update_ShouldReturnNoContent_WhenValid()
+    public async Task Update_ShouldReturnOkWithUpdatedTask_WhenValid()
     {
         // Arrange
         var updateDto = new UpdateTaskItemDto
@@ -135,7 +143,15 @@ public class TaskItemsControllerV1Tests
             IsComplete = true,
             StatusId = 2
         };
-        var existingTask = new TaskItem { Id = 1, Title = "Old Task", Description = "Old", IsComplete = false, StatusId = 1 };
+        var existingTask = new TaskItem
+        {
+            Id = 1,
+            Title = "Old Task",
+            Description = "Old",
+            IsComplete = false,
+            StatusId = 1,
+            Status = new Status { Id = 2, Name = "Done" }
+        };
         _mockService.Setup(s => s.GetTaskAsync(1)).ReturnsAsync(existingTask);
         _mockValidator.Setup(v => v.ValidateAsync(It.IsAny<TaskItem>(), default))
             .ReturnsAsync(new ValidationResult());
@@ -145,7 +161,14 @@ public class TaskItemsControllerV1Tests
         var result = await _controller.Update(1, updateDto);
 
         // Assert
-        result.Should().BeOfType<NoContentResult>();
+        // Controller now returns 200 OK with TaskItemResponseDto instead of 204 NoContent
+        var okResult = result.Result.Should().BeOfType<OkObjectResult>().Subject;
+        var responseDto = okResult.Value.Should().BeOfType<TaskItemResponseDto>().Subject;
+        responseDto.Id.Should().Be(1);
+        responseDto.Title.Should().Be("Updated Task");
+        responseDto.Description.Should().Be("Updated Description");
+        responseDto.IsComplete.Should().BeTrue();
+        responseDto.StatusName.Should().Be("Done");
         _mockService.Verify(s => s.UpdateTaskAsync(It.IsAny<TaskItem>()), Times.Once);
     }
 
