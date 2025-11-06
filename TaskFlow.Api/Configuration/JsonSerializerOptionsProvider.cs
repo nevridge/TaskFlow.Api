@@ -23,6 +23,7 @@ public static class JsonSerializerOptionsProvider
     {
         var options = new JsonSerializerOptions(JsonSerializerDefaults.Web);
         ConfigureOptions(options);
+        options.MakeReadOnly(); // Prevents accidental modifications
         return options;
     }
 }
