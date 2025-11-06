@@ -57,7 +57,13 @@ public class StatusController(IStatusService statusService, IValidator<Status> v
         }
 
         var createdStatus = await _statusService.CreateStatusAsync(status);
-        return CreatedAtRoute("GetStatusV1", new { version = ApiVersionString, id = createdStatus.Id }, createdStatus);
+        var responseDto = new StatusResponseDto
+        {
+            Id = createdStatus.Id,
+            Name = createdStatus.Name,
+            Description = createdStatus.Description
+        };
+        return CreatedAtRoute("GetStatusV1", new { version = ApiVersionString, id = responseDto.Id }, responseDto);
     }
 
     // PUT: api/v1/Status/5
