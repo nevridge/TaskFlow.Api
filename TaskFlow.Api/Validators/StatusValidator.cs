@@ -16,9 +16,8 @@ public class StatusValidator : AbstractValidator<Status>
         RuleFor(s => s.Name)
             .MustAsync(async (status, name, cancellation) =>
             {
-                var existingStatus = await context.Statuses
-                    .FirstOrDefaultAsync(s => s.Name == name && s.Id != status.Id, cancellation);
-                return existingStatus == null;
+                return !await context.Statuses
+                    .AnyAsync(s => s.Name == name && s.Id != status.Id, cancellation);
             })
             .WithMessage("A status with the same name already exists.");
 
