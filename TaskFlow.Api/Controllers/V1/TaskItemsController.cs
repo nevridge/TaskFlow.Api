@@ -75,7 +75,6 @@ public class TaskItemsController(ITaskService taskService, IValidator<TaskItem> 
         }
 
         await _taskService.UpdateTaskAsync(existing);
-
         return NoContent();
     }
 
@@ -87,7 +86,6 @@ public class TaskItemsController(ITaskService taskService, IValidator<TaskItem> 
         if (existing is null) return NotFound();
 
         await _taskService.DeleteTaskAsync(id);
-
         return NoContent();
     }
 }
