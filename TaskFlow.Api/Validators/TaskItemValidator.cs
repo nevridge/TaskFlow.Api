@@ -18,6 +18,7 @@ public class TaskItemValidator : AbstractValidator<TaskItem>
             {
                 return await context.Statuses.AnyAsync(s => s.Id == statusId, cancellation);
             })
+            .When(t => t.Id == 0) // Only validate on create (new entities have Id = 0)
             .WithMessage("StatusId must be a valid status.");
     }
 }
