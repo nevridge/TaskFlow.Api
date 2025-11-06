@@ -16,7 +16,7 @@ public class StatusController(IStatusService statusService, IValidator<Status> v
     private readonly IStatusService _statusService = statusService;
     private readonly IValidator<Status> _validator = validator;
 
-    // GET: api/v1/Statuses
+    // GET: api/v1/Status
     [HttpGet]
     public async Task<ActionResult<IEnumerable<Status>>> GetStatuses()
     {
