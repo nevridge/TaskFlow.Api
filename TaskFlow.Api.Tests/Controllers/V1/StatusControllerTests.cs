@@ -132,7 +132,7 @@ public class StatusControllerTests
         _mockService.CreateStatusAsync(Arg.Any<Status>()).Returns(createdStatus);
 
         // Act
-        var result = await _controller.CreateStatus(createDto);
+        var result = await _controller.Create(createDto);
 
         // Assert
         var createdResult = result.Result.Should().BeOfType<CreatedAtRouteResult>().Subject;
@@ -160,7 +160,7 @@ public class StatusControllerTests
             .Returns(new ValidationResult(validationFailures));
 
         // Act
-        var result = await _controller.CreateStatus(createDto);
+        var result = await _controller.Create(createDto);
 
         // Assert
         var badRequestResult = result.Result.Should().BeOfType<BadRequestObjectResult>().Subject;

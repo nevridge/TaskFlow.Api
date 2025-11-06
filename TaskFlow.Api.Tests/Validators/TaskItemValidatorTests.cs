@@ -233,7 +233,7 @@ public class TaskItemValidatorTests
             Title = "Valid Task",
             Description = "Valid Description",
             IsComplete = false,
-            StatusId = 0  // Invalid
+            StatusId = 0  // Invalid - doesn't exist in database
         };
 
         // Act
@@ -241,8 +241,9 @@ public class TaskItemValidatorTests
 
         // Assert
         result.IsValid.Should().BeFalse();
+        result.Errors.Should().HaveCount(1);
         result.Errors.Should().Contain(e => e.PropertyName == "StatusId");
-        result.Errors.Should().Contain(e => e.ErrorMessage == "StatusId is required.");
+        result.Errors.Should().Contain(e => e.ErrorMessage == "StatusId must be a valid status.");
     }
 
     [Fact]
