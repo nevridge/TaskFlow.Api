@@ -26,12 +26,18 @@ public class StatusController(IStatusService statusService, IValidator<Status> v
 
     // GET: api/v1/Status/5
     [HttpGet("{id}", Name = "GetStatusV1")]
-    public async Task<ActionResult<Status>> GetStatus(int id)
+    public async Task<ActionResult<StatusResponseDto>> GetStatus(int id)
     {
         var status = await _statusService.GetStatusAsync(id);
 
         if (status is null) return NotFound();
-        return Ok(status);
+        var statusDto = new StatusResponseDto
+        {
+            Id = status.Id,
+            Name = status.Name,
+            Description = status.Description
+        };
+        return Ok(statusDto);
     }
 
     // POST: api/v1/Status
