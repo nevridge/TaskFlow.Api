@@ -25,7 +25,7 @@ public class StatusController(IStatusService statusService, IValidator<Status> v
         {
             Id = s.Id,
             Name = s.Name,
-            Description = s.Description,
+            Description = s.Description
         });
         return Ok(dtos);
     }
@@ -102,7 +102,7 @@ public class StatusController(IStatusService statusService, IValidator<Status> v
         {
             Id = existingStatus.Id,
             Name = existingStatus.Name,
-            Description = existingStatus.Description,
+            Description = existingStatus.Description
         };
 
         return Ok(responseDto);
