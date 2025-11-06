@@ -647,8 +647,15 @@ Updates an existing status item.
 - `name` (string, required, max 50 chars) - Status name (must be unique)
 - `description` (string, optional, max 200 chars) - Status description
 
-**Response:** `204 No Content`
+**Response:** `200 OK`
 
+Example response:
+```json
+{
+  "id": 42,
+  "name": "Under Review",
+  "description": "Task is being reviewed by the team"
+}
 **Error Responses:**
 
 `404 Not Found` - Status doesn't exist
