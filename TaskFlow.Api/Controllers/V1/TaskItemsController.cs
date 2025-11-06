@@ -84,6 +84,7 @@ public class TaskItemsController(ITaskService taskService, IValidator<TaskItem> 
         existing.Title = updateDto.Title;
         existing.Description = updateDto.Description;
         existing.IsComplete = updateDto.IsComplete;
+        existing.StatusId = updateDto.StatusId;
 
         var validationResult = await _validator.ValidateAsync(existing);
         if (!validationResult.IsValid)
