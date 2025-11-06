@@ -414,7 +414,7 @@ Updates an existing task item, including status assignment.
 
 **Fields:**
 - `title` (string, required, max 100 chars) - Task title
-- `description` (string, optional, max 1000 chars) - Task description
+- `description` (string, optional) - Task description
 - `statusId` (integer, required) - Status ID to assign
 - `isComplete` (boolean, required) - Completion status
 
