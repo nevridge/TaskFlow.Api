@@ -448,7 +448,7 @@ Updates an existing task item, including status assignment.
   "title": "One or more validation errors occurred.",
   "status": 400,
   "errors": {
-    "Title": ["Title cannot exceed 200 characters"]
+    "Title": ["Title cannot exceed 100 characters"]
   }
 }
 ```
