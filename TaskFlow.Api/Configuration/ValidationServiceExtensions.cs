@@ -17,6 +17,7 @@ public static class ValidationServiceExtensions
     {
         // Register validators from the assembly containing TaskItemValidator
         services.AddValidatorsFromAssemblyContaining<TaskItemValidator>();
+        services.AddValidatorsFromAssemblyContaining<StatusValidator>();
 
         return services;
     }
