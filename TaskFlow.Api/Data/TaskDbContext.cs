@@ -38,4 +38,41 @@ public class TaskDbContext(DbContextOptions<TaskDbContext> options) : DbContext(
             new Status { Id = 3, Name = "Done", Description = "Task is completed", CreatedDate = seedDate, UpdatedDate = seedDate }
         );
     }
+
+    public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
+    {
+        SetTimestamps();
+        return base.SaveChangesAsync(cancellationToken);
+    }
+
+    public override int SaveChanges()
+    {
+        SetTimestamps();
+        return base.SaveChanges();
+    }
+
+    private void SetTimestamps()
+    {
+        var entries = ChangeTracker.Entries()
+            .Where(e => e.Entity is Status &&
+                       (e.State == EntityState.Added || e.State == EntityState.Modified));
+
+        foreach (var entry in entries)
+        {
+            var entity = (Status)entry.Entity;
+            var now = DateTime.UtcNow;
+
+            if (entry.State == EntityState.Added)
+            {
+                entity.CreatedDate = now;
+                entity.UpdatedDate = now;
+            }
+            else if (entry.State == EntityState.Modified)
+            {
+                entity.UpdatedDate = now;
+                // Prevent CreatedDate from being modified
+                entry.Property(nameof(Status.CreatedDate)).IsModified = false;
+            }
+        }
+    }
 }
