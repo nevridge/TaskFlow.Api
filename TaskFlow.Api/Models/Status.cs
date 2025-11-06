@@ -8,7 +8,7 @@ public class Status
     public DateTime CreatedDate { get; set; }
     public DateTime UpdatedDate { get; set; }
 
-    //Navigation property
+    // Navigation property
     public ICollection<TaskItem> TaskItems { get; set; } = [];
 
 }
