@@ -1,6 +1,7 @@
+using TaskFlow.Api.Providers;
 using MvcJsonOptions = Microsoft.AspNetCore.Mvc.JsonOptions;
 
-namespace TaskFlow.Api.Configuration;
+namespace TaskFlow.Api.Extensions;
 
 public static class JsonConfigurationExtensions
 {

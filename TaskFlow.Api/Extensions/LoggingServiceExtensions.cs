@@ -1,6 +1,6 @@
 using Serilog;
 
-namespace TaskFlow.Api.Configuration;
+namespace TaskFlow.Api.Extensions;
 
 /// <summary>
 /// Extension methods for configuring logging services

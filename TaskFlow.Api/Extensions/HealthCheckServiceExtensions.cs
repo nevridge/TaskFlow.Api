@@ -3,7 +3,7 @@ using Microsoft.Extensions.Diagnostics.HealthChecks;
 using TaskFlow.Api.Data;
 using TaskFlow.Api.HealthChecks;
 
-namespace TaskFlow.Api.Configuration;
+namespace TaskFlow.Api.Extensions;
 
 /// <summary>
 /// Extension methods for configuring health check services

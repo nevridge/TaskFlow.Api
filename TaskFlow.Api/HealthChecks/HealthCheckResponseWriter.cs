@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Http.Json;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Options;
 using Serilog;
-using TaskFlow.Api.Configuration;
+using TaskFlow.Api.Providers;
 
 namespace TaskFlow.Api.HealthChecks;
 

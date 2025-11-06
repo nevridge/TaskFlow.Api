@@ -3,7 +3,7 @@ using Serilog;
 using TaskFlow.Api.Data;
 using TaskFlow.Api.Repositories;
 
-namespace TaskFlow.Api.Configuration;
+namespace TaskFlow.Api.Extensions;
 
 /// <summary>
 /// Extension methods for configuring persistence services

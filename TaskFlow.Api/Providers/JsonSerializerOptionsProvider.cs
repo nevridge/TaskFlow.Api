@@ -2,7 +2,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Text.Json.Serialization.Metadata;
 
-namespace TaskFlow.Api.Configuration;
+namespace TaskFlow.Api.Providers;
 
 public static class JsonSerializerOptionsProvider
 {
