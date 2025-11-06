@@ -404,15 +404,7 @@ Updates an existing status item.
 - `name` (string, required, max 50 chars) - Status name (must be unique)
 - `description` (string, optional, max 200 chars) - Status description
 
-**Response:** `200 OK`
-
-```json
-{
-  "id": 4,
-  "name": "Under Review",
-  "description": "Task is being reviewed by the team"
-}
-```
+**Response:** `204 No Content`
 
 **Error Responses:**
 
@@ -432,8 +424,10 @@ Updates an existing status item.
   "title": "One or more validation errors occurred.",
   "status": 400,
   "errors": {
-    "Name": ["Status name cannot exceed 50 characters"],
-    "Name": ["A status with the same name already exists."]
+    "Name": [
+      "Status name cannot exceed 50 characters",
+      "A status with the same name already exists."
+    ]
   }
 }
 ```
