@@ -12,10 +12,7 @@ public class StatusRepository(TaskDbContext context) : IStatusRepository
     {
         _context.Statuses.Add(status);
         await _context.SaveChangesAsync();
-
-        // Reload to ensure all properties are populated
-        var reloaded = await _context.Statuses.FindAsync(status.Id);
-        return reloaded ?? status;
+        return status;
     }
 
     public async Task DeleteAsync(int id)
@@ -28,9 +25,12 @@ public class StatusRepository(TaskDbContext context) : IStatusRepository
 
     public async Task<IEnumerable<Status>> GetAllAsync() =>
         await _context.Statuses
+            .Include(s => s.TaskItems) // Include navigation property if needed
             .ToListAsync();
 
-    public async Task<Status?> GetByIdAsync(int id) => await _context.Statuses
+    public async Task<Status?> GetByIdAsync(int id) => 
+        await _context.Statuses
+            .Include(s => s.TaskItems) // Include navigation property if needed
             .FirstOrDefaultAsync(s => s.Id == id);
 
     public async Task UpdateAsync(Status status)

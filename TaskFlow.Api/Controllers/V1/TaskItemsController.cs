@@ -52,7 +52,7 @@ public class TaskItemsController(ITaskService taskService, IValidator<TaskItem> 
 
     // POST: api/v1/TaskItems
     [HttpPost]
-    public async Task<ActionResult<TaskItem>> Create([FromBody] CreateTaskItemDto createDto)
+    public async Task<ActionResult<TaskItemResponseDto>> Create([FromBody] CreateTaskItemDto createDto)
     {
         var item = new TaskItem
         {
@@ -70,12 +70,21 @@ public class TaskItemsController(ITaskService taskService, IValidator<TaskItem> 
 
         var createdItem = await _taskService.CreateTaskAsync(item);
 
-        return CreatedAtRoute("GetTaskV1", new { version = ApiVersionString, id = createdItem.Id }, createdItem);
+        var responseDto = new TaskItemResponseDto
+        {
+            Id = createdItem.Id,
+            Title = createdItem.Title,
+            Description = createdItem.Description,
+            IsComplete = createdItem.IsComplete,
+            StatusName = createdItem.Status?.Name
+        };
+
+        return CreatedAtRoute("GetTaskV1", new { version = ApiVersionString, id = createdItem.Id }, responseDto);
     }
 
     // PUT: api/v1/TaskItems/5
     [HttpPut("{id}")]
-    public async Task<IActionResult> Update(int id, [FromBody] UpdateTaskItemDto updateDto)
+    public async Task<ActionResult<TaskItemResponseDto>> Update(int id, [FromBody] UpdateTaskItemDto updateDto)
     {
         var existing = await _taskService.GetTaskAsync(id);
         if (existing is null) return NotFound();
@@ -93,7 +102,17 @@ public class TaskItemsController(ITaskService taskService, IValidator<TaskItem> 
         }
 
         await _taskService.UpdateTaskAsync(existing);
-        return NoContent();
+
+        var responseDto = new TaskItemResponseDto
+        {
+            Id = existing.Id,
+            Title = existing.Title,
+            Description = existing.Description,
+            IsComplete = existing.IsComplete,
+            StatusName = existing.Status?.Name
+        };
+
+        return Ok(responseDto); // Return 200 OK with the updated resource
     }
 
     // DELETE: api/v1/TaskItems/5

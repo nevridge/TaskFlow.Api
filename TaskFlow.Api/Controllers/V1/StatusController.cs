@@ -18,10 +18,16 @@ public class StatusController(IStatusService statusService, IValidator<Status> v
 
     // GET: api/v1/Status
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<Status>>> GetStatuses()
+    public async Task<ActionResult<IEnumerable<StatusResponseDto>>> GetStatuses()
     {
         var statuses = await _statusService.GetAllStatusesAsync();
-        return Ok(statuses);
+        var dtos = statuses.Select(s => new StatusResponseDto
+        {
+            Id = s.Id,
+            Name = s.Name,
+            Description = s.Description,
+        });
+        return Ok(dtos);
     }
 
     // GET: api/v1/Status/5
@@ -42,7 +48,7 @@ public class StatusController(IStatusService statusService, IValidator<Status> v
 
     // POST: api/v1/Status
     [HttpPost]
-    public async Task<ActionResult<Status>> Create([FromBody] CreateStatusDto createDto)
+    public async Task<ActionResult<StatusResponseDto>> Create([FromBody] CreateStatusDto createDto)
     {
         var status = new Status
         {
@@ -68,7 +74,7 @@ public class StatusController(IStatusService statusService, IValidator<Status> v
 
     // PUT: api/v1/Status/5
     [HttpPut("{id}")]
-    public async Task<ActionResult> UpdateStatus(int id, [FromBody] UpdateStatusDto updateDto)
+    public async Task<ActionResult<StatusResponseDto>> UpdateStatus(int id, [FromBody] UpdateStatusDto updateDto)
     {
         var existingStatus = await _statusService.GetStatusAsync(id);
         if (existingStatus is null) return NotFound();
@@ -84,7 +90,15 @@ public class StatusController(IStatusService statusService, IValidator<Status> v
         }
 
         await _statusService.UpdateStatusAsync(existingStatus);
-        return NoContent();
+
+        var responseDto = new StatusResponseDto
+        {
+            Id = existingStatus.Id,
+            Name = existingStatus.Name,
+            Description = existingStatus.Description,
+        };
+
+        return Ok(responseDto);
     }
 
     // DELETE: api/v1/Status/5
