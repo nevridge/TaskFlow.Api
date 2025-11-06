@@ -6,8 +6,8 @@ using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Serilog;
 using Serilog.Events;
 using Serilog.Sinks.InMemory;
-using TaskFlow.Api.Configuration;
 using TaskFlow.Api.HealthChecks;
+using TaskFlow.Api.Providers;
 
 namespace TaskFlow.Api.Tests.HealthChecks;
 

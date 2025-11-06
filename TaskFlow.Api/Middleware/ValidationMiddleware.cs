@@ -1,6 +1,6 @@
 using System.Text.Json;
 using FluentValidation;
-using TaskFlow.Api.Configuration;
+using TaskFlow.Api.Providers;
 
 namespace TaskFlow.Api.Middleware;
 

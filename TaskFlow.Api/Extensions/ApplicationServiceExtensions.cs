@@ -1,6 +1,6 @@
 using TaskFlow.Api.Services;
 
-namespace TaskFlow.Api.Configuration;
+namespace TaskFlow.Api.Extensions;
 
 /// <summary>
 /// Extension methods for configuring application business logic services

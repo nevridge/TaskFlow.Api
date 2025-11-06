@@ -4,14 +4,14 @@ using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
-using TaskFlow.Api.Configuration;
 using TaskFlow.Api.Data;
+using TaskFlow.Api.Extensions;
 using TaskFlow.Api.Models;
 using TaskFlow.Api.Repositories;
 using TaskFlow.Api.Services;
 using TaskFlow.Api.Validators;
 
-namespace TaskFlow.Api.Tests.Configuration;
+namespace TaskFlow.Api.Tests.Extensions;
 
 public class ServiceCollectionExtensionsTests
 {

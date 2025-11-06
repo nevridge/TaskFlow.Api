@@ -4,7 +4,7 @@ using Microsoft.Extensions.Options;
 using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.SwaggerGen;
 
-namespace TaskFlow.Api.Configuration;
+namespace TaskFlow.Api.Extensions;
 
 /// <summary>
 /// Extension methods for configuring Swagger/OpenAPI services
@@ -64,7 +64,7 @@ public class ConfigureSwaggerOptions(IApiVersionDescriptionProvider provider) : 
 /// </summary>
 public class SwaggerDefaultValues : IOperationFilter
 {
-    public void Apply(Microsoft.OpenApi.Models.OpenApiOperation operation, Swashbuckle.AspNetCore.SwaggerGen.OperationFilterContext context)
+    public void Apply(OpenApiOperation operation, OperationFilterContext context)
     {
         var apiDescription = context.ApiDescription;
 

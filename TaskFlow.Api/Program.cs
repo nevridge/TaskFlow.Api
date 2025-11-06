@@ -1,8 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Serilog;
-using TaskFlow.Api.Configuration;
 using TaskFlow.Api.Data;
-using TaskFlow.Api.HealthChecks;
+using TaskFlow.Api.Extensions;
 using TaskFlow.Api.Middleware;
 
 // Configure Serilog bootstrap logger

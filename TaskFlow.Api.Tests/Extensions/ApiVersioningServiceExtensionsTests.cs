@@ -1,8 +1,8 @@
 using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
-using TaskFlow.Api.Configuration;
+using TaskFlow.Api.Extensions;
 
-namespace TaskFlow.Api.Tests.Configuration;
+namespace TaskFlow.Api.Tests.Extensions;
 
 public class ApiVersioningServiceExtensionsTests
 {

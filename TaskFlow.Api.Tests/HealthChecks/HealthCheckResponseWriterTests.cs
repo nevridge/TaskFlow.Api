@@ -3,8 +3,8 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Json;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
-using TaskFlow.Api.Configuration;
 using TaskFlow.Api.HealthChecks;
+using TaskFlow.Api.Providers;
 
 namespace TaskFlow.Api.Tests.HealthChecks;
 

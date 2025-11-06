@@ -1,7 +1,7 @@
 using FluentValidation;
 using TaskFlow.Api.Validators;
 
-namespace TaskFlow.Api.Configuration;
+namespace TaskFlow.Api.Extensions;
 
 /// <summary>
 /// Extension methods for configuring validation services

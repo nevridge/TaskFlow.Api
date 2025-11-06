@@ -1,6 +1,6 @@
 using Microsoft.ApplicationInsights.AspNetCore.Extensions;
 
-namespace TaskFlow.Api.Configuration;
+namespace TaskFlow.Api.Extensions;
 
 /// <summary>
 /// Extension methods for configuring Application Insights services
