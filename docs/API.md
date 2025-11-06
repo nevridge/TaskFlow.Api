@@ -373,8 +373,7 @@ Creates a new task item with status assignment.
   "title": "One or more validation errors occurred.",
   "status": 400,
   "errors": {
-    "Title": ["Title is required"],
-    "Description": ["Description cannot exceed 1000 characters"]
+    "Title": ["Title is required"]
   }
 }
 ```
