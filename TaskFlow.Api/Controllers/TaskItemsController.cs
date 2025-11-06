@@ -1,6 +1,6 @@
 using Asp.Versioning;
-using Microsoft.AspNetCore.Mvc;
 using FluentValidation;
+using Microsoft.AspNetCore.Mvc;
 using TaskFlow.Api.DTOs;
 using TaskFlow.Api.Models;
 using TaskFlow.Api.Services;
@@ -33,7 +33,11 @@ public class TaskItemsController(ITaskService taskService, IValidator<TaskItem> 
     {
         var item = await _taskService.GetTaskAsync(id);
 
-        if (item is null) return NotFound();
+        if (item is null)
+        {
+            return NotFound();
+        }
+
         return Ok(item);
     }
 
@@ -65,7 +69,10 @@ public class TaskItemsController(ITaskService taskService, IValidator<TaskItem> 
     public async Task<IActionResult> Update(int id, [FromBody] UpdateTaskItemDto updateDto)
     {
         var existing = await _taskService.GetTaskAsync(id);
-        if (existing is null) return NotFound();
+        if (existing is null)
+        {
+            return NotFound();
+        }
 
         // Apply incoming changes
         existing.Title = updateDto.Title;
@@ -88,7 +95,10 @@ public class TaskItemsController(ITaskService taskService, IValidator<TaskItem> 
     public async Task<IActionResult> Delete(int id)
     {
         var existing = await _taskService.GetTaskAsync(id);
-        if (existing is null) return NotFound();
+        if (existing is null)
+        {
+            return NotFound();
+        }
 
         await _taskService.DeleteTaskAsync(id);
 

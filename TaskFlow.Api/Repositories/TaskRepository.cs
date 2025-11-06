@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using TaskFlow.Api.Data;
 using TaskFlow.Api.Models;
 
@@ -37,7 +37,11 @@ public class TaskRepository(TaskDbContext context) : ITaskRepository
     public async Task DeleteAsync(int id)
     {
         var task = await _context.TaskItems.FindAsync(id);
-        if (task == null) return;
+        if (task == null)
+        {
+            return;
+        }
+
         _context.TaskItems.Remove(task);
         await _context.SaveChangesAsync();
     }

@@ -1,5 +1,5 @@
-﻿using FluentValidation;
 using System.Text.Json;
+using FluentValidation;
 using TaskFlow.Api.Configuration;
 
 namespace TaskFlow.Api.Middleware;
@@ -48,7 +48,10 @@ public class ValidationMiddleware(RequestDelegate next, IServiceProvider service
                 .GetInterfaces()
                 .FirstOrDefault(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(IValidator<>));
 
-            if (validatorInterface == null) continue;
+            if (validatorInterface == null)
+            {
+                continue;
+            }
 
             var modelType = validatorInterface.GetGenericArguments()[0];
             object? model;
@@ -67,10 +70,16 @@ public class ValidationMiddleware(RequestDelegate next, IServiceProvider service
                 continue;
             }
 
-            if (model == null) continue;
+            if (model == null)
+            {
+                continue;
+            }
 
             // Resolve strongly-typed IValidator<T> to run validation
-            if (_serviceProvider.GetService(typeof(IValidator<>).MakeGenericType(modelType)) is not IValidator typedValidator) continue;
+            if (_serviceProvider.GetService(typeof(IValidator<>).MakeGenericType(modelType)) is not IValidator typedValidator)
+            {
+                continue;
+            }
 
             var contextType = typeof(ValidationContext<>).MakeGenericType(modelType);
             var contextValidation = Activator.CreateInstance(contextType, model);

@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using TaskFlow.Api.Data;
 using TaskFlow.Api.Models;
 
@@ -18,7 +18,11 @@ public class StatusRepository(TaskDbContext context) : IStatusRepository
     public async Task DeleteAsync(int id)
     {
         var status = await _context.Statuses.FindAsync(id);
-        if (status == null) return;
+        if (status == null)
+        {
+            return;
+        }
+
         _context.Statuses.Remove(status);
         await _context.SaveChangesAsync();
     }
@@ -28,7 +32,7 @@ public class StatusRepository(TaskDbContext context) : IStatusRepository
             .Include(s => s.TaskItems) // Include navigation property if needed
             .ToListAsync();
 
-    public async Task<Status?> GetByIdAsync(int id) => 
+    public async Task<Status?> GetByIdAsync(int id) =>
         await _context.Statuses
             .Include(s => s.TaskItems) // Include navigation property if needed
             .FirstOrDefaultAsync(s => s.Id == id);

@@ -1,4 +1,4 @@
-﻿namespace TaskFlow.Api.Models;
+namespace TaskFlow.Api.Models;
 
 public class Status
 {

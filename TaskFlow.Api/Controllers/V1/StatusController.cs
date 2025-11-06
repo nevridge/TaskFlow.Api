@@ -1,4 +1,4 @@
-﻿using Asp.Versioning;
+using Asp.Versioning;
 using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
 using TaskFlow.Api.DTOs;
@@ -36,7 +36,11 @@ public class StatusController(IStatusService statusService, IValidator<Status> v
     {
         var status = await _statusService.GetStatusAsync(id);
 
-        if (status is null) return NotFound();
+        if (status is null)
+        {
+            return NotFound();
+        }
+
         var statusDto = new StatusResponseDto
         {
             Id = status.Id,
@@ -77,7 +81,10 @@ public class StatusController(IStatusService statusService, IValidator<Status> v
     public async Task<ActionResult<StatusResponseDto>> UpdateStatus(int id, [FromBody] UpdateStatusDto updateDto)
     {
         var existingStatus = await _statusService.GetStatusAsync(id);
-        if (existingStatus is null) return NotFound();
+        if (existingStatus is null)
+        {
+            return NotFound();
+        }
 
         // Apply incoming changes
         existingStatus.Name = updateDto.Name;
@@ -106,7 +113,10 @@ public class StatusController(IStatusService statusService, IValidator<Status> v
     public async Task<ActionResult> DeleteStatus(int id)
     {
         var existingStatus = await _statusService.GetStatusAsync(id);
-        if (existingStatus is null) return NotFound();
+        if (existingStatus is null)
+        {
+            return NotFound();
+        }
 
         await _statusService.DeleteStatusAsync(id);
         return NoContent();
