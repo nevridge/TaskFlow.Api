@@ -10,5 +10,4 @@ public class Status
 
     // Navigation property
     public ICollection<TaskItem> TaskItems { get; set; } = [];
-
 }
