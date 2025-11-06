@@ -252,6 +252,250 @@ curl -X DELETE http://localhost:8080/api/TaskItems/1
 
 ---
 
+## Task Items API (v1)
+
+The v1 API introduces improved response models with status name support and enhanced validation.
+
+### List All Tasks (v1)
+
+Retrieves all task items with status information.
+
+**Endpoint:** `GET /api/v1/TaskItems`
+
+**Response:** `200 OK`
+
+```json
+[
+  {
+    "id": 1,
+    "title": "Complete project documentation",
+    "description": "Write comprehensive API documentation",
+    "isComplete": false,
+    "statusName": "To Do"
+  },
+  {
+    "id": 2,
+    "title": "Deploy to Azure",
+    "description": "Set up production environment",
+    "isComplete": true,
+    "statusName": "Done"
+  }
+]
+```
+
+**Example:**
+```bash
+curl http://localhost:8080/api/v1/TaskItems
+```
+
+---
+
+### Get Task by ID (v1)
+
+Retrieves a specific task item with status information.
+
+**Endpoint:** `GET /api/v1/TaskItems/{id}`
+
+**Parameters:**
+- `id` (path, integer, required) - Task item ID
+
+**Response:** `200 OK`
+
+```json
+{
+  "id": 1,
+  "title": "Complete project documentation",
+  "description": "Write comprehensive API documentation",
+  "isComplete": false,
+  "statusName": "To Do"
+}
+```
+
+**Error Response:** `404 Not Found`
+
+```json
+{
+  "type": "https://tools.ietf.org/html/rfc7231#section-6.5.4",
+  "title": "Not Found",
+  "status": 404
+}
+```
+
+**Example:**
+```bash
+curl http://localhost:8080/api/v1/TaskItems/1
+```
+
+---
+
+### Create Task (v1)
+
+Creates a new task item with status assignment.
+
+**Endpoint:** `POST /api/v1/TaskItems`
+
+**Request Body:**
+
+```json
+{
+  "title": "Complete project documentation",
+  "description": "Write comprehensive API documentation",
+  "statusId": 1,
+  "isComplete": false
+}
+```
+
+**Fields:**
+- `title` (string, required, max 200 chars) - Task title
+- `description` (string, optional, max 1000 chars) - Task description
+- `statusId` (integer, optional, defaults to 1) - Status ID to assign
+- `isComplete` (boolean, required) - Completion status
+
+**Response:** `201 Created`
+
+```json
+{
+  "id": 3,
+  "title": "Complete project documentation",
+  "description": "Write comprehensive API documentation",
+  "isComplete": false,
+  "statusName": "To Do"
+}
+```
+
+**Location Header:** `/api/v1/TaskItems/3`
+
+**Validation Error:** `400 Bad Request`
+
+```json
+{
+  "type": "https://tools.ietf.org/html/rfc7231#section-6.5.1",
+  "title": "One or more validation errors occurred.",
+  "status": 400,
+  "errors": {
+    "Title": ["Title is required"],
+    "Description": ["Description cannot exceed 1000 characters"]
+  }
+}
+```
+
+**Example:**
+```bash
+curl -X POST http://localhost:8080/api/v1/TaskItems \
+  -H "Content-Type: application/json" \
+  -d '{
+    "title": "New Task",
+    "description": "Task description",
+    "statusId": 1,
+    "isComplete": false
+  }'
+```
+
+---
+
+### Update Task (v1)
+
+Updates an existing task item, including status assignment.
+
+**Endpoint:** `PUT /api/v1/TaskItems/{id}`
+
+**Parameters:**
+- `id` (path, integer, required) - Task item ID to update
+
+**Request Body:**
+
+```json
+{
+  "title": "Updated task title",
+  "description": "Updated description",
+  "statusId": 2,
+  "isComplete": true
+}
+```
+
+**Fields:**
+- `title` (string, required, max 200 chars) - Task title
+- `description` (string, optional, max 1000 chars) - Task description
+- `statusId` (integer, required) - Status ID to assign
+- `isComplete` (boolean, required) - Completion status
+
+**Response:** `200 OK`
+
+```json
+{
+  "id": 1,
+  "title": "Updated task title",
+  "description": "Updated description",
+  "isComplete": true,
+  "statusName": "In Progress"
+}
+```
+
+**Error Responses:**
+
+`404 Not Found` - Task doesn't exist
+```json
+{
+  "type": "https://tools.ietf.org/html/rfc7231#section-6.5.4",
+  "title": "Not Found",
+  "status": 404
+}
+```
+
+`400 Bad Request` - Validation failure
+```json
+{
+  "type": "https://tools.ietf.org/html/rfc7231#section-6.5.1",
+  "title": "One or more validation errors occurred.",
+  "status": 400,
+  "errors": {
+    "Title": ["Title cannot exceed 200 characters"]
+  }
+}
+```
+
+**Example:**
+```bash
+curl -X PUT http://localhost:8080/api/v1/TaskItems/1 \
+  -H "Content-Type: application/json" \
+  -d '{
+    "title": "Updated Title",
+    "description": "Updated description",
+    "statusId": 2,
+    "isComplete": true
+  }'
+```
+
+---
+
+### Delete Task (v1)
+
+Deletes a task item.
+
+**Endpoint:** `DELETE /api/v1/TaskItems/{id}`
+
+**Parameters:**
+- `id` (path, integer, required) - Task item ID to delete
+
+**Response:** `204 No Content`
+
+**Error Response:** `404 Not Found`
+
+```json
+{
+  "type": "https://tools.ietf.org/html/rfc7231#section-6.5.4",
+  "title": "Not Found",
+  "status": 404
+}
+```
+
+**Example:**
+```bash
+curl -X DELETE http://localhost:8080/api/v1/TaskItems/1
+```
+
+---
+
 ## Status API
 
 ### List All Statuses
@@ -696,7 +940,7 @@ GET /api/TaskItems?sortBy=createdAt&order=desc
 
 ## Examples
 
-### Complete CRUD Workflow
+### Complete CRUD Workflow (Legacy)
 
 ```bash
 # 1. Create a task
@@ -723,6 +967,35 @@ curl -X DELETE http://localhost:8080/api/TaskItems/$TASK_ID
 
 # 6. Verify deletion (should return 404)
 curl -I http://localhost:8080/api/TaskItems/$TASK_ID
+```
+
+### Complete CRUD Workflow (v1 - Recommended)
+
+```bash
+# 1. Create a task with status
+TASK_ID=$(curl -s -X POST http://localhost:8080/api/v1/TaskItems \
+  -H "Content-Type: application/json" \
+  -d '{"title":"New Task","description":"Description","statusId":1,"isComplete":false}' \
+  | jq -r '.id')
+
+echo "Created task with ID: $TASK_ID"
+
+# 2. Get the task (includes statusName)
+curl http://localhost:8080/api/v1/TaskItems/$TASK_ID
+
+# 3. Update the task with new status
+curl -X PUT http://localhost:8080/api/v1/TaskItems/$TASK_ID \
+  -H "Content-Type: application/json" \
+  -d '{"title":"Updated Task","description":"Updated description","statusId":2,"isComplete":true}'
+
+# 4. Get all tasks
+curl http://localhost:8080/api/v1/TaskItems
+
+# 5. Delete the task
+curl -X DELETE http://localhost:8080/api/v1/TaskItems/$TASK_ID
+
+# 6. Verify deletion (should return 404)
+curl -I http://localhost:8080/api/v1/TaskItems/$TASK_ID
 ```
 
 ### Status Management Workflow
