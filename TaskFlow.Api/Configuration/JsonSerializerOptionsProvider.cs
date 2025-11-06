@@ -1,4 +1,6 @@
 using System.Text.Json;
+using System.Text.Json.Serialization;
+using System.Text.Json.Serialization.Metadata;
 
 namespace TaskFlow.Api.Configuration;
 
@@ -15,15 +17,17 @@ public static class JsonSerializerOptionsProvider
     {
         options.WriteIndented = true;
         options.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
+        options.ReferenceHandler = ReferenceHandler.IgnoreCycles; // Handle circular references
     }
 
     private static JsonSerializerOptions CreateDefaultOptions()
     {
-        var options = new JsonSerializerOptions(JsonSerializerDefaults.Web)
-        {
-            // makeReadOnly: true prevents modification after initialization
-        };
+        var options = new JsonSerializerOptions(JsonSerializerDefaults.Web);
         ConfigureOptions(options);
+
+        // Required for .NET 9: Set TypeInfoResolver before MakeReadOnly()
+        options.TypeInfoResolver = new DefaultJsonTypeInfoResolver();
+
         options.MakeReadOnly();
         return options;
     }

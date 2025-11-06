@@ -29,8 +29,8 @@ public class TaskItemsControllerV1Tests
         // Arrange
         var tasks = new List<TaskItem>
         {
-            new() { Id = 1, Title = "Task 1", Description = "Description 1", IsComplete = false },
-            new() { Id = 2, Title = "Task 2", Description = "Description 2", IsComplete = true }
+            new() { Id = 1, Title = "Task 1", Description = "Description 1", IsComplete = false, StatusId = 1, Status = new Status { Id = 1, Name = "Todo" } },
+            new() { Id = 2, Title = "Task 2", Description = "Description 2", IsComplete = true, StatusId = 2, Status = new Status { Id = 2, Name = "Done" } }
         };
         _mockService.Setup(s => s.GetAllTasksAsync()).ReturnsAsync(tasks);
 
@@ -39,7 +39,10 @@ public class TaskItemsControllerV1Tests
 
         // Assert
         var okResult = result.Result.Should().BeOfType<OkObjectResult>().Subject;
-        okResult.Value.Should().BeEquivalentTo(tasks);
+        var dtos = okResult.Value.Should().BeAssignableTo<IEnumerable<TaskItemResponseDto>>().Subject;
+        dtos.Should().HaveCount(2);
+        dtos.Should().Contain(d => d.Id == 1 && d.Title == "Task 1" && d.StatusName == "Todo");
+        dtos.Should().Contain(d => d.Id == 2 && d.Title == "Task 2" && d.StatusName == "Done");
         _mockService.Verify(s => s.GetAllTasksAsync(), Times.Once);
     }
 
@@ -47,7 +50,15 @@ public class TaskItemsControllerV1Tests
     public async Task Get_ShouldReturnOkWithTask_WhenTaskExists()
     {
         // Arrange
-        var task = new TaskItem { Id = 1, Title = "Task 1", Description = "Description", IsComplete = false };
+        var task = new TaskItem
+        {
+            Id = 1,
+            Title = "Task 1",
+            Description = "Description",
+            IsComplete = false,
+            StatusId = 1,
+            Status = new Status { Id = 1, Name = "Todo" }
+        };
         _mockService.Setup(s => s.GetTaskAsync(1)).ReturnsAsync(task);
 
         // Act
@@ -55,7 +66,12 @@ public class TaskItemsControllerV1Tests
 
         // Assert
         var okResult = result.Result.Should().BeOfType<OkObjectResult>().Subject;
-        okResult.Value.Should().BeEquivalentTo(task);
+        var dto = okResult.Value.Should().BeOfType<TaskItemResponseDto>().Subject;
+        dto.Id.Should().Be(1);
+        dto.Title.Should().Be("Task 1");
+        dto.Description.Should().Be("Description");
+        dto.IsComplete.Should().BeFalse();
+        dto.StatusName.Should().Be("Todo");
         _mockService.Verify(s => s.GetTaskAsync(1), Times.Once);
     }
 
@@ -81,14 +97,17 @@ public class TaskItemsControllerV1Tests
         {
             Title = "New Task",
             Description = "New Description",
-            IsComplete = false
+            IsComplete = false,
+            StatusId = 1
         };
         var createdTask = new TaskItem
         {
             Id = 1,
             Title = createDto.Title,
             Description = createDto.Description,
-            IsComplete = createDto.IsComplete
+            IsComplete = createDto.IsComplete,
+            StatusId = createDto.StatusId,
+            Status = new Status { Id = 1, Name = "Todo" }
         };
         _mockValidator.Setup(v => v.ValidateAsync(It.IsAny<TaskItem>(), default))
             .ReturnsAsync(new ValidationResult());
@@ -103,20 +122,36 @@ public class TaskItemsControllerV1Tests
         createdResult.RouteName.Should().Be("GetTaskV1");
         createdResult.RouteValues.Should().ContainKey("version").WhoseValue.Should().Be("1.0");
         createdResult.RouteValues.Should().ContainKey("id").WhoseValue.Should().Be(1);
-        createdResult.Value.Should().BeEquivalentTo(createdTask);
+
+        // Controller now returns TaskItemResponseDto, not TaskItem
+        var responseDto = createdResult.Value.Should().BeOfType<TaskItemResponseDto>().Subject;
+        responseDto.Id.Should().Be(1);
+        responseDto.Title.Should().Be("New Task");
+        responseDto.Description.Should().Be("New Description");
+        responseDto.IsComplete.Should().BeFalse();
+        responseDto.StatusName.Should().Be("Todo");
     }
 
     [Fact]
-    public async Task Update_ShouldReturnNoContent_WhenValid()
+    public async Task Update_ShouldReturnOkWithUpdatedTask_WhenValid()
     {
         // Arrange
         var updateDto = new UpdateTaskItemDto
         {
             Title = "Updated Task",
             Description = "Updated Description",
-            IsComplete = true
+            IsComplete = true,
+            StatusId = 2
         };
-        var existingTask = new TaskItem { Id = 1, Title = "Old Task", Description = "Old", IsComplete = false };
+        var existingTask = new TaskItem
+        {
+            Id = 1,
+            Title = "Old Task",
+            Description = "Old",
+            IsComplete = false,
+            StatusId = 1,
+            Status = new Status { Id = 2, Name = "Done" }
+        };
         _mockService.Setup(s => s.GetTaskAsync(1)).ReturnsAsync(existingTask);
         _mockValidator.Setup(v => v.ValidateAsync(It.IsAny<TaskItem>(), default))
             .ReturnsAsync(new ValidationResult());
@@ -126,7 +161,14 @@ public class TaskItemsControllerV1Tests
         var result = await _controller.Update(1, updateDto);
 
         // Assert
-        result.Should().BeOfType<NoContentResult>();
+        // Controller now returns 200 OK with TaskItemResponseDto instead of 204 NoContent
+        var okResult = result.Result.Should().BeOfType<OkObjectResult>().Subject;
+        var responseDto = okResult.Value.Should().BeOfType<TaskItemResponseDto>().Subject;
+        responseDto.Id.Should().Be(1);
+        responseDto.Title.Should().Be("Updated Task");
+        responseDto.Description.Should().Be("Updated Description");
+        responseDto.IsComplete.Should().BeTrue();
+        responseDto.StatusName.Should().Be("Done");
         _mockService.Verify(s => s.UpdateTaskAsync(It.IsAny<TaskItem>()), Times.Once);
     }
 
@@ -134,7 +176,7 @@ public class TaskItemsControllerV1Tests
     public async Task Delete_ShouldReturnNoContent_WhenTaskExists()
     {
         // Arrange
-        var task = new TaskItem { Id = 1, Title = "Task 1", Description = "Description", IsComplete = false };
+        var task = new TaskItem { Id = 1, Title = "Task 1", Description = "Description", IsComplete = false, StatusId = 1 };
         _mockService.Setup(s => s.GetTaskAsync(1)).ReturnsAsync(task);
         _mockService.Setup(s => s.DeleteTaskAsync(1)).Returns(Task.CompletedTask);
 

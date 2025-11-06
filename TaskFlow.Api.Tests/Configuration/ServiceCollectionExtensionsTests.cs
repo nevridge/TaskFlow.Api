@@ -64,14 +64,23 @@ public class ServiceCollectionExtensionsTests
     {
         // Arrange
         var services = new ServiceCollection();
+        var configuration = new ConfigurationBuilder()
+            .AddInMemoryCollection(new Dictionary<string, string?>
+            {
+            { "ConnectionStrings:DefaultConnection", "Data Source=:memory:" }
+            })
+            .Build();
 
         // Act
+        services.AddPersistence(configuration);
         services.AddValidation();
         var serviceProvider = services.BuildServiceProvider();
 
         // Assert
         serviceProvider.GetService<IValidator<TaskItem>>().Should().NotBeNull();
+        serviceProvider.GetService<IValidator<Status>>().Should().NotBeNull();
         serviceProvider.GetService<IValidator<TaskItem>>().Should().BeOfType<TaskItemValidator>();
+        serviceProvider.GetService<IValidator<Status>>().Should().BeOfType<StatusValidator>();
     }
 
     [Fact]
