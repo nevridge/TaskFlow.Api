@@ -24,10 +24,10 @@ public static class JsonSerializerOptionsProvider
     {
         var options = new JsonSerializerOptions(JsonSerializerDefaults.Web);
         ConfigureOptions(options);
-        
+
         // Required for .NET 9: Set TypeInfoResolver before MakeReadOnly()
         options.TypeInfoResolver = new DefaultJsonTypeInfoResolver();
-        
+
         options.MakeReadOnly();
         return options;
     }
