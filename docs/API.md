@@ -252,6 +252,232 @@ curl -X DELETE http://localhost:8080/api/TaskItems/1
 
 ---
 
+## Status API
+
+### List All Statuses
+
+Retrieves all status items.
+
+**Endpoint:** `GET /api/v1/Status`
+
+**Response:** `200 OK`
+
+```json
+[
+  {
+    "id": 1,
+    "name": "To Do",
+    "description": "Task has not been started"
+  },
+  {
+    "id": 2,
+    "name": "In Progress",
+    "description": "Task is currently being worked on"
+  },
+  {
+    "id": 3,
+    "name": "Done",
+    "description": "Task has been completed"
+  }
+]
+```
+
+**Example:**
+```bash
+curl http://localhost:8080/api/v1/Status
+```
+
+---
+
+### Get Status by ID
+
+Retrieves a specific status item.
+
+**Endpoint:** `GET /api/v1/Status/{id}`
+
+**Parameters:**
+- `id` (path, integer, required) - Status item ID
+
+**Response:** `200 OK`
+
+```json
+{
+  "id": 1,
+  "name": "To Do",
+  "description": "Task has not been started"
+}
+```
+
+**Error Response:** `404 Not Found`
+
+```json
+{
+  "type": "https://tools.ietf.org/html/rfc7231#section-6.5.4",
+  "title": "Not Found",
+  "status": 404
+}
+```
+
+**Example:**
+```bash
+curl http://localhost:8080/api/v1/Status/1
+```
+
+---
+
+### Create Status
+
+Creates a new status item.
+
+**Endpoint:** `POST /api/v1/Status`
+
+**Request Body:**
+
+```json
+{
+  "name": "In Review",
+  "description": "Task is under review"
+}
+```
+
+**Fields:**
+- `name` (string, required, max 50 chars) - Status name (must be unique)
+- `description` (string, optional, max 200 chars) - Status description
+
+**Response:** `201 Created`
+
+```json
+{
+  "id": 4,
+  "name": "In Review",
+  "description": "Task is under review"
+}
+```
+
+**Location Header:** `/api/v1/Status/4`
+
+**Validation Error:** `400 Bad Request`
+
+```json
+{
+  "type": "https://tools.ietf.org/html/rfc7231#section-6.5.1",
+  "title": "One or more validation errors occurred.",
+  "status": 400,
+  "errors": {
+    "Name": ["Status name is required"],
+    "Description": ["Status description cannot exceed 200 characters"]
+  }
+}
+```
+
+**Example:**
+```bash
+curl -X POST http://localhost:8080/api/v1/Status \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "In Review",
+    "description": "Task is under review"
+  }'
+```
+
+---
+
+### Update Status
+
+Updates an existing status item.
+
+**Endpoint:** `PUT /api/v1/Status/{id}`
+
+**Parameters:**
+- `id` (path, integer, required) - Status item ID to update
+
+**Request Body:**
+
+```json
+{
+  "name": "Under Review",
+  "description": "Task is being reviewed by the team"
+}
+```
+
+**Fields:**
+- `name` (string, required, max 50 chars) - Status name (must be unique)
+- `description` (string, optional, max 200 chars) - Status description
+
+**Response:** `200 OK`
+
+```json
+{
+  "id": 4,
+  "name": "Under Review",
+  "description": "Task is being reviewed by the team"
+}
+```
+
+**Error Responses:**
+
+`404 Not Found` - Status doesn't exist
+```json
+{
+  "type": "https://tools.ietf.org/html/rfc7231#section-6.5.4",
+  "title": "Not Found",
+  "status": 404
+}
+```
+
+`400 Bad Request` - Validation failure
+```json
+{
+  "type": "https://tools.ietf.org/html/rfc7231#section-6.5.1",
+  "title": "One or more validation errors occurred.",
+  "status": 400,
+  "errors": {
+    "Name": ["Status name cannot exceed 50 characters"],
+    "Name": ["A status with the same name already exists."]
+  }
+}
+```
+
+**Example:**
+```bash
+curl -X PUT http://localhost:8080/api/v1/Status/4 \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Under Review",
+    "description": "Task is being reviewed by the team"
+  }'
+```
+
+---
+
+### Delete Status
+
+Deletes a status item.
+
+**Endpoint:** `DELETE /api/v1/Status/{id}`
+
+**Parameters:**
+- `id` (path, integer, required) - Status item ID to delete
+
+**Response:** `204 No Content`
+
+**Error Response:** `404 Not Found`
+
+```json
+{
+  "type": "https://tools.ietf.org/html/rfc7231#section-6.5.4",
+  "title": "Not Found",
+  "status": 404
+}
+```
+
+**Example:**
+```bash
+curl -X DELETE http://localhost:8080/api/v1/Status/4
+```
+
+---
+
 ## Health Check Endpoints
 
 ### Overall Health
@@ -408,6 +634,18 @@ All error responses follow RFC 7807 Problem Details format:
 - Required boolean value
 - Defaults to `false` if not specified
 
+### Status
+
+**Name:**
+- Required
+- Maximum 50 characters
+- Must be unique across all statuses
+- Cannot be empty or whitespace
+
+**Description:**
+- Optional
+- Maximum 200 characters when provided
+
 ## Swagger/OpenAPI Documentation
 
 In Development mode, interactive API documentation is available via Swagger UI.
@@ -491,6 +729,35 @@ curl -X DELETE http://localhost:8080/api/TaskItems/$TASK_ID
 
 # 6. Verify deletion (should return 404)
 curl -I http://localhost:8080/api/TaskItems/$TASK_ID
+```
+
+### Status Management Workflow
+
+```bash
+# 1. Create a status
+STATUS_ID=$(curl -s -X POST http://localhost:8080/api/v1/Status \
+  -H "Content-Type: application/json" \
+  -d '{"name":"In Review","description":"Task is under review"}' \
+  | jq -r '.id')
+
+echo "Created status with ID: $STATUS_ID"
+
+# 2. Get the status
+curl http://localhost:8080/api/v1/Status/$STATUS_ID
+
+# 3. Update the status
+curl -X PUT http://localhost:8080/api/v1/Status/$STATUS_ID \
+  -H "Content-Type: application/json" \
+  -d '{"name":"Under Review","description":"Task is being reviewed by the team"}'
+
+# 4. Get all statuses
+curl http://localhost:8080/api/v1/Status
+
+# 5. Delete the status
+curl -X DELETE http://localhost:8080/api/v1/Status/$STATUS_ID
+
+# 6. Verify deletion (should return 404)
+curl -I http://localhost:8080/api/v1/Status/$STATUS_ID
 ```
 
 ### Health Check Workflow
