@@ -18,10 +18,10 @@ public class TaskItemValidatorTests
             .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString()) // Use unique DB per test
             .Options;
         _dbContext = new TaskDbContext(options);
-        
+
         // Seed a Status for validation
         SeedStatus();
-        
+
         _validator = new TaskItemValidator(_dbContext);
     }
 

@@ -50,12 +50,12 @@ public class TaskItemsControllerV1Tests
     public async Task Get_ShouldReturnOkWithTask_WhenTaskExists()
     {
         // Arrange
-        var task = new TaskItem 
-        { 
-            Id = 1, 
-            Title = "Task 1", 
-            Description = "Description", 
-            IsComplete = false, 
+        var task = new TaskItem
+        {
+            Id = 1,
+            Title = "Task 1",
+            Description = "Description",
+            IsComplete = false,
             StatusId = 1,
             Status = new Status { Id = 1, Name = "Todo" }
         };

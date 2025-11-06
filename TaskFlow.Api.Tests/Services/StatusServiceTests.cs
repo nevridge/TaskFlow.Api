@@ -23,18 +23,18 @@ public class StatusServiceTests
         // Arrange
         var statuses = new List<Status>
         {
-            new() 
-            { 
-                Id = 1, 
-                Name = "Active", 
+            new()
+            {
+                Id = 1,
+                Name = "Active",
                 Description = "Active tasks",
                 CreatedDate = DateTime.UtcNow,
                 UpdatedDate = DateTime.UtcNow
             },
-            new() 
-            { 
-                Id = 2, 
-                Name = "Completed", 
+            new()
+            {
+                Id = 2,
+                Name = "Completed",
                 Description = "Completed tasks",
                 CreatedDate = DateTime.UtcNow,
                 UpdatedDate = DateTime.UtcNow
@@ -69,10 +69,10 @@ public class StatusServiceTests
     public async Task GetStatusAsync_ShouldReturnStatus_WhenFound()
     {
         // Arrange
-        var status = new Status 
-        { 
-            Id = 1, 
-            Name = "Active", 
+        var status = new Status
+        {
+            Id = 1,
+            Name = "Active",
             Description = "Active tasks",
             CreatedDate = DateTime.UtcNow,
             UpdatedDate = DateTime.UtcNow
@@ -106,17 +106,17 @@ public class StatusServiceTests
     public async Task CreateStatusAsync_ShouldCreateAndReturnStatus()
     {
         // Arrange
-        var newStatus = new Status 
-        { 
-            Name = "In Progress", 
+        var newStatus = new Status
+        {
+            Name = "In Progress",
             Description = "Tasks in progress",
             CreatedDate = DateTime.UtcNow,
             UpdatedDate = DateTime.UtcNow
         };
-        var createdStatus = new Status 
-        { 
-            Id = 1, 
-            Name = "In Progress", 
+        var createdStatus = new Status
+        {
+            Id = 1,
+            Name = "In Progress",
             Description = "Tasks in progress",
             CreatedDate = DateTime.UtcNow,
             UpdatedDate = DateTime.UtcNow
@@ -137,10 +137,10 @@ public class StatusServiceTests
     public async Task UpdateStatusAsync_ShouldCallRepositoryUpdate()
     {
         // Arrange
-        var status = new Status 
-        { 
-            Id = 1, 
-            Name = "Updated", 
+        var status = new Status
+        {
+            Id = 1,
+            Name = "Updated",
             Description = "Updated Description",
             CreatedDate = DateTime.UtcNow,
             UpdatedDate = DateTime.UtcNow

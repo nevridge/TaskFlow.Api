@@ -24,18 +24,18 @@ public class StatusRepositoryTests
         var repository = new StatusRepository(context);
         var statuses = new List<Status>
         {
-            new() 
-            { 
-                Id = 1, 
-                Name = "Active", 
+            new()
+            {
+                Id = 1,
+                Name = "Active",
                 Description = "Active tasks",
                 CreatedDate = DateTime.UtcNow,
                 UpdatedDate = DateTime.UtcNow
             },
-            new() 
-            { 
-                Id = 2, 
-                Name = "Completed", 
+            new()
+            {
+                Id = 2,
+                Name = "Completed",
                 Description = "Completed tasks",
                 CreatedDate = DateTime.UtcNow,
                 UpdatedDate = DateTime.UtcNow
@@ -72,10 +72,10 @@ public class StatusRepositoryTests
         // Arrange
         using var context = CreateInMemoryContext();
         var repository = new StatusRepository(context);
-        var status = new Status 
-        { 
-            Id = 1, 
-            Name = "Active", 
+        var status = new Status
+        {
+            Id = 1,
+            Name = "Active",
             Description = "Active tasks",
             CreatedDate = DateTime.UtcNow,
             UpdatedDate = DateTime.UtcNow
@@ -111,9 +111,9 @@ public class StatusRepositoryTests
         // Arrange
         using var context = CreateInMemoryContext();
         var repository = new StatusRepository(context);
-        var newStatus = new Status 
-        { 
-            Name = "In Progress", 
+        var newStatus = new Status
+        {
+            Name = "In Progress",
             Description = "Tasks in progress",
             CreatedDate = DateTime.UtcNow,
             UpdatedDate = DateTime.UtcNow
@@ -138,9 +138,9 @@ public class StatusRepositoryTests
         // Arrange
         using var context = CreateInMemoryContext();
         var repository = new StatusRepository(context);
-        var newStatus = new Status 
-        { 
-            Name = "Pending", 
+        var newStatus = new Status
+        {
+            Name = "Pending",
             Description = null,
             CreatedDate = DateTime.UtcNow,
             UpdatedDate = DateTime.UtcNow
@@ -164,10 +164,10 @@ public class StatusRepositoryTests
         // Arrange
         using var context = CreateInMemoryContext();
         var repository = new StatusRepository(context);
-        var status = new Status 
-        { 
-            Id = 1, 
-            Name = "Original", 
+        var status = new Status
+        {
+            Id = 1,
+            Name = "Original",
             Description = "Original Description",
             CreatedDate = DateTime.UtcNow,
             UpdatedDate = DateTime.UtcNow
@@ -196,10 +196,10 @@ public class StatusRepositoryTests
         // Arrange
         using var context = CreateInMemoryContext();
         var repository = new StatusRepository(context);
-        var status = new Status 
-        { 
-            Id = 1, 
-            Name = "Original", 
+        var status = new Status
+        {
+            Id = 1,
+            Name = "Original",
             Description = "Description",
             CreatedDate = DateTime.UtcNow,
             UpdatedDate = DateTime.UtcNow
@@ -226,10 +226,10 @@ public class StatusRepositoryTests
         // Arrange
         using var context = CreateInMemoryContext();
         var repository = new StatusRepository(context);
-        var status = new Status 
-        { 
-            Id = 1, 
-            Name = "To Delete", 
+        var status = new Status
+        {
+            Id = 1,
+            Name = "To Delete",
             Description = "Description",
             CreatedDate = DateTime.UtcNow,
             UpdatedDate = DateTime.UtcNow
@@ -267,18 +267,18 @@ public class StatusRepositoryTests
         var repository = new StatusRepository(context);
         var statuses = new List<Status>
         {
-            new() 
-            { 
-                Id = 1, 
-                Name = "Status 1", 
+            new()
+            {
+                Id = 1,
+                Name = "Status 1",
                 Description = "Description 1",
                 CreatedDate = DateTime.UtcNow,
                 UpdatedDate = DateTime.UtcNow
             },
-            new() 
-            { 
-                Id = 2, 
-                Name = "Status 2", 
+            new()
+            {
+                Id = 2,
+                Name = "Status 2",
                 Description = "Description 2",
                 CreatedDate = DateTime.UtcNow,
                 UpdatedDate = DateTime.UtcNow

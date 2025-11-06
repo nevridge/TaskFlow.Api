@@ -38,7 +38,7 @@ public class TaskItemsController(ITaskService taskService, IValidator<TaskItem> 
     {
         var item = await _taskService.GetTaskAsync(id);
         if (item is null) return NotFound();
-        
+
         var dto = new TaskItemResponseDto
         {
             Id = item.Id,

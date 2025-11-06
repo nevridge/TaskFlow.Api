@@ -12,7 +12,7 @@ public class StatusValidator : AbstractValidator<Status>
         RuleFor(s => s.Name)
             .NotEmpty().WithMessage("Status name is required.")
             .MaximumLength(50).WithMessage("Status name cannot exceed 50 characters.");
-        
+
         RuleFor(s => s.Name)
             .MustAsync(async (status, name, cancellation) =>
             {

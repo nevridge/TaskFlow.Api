@@ -22,19 +22,19 @@ public class TaskRepositoryTests
         // Arrange
         using var context = CreateInMemoryContext();
         var repository = new TaskRepository(context);
-        
+
         // Create a Status first
-        var status = new Status 
-        { 
-            Id = 1, 
-            Name = "Active", 
+        var status = new Status
+        {
+            Id = 1,
+            Name = "Active",
             Description = "Active tasks",
             CreatedDate = DateTime.UtcNow,
             UpdatedDate = DateTime.UtcNow
         };
         await context.Statuses.AddAsync(status);
         await context.SaveChangesAsync();
-        
+
         var tasks = new List<TaskItem>
         {
             new() { Id = 1, Title = "Task 1", Description = "Description 1", IsComplete = false, StatusId = 1 },
@@ -71,24 +71,24 @@ public class TaskRepositoryTests
         // Arrange
         using var context = CreateInMemoryContext();
         var repository = new TaskRepository(context);
-    
+
         // Create a Status first
-        var status = new Status 
-        { 
-            Id = 1, 
-            Name = "Active", 
+        var status = new Status
+        {
+            Id = 1,
+            Name = "Active",
             Description = "Active tasks",
             CreatedDate = DateTime.UtcNow,
             UpdatedDate = DateTime.UtcNow
         };
         await context.Statuses.AddAsync(status);
         await context.SaveChangesAsync();
-    
-        var task = new TaskItem 
-        { 
-            Id = 1, 
-            Title = "Task 1", 
-            Description = "Description 1", 
+
+        var task = new TaskItem
+        {
+            Id = 1,
+            Title = "Task 1",
+            Description = "Description 1",
             IsComplete = false,
             StatusId = 1  // <-- Add this
         };

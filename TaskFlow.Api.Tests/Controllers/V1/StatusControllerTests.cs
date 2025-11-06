@@ -29,18 +29,18 @@ public class StatusControllerTests
         // Arrange
         var statuses = new List<Status>
         {
-            new() 
-            { 
-                Id = 1, 
-                Name = "Active", 
+            new()
+            {
+                Id = 1,
+                Name = "Active",
                 Description = "Active tasks",
                 CreatedDate = DateTime.UtcNow,
                 UpdatedDate = DateTime.UtcNow
             },
-            new() 
-            { 
-                Id = 2, 
-                Name = "Completed", 
+            new()
+            {
+                Id = 2,
+                Name = "Completed",
                 Description = "Completed tasks",
                 CreatedDate = DateTime.UtcNow,
                 UpdatedDate = DateTime.UtcNow
@@ -77,10 +77,10 @@ public class StatusControllerTests
     public async Task GetStatus_ShouldReturnOkWithStatus_WhenStatusExists()
     {
         // Arrange
-        var status = new Status 
-        { 
-            Id = 1, 
-            Name = "Active", 
+        var status = new Status
+        {
+            Id = 1,
+            Name = "Active",
             Description = "Active tasks",
             CreatedDate = DateTime.UtcNow,
             UpdatedDate = DateTime.UtcNow
@@ -113,20 +113,20 @@ public class StatusControllerTests
     public async Task CreateStatus_ShouldReturnCreatedAtRoute_WhenValidationPasses()
     {
         // Arrange
-        var createDto = new CreateStatusDto 
-        { 
-            Name = "In Progress", 
-            Description = "Tasks in progress" 
+        var createDto = new CreateStatusDto
+        {
+            Name = "In Progress",
+            Description = "Tasks in progress"
         };
-        var createdStatus = new Status 
-        { 
-            Id = 1, 
-            Name = "In Progress", 
+        var createdStatus = new Status
+        {
+            Id = 1,
+            Name = "In Progress",
             Description = "Tasks in progress",
             CreatedDate = DateTime.UtcNow,
             UpdatedDate = DateTime.UtcNow
         };
-        
+
         _mockValidator.ValidateAsync(Arg.Any<Status>(), Arg.Any<CancellationToken>())
             .Returns(new ValidationResult());
         _mockService.CreateStatusAsync(Arg.Any<Status>()).Returns(createdStatus);
@@ -146,16 +146,16 @@ public class StatusControllerTests
     public async Task CreateStatus_ShouldReturnBadRequest_WhenValidationFails()
     {
         // Arrange
-        var createDto = new CreateStatusDto 
-        { 
-            Name = "", 
-            Description = "Description" 
+        var createDto = new CreateStatusDto
+        {
+            Name = "",
+            Description = "Description"
         };
         var validationFailures = new List<ValidationFailure>
         {
             new("Name", "Status name is required.")
         };
-        
+
         _mockValidator.ValidateAsync(Arg.Any<Status>(), Arg.Any<CancellationToken>())
             .Returns(new ValidationResult(validationFailures));
 
@@ -171,20 +171,20 @@ public class StatusControllerTests
     public async Task UpdateStatus_ShouldReturnNoContent_WhenValidationPasses()
     {
         // Arrange
-        var updateDto = new UpdateStatusDto 
-        { 
-            Name = "Updated", 
-            Description = "Updated description" 
+        var updateDto = new UpdateStatusDto
+        {
+            Name = "Updated",
+            Description = "Updated description"
         };
-        var existingStatus = new Status 
-        { 
-            Id = 1, 
-            Name = "Original", 
+        var existingStatus = new Status
+        {
+            Id = 1,
+            Name = "Original",
             Description = "Original description",
             CreatedDate = DateTime.UtcNow,
             UpdatedDate = DateTime.UtcNow
         };
-        
+
         _mockService.GetStatusAsync(1).Returns(existingStatus);
         _mockValidator.ValidateAsync(Arg.Any<Status>(), Arg.Any<CancellationToken>())
             .Returns(new ValidationResult());
@@ -194,7 +194,7 @@ public class StatusControllerTests
 
         // Assert
         result.Should().BeOfType<NoContentResult>();
-        await _mockService.Received(1).UpdateStatusAsync(Arg.Is<Status>(s => 
+        await _mockService.Received(1).UpdateStatusAsync(Arg.Is<Status>(s =>
             s.Name == "Updated" && s.Description == "Updated description"));
     }
 
@@ -202,10 +202,10 @@ public class StatusControllerTests
     public async Task UpdateStatus_ShouldReturnNotFound_WhenStatusDoesNotExist()
     {
         // Arrange
-        var updateDto = new UpdateStatusDto 
-        { 
-            Name = "Updated", 
-            Description = "Updated description" 
+        var updateDto = new UpdateStatusDto
+        {
+            Name = "Updated",
+            Description = "Updated description"
         };
         _mockService.GetStatusAsync(999).Returns((Status?)null);
 
@@ -221,15 +221,15 @@ public class StatusControllerTests
     public async Task UpdateStatus_ShouldReturnBadRequest_WhenValidationFails()
     {
         // Arrange
-        var updateDto = new UpdateStatusDto 
-        { 
-            Name = "", 
-            Description = "Description" 
+        var updateDto = new UpdateStatusDto
+        {
+            Name = "",
+            Description = "Description"
         };
-        var existingStatus = new Status 
-        { 
-            Id = 1, 
-            Name = "Original", 
+        var existingStatus = new Status
+        {
+            Id = 1,
+            Name = "Original",
             Description = "Original description",
             CreatedDate = DateTime.UtcNow,
             UpdatedDate = DateTime.UtcNow
@@ -238,7 +238,7 @@ public class StatusControllerTests
         {
             new("Name", "Status name is required.")
         };
-        
+
         _mockService.GetStatusAsync(1).Returns(existingStatus);
         _mockValidator.ValidateAsync(Arg.Any<Status>(), Arg.Any<CancellationToken>())
             .Returns(new ValidationResult(validationFailures));
@@ -256,10 +256,10 @@ public class StatusControllerTests
     public async Task DeleteStatus_ShouldReturnNoContent_WhenStatusExists()
     {
         // Arrange
-        var existingStatus = new Status 
-        { 
-            Id = 1, 
-            Name = "Active", 
+        var existingStatus = new Status
+        {
+            Id = 1,
+            Name = "Active",
             Description = "Active tasks",
             CreatedDate = DateTime.UtcNow,
             UpdatedDate = DateTime.UtcNow

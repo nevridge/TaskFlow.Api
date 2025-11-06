@@ -8,12 +8,12 @@ public class TaskRepository(TaskDbContext context) : ITaskRepository
 {
     private readonly TaskDbContext _context = context;
 
-    public async Task<IEnumerable<TaskItem>> GetAllAsync() => 
+    public async Task<IEnumerable<TaskItem>> GetAllAsync() =>
         await _context.TaskItems
             .Include(t => t.Status)
             .ToListAsync();
 
-    public async Task<TaskItem?> GetByIdAsync(int id) => 
+    public async Task<TaskItem?> GetByIdAsync(int id) =>
         await _context.TaskItems
             .Include(t => t.Status)
             .FirstOrDefaultAsync(t => t.Id == id);
@@ -22,7 +22,7 @@ public class TaskRepository(TaskDbContext context) : ITaskRepository
     {
         _context.TaskItems.Add(task);
         await _context.SaveChangesAsync();
-        
+
         // Reload with Status navigation property
         await _context.Entry(task).Reference(t => t.Status).LoadAsync();
         return task;
