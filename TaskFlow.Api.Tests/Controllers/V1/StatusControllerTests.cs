@@ -53,9 +53,13 @@ public class StatusControllerTests
 
         // Assert
         var okResult = result.Result.Should().BeOfType<OkObjectResult>().Subject;
-        var returnedStatuses = okResult.Value.Should().BeAssignableTo<IEnumerable<Status>>().Subject;
+        var returnedStatuses = okResult.Value.Should().BeAssignableTo<IEnumerable<StatusResponseDto>>().Subject;
         returnedStatuses.Should().HaveCount(2);
-        returnedStatuses.Should().BeEquivalentTo(statuses);
+        returnedStatuses.Should().BeEquivalentTo(new[]
+        {
+            new StatusResponseDto { Id = 1, Name = "Active", Description = "Active tasks" },
+            new StatusResponseDto { Id = 2, Name = "Completed", Description = "Completed tasks" }
+        });
     }
 
     [Fact]
@@ -69,7 +73,7 @@ public class StatusControllerTests
 
         // Assert
         var okResult = result.Result.Should().BeOfType<OkObjectResult>().Subject;
-        var returnedStatuses = okResult.Value.Should().BeAssignableTo<IEnumerable<Status>>().Subject;
+        var returnedStatuses = okResult.Value.Should().BeAssignableTo<IEnumerable<StatusResponseDto>>().Subject;
         returnedStatuses.Should().BeEmpty();
     }
 
@@ -92,8 +96,13 @@ public class StatusControllerTests
 
         // Assert
         var okResult = result.Result.Should().BeOfType<OkObjectResult>().Subject;
-        var returnedStatus = okResult.Value.Should().BeAssignableTo<Status>().Subject;
-        returnedStatus.Should().BeEquivalentTo(status);
+        var returnedStatus = okResult.Value.Should().BeAssignableTo<StatusResponseDto>().Subject;
+        returnedStatus.Should().BeEquivalentTo(new StatusResponseDto
+        {
+            Id = 1,
+            Name = "Active",
+            Description = "Active tasks"
+        });
     }
 
     [Fact]
@@ -138,8 +147,13 @@ public class StatusControllerTests
         var createdResult = result.Result.Should().BeOfType<CreatedAtRouteResult>().Subject;
         createdResult.RouteName.Should().Be("GetStatusV1");
         createdResult.RouteValues.Should().ContainKey("id").WhoseValue.Should().Be(1);
-        var returnedStatus = createdResult.Value.Should().BeAssignableTo<Status>().Subject;
-        returnedStatus.Should().BeEquivalentTo(createdStatus);
+        var returnedStatus = createdResult.Value.Should().BeAssignableTo<StatusResponseDto>().Subject;
+        returnedStatus.Should().BeEquivalentTo(new StatusResponseDto
+        {
+            Id = 1,
+            Name = "In Progress",
+            Description = "Tasks in progress"
+        });
     }
 
     [Fact]
@@ -168,7 +182,7 @@ public class StatusControllerTests
     }
 
     [Fact]
-    public async Task UpdateStatus_ShouldReturnNoContent_WhenValidationPasses()
+    public async Task UpdateStatus_ShouldReturnOkWithUpdatedStatus_WhenValidationPasses()
     {
         // Arrange
         var updateDto = new UpdateStatusDto
@@ -193,7 +207,14 @@ public class StatusControllerTests
         var result = await _controller.UpdateStatus(1, updateDto);
 
         // Assert
-        result.Should().BeOfType<NoContentResult>();
+        var okResult = result.Result.Should().BeOfType<OkObjectResult>().Subject;
+        var returnedStatus = okResult.Value.Should().BeAssignableTo<StatusResponseDto>().Subject;
+        returnedStatus.Should().BeEquivalentTo(new StatusResponseDto
+        {
+            Id = 1,
+            Name = "Updated",
+            Description = "Updated description"
+        });
         await _mockService.Received(1).UpdateStatusAsync(Arg.Is<Status>(s =>
             s.Name == "Updated" && s.Description == "Updated description"));
     }
@@ -213,7 +234,7 @@ public class StatusControllerTests
         var result = await _controller.UpdateStatus(999, updateDto);
 
         // Assert
-        result.Should().BeOfType<NotFoundResult>();
+        result.Result.Should().BeOfType<NotFoundResult>();
         await _mockService.DidNotReceive().UpdateStatusAsync(Arg.Any<Status>());
     }
 
@@ -247,7 +268,7 @@ public class StatusControllerTests
         var result = await _controller.UpdateStatus(1, updateDto);
 
         // Assert
-        var badRequestResult = result.Should().BeOfType<BadRequestObjectResult>().Subject;
+        var badRequestResult = result.Result.Should().BeOfType<BadRequestObjectResult>().Subject;
         badRequestResult.Value.Should().BeEquivalentTo(validationFailures);
         await _mockService.DidNotReceive().UpdateStatusAsync(Arg.Any<Status>());
     }
