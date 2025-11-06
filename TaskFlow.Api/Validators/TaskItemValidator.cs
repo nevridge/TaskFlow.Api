@@ -14,7 +14,6 @@ public class TaskItemValidator : AbstractValidator<TaskItem>
             .MaximumLength(100).WithMessage("Title must not exceed 100 characters.");
 
         RuleFor(t => t.StatusId)
-            .NotEmpty().WithMessage("StatusId is required.")
             .MustAsync(async (statusId, cancellation) =>
             {
                 return await context.Statuses.AnyAsync(s => s.Id == statusId, cancellation);

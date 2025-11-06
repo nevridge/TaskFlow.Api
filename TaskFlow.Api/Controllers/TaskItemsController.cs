@@ -45,6 +45,7 @@ public class TaskItemsController(ITaskService taskService, IValidator<TaskItem> 
         {
             Title = createDto.Title,
             Description = createDto.Description,
+            StatusId = createDto.StatusId,
             IsComplete = createDto.IsComplete
         };
 

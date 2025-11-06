@@ -1,5 +1,6 @@
 ﻿using FluentValidation;
 using System.Text.Json;
+using TaskFlow.Api.Configuration;
 
 namespace TaskFlow.Api.Middleware;
 
@@ -7,7 +8,7 @@ public class ValidationMiddleware(RequestDelegate next, IServiceProvider service
 {
     private readonly RequestDelegate _next = next;
     private readonly IServiceProvider _serviceProvider = serviceProvider;
-    private readonly JsonSerializerOptions _jsonOptions = new() { PropertyNameCaseInsensitive = true };
+    private readonly JsonSerializerOptions _jsonOptions = JsonSerializerOptionsProvider.Default;
 
     public async Task InvokeAsync(HttpContext context)
     {

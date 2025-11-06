@@ -25,7 +25,7 @@ public class StatusController(IStatusService statusService, IValidator<Status> v
     }
 
     // GET: api/v1/Status/5
-    [HttpGet("{id}", Name = "GetStatus")]
+    [HttpGet("{id}", Name = "GetStatusV1")]
     public async Task<ActionResult<Status>> GetStatus(int id)
     {
         var status = await _statusService.GetStatusAsync(id);
@@ -36,7 +36,7 @@ public class StatusController(IStatusService statusService, IValidator<Status> v
 
     // POST: api/v1/Status
     [HttpPost]
-    public async Task<ActionResult<Status>> CreateStatus([FromBody] CreateStatusDto createDto)
+    public async Task<ActionResult<Status>> Create([FromBody] CreateStatusDto createDto)
     {
         var status = new Status
         {

@@ -18,20 +18,36 @@ public class TaskItemsController(ITaskService taskService, IValidator<TaskItem> 
 
     // GET: api/v1/TaskItems
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<TaskItem>>> GetAll()
+    public async Task<ActionResult<IEnumerable<TaskItemResponseDto>>> GetAll()
     {
         var items = await _taskService.GetAllTasksAsync();
-        return Ok(items);
+        var dtos = items.Select(i => new TaskItemResponseDto
+        {
+            Id = i.Id,
+            Title = i.Title,
+            Description = i.Description,
+            IsComplete = i.IsComplete,
+            StatusName = i.Status?.Name
+        });
+        return Ok(dtos);
     }
 
     // GET: api/v1/TaskItems/5
     [HttpGet("{id}", Name = "GetTaskV1")]
-    public async Task<ActionResult<TaskItem>> Get(int id)
+    public async Task<ActionResult<TaskItemResponseDto>> Get(int id)
     {
         var item = await _taskService.GetTaskAsync(id);
-
         if (item is null) return NotFound();
-        return Ok(item);
+        
+        var dto = new TaskItemResponseDto
+        {
+            Id = item.Id,
+            Title = item.Title,
+            Description = item.Description,
+            IsComplete = item.IsComplete,
+            StatusName = item.Status?.Name
+        };
+        return Ok(dto);
     }
 
     // POST: api/v1/TaskItems
@@ -42,6 +58,7 @@ public class TaskItemsController(ITaskService taskService, IValidator<TaskItem> 
         {
             Title = createDto.Title,
             Description = createDto.Description,
+            StatusId = createDto.StatusId,
             IsComplete = createDto.IsComplete
         };
 
