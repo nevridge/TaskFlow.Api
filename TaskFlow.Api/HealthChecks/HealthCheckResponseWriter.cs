@@ -1,7 +1,6 @@
 using System.Text.Json;
 using Microsoft.AspNetCore.Http.Json;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using TaskFlow.Api.Providers;
 
@@ -59,13 +58,13 @@ public static class HealthCheckResponseWriter
         catch (JsonException ex)
         {
             // Fallback to simple error response if serialization fails
-            var errorResponse = $"{{\"status\":\"Unhealthy\",\"error\":\"Failed to serialize health check response: {ex.Message}\"}}";
+            var errorResponse = $"{{\"status\":\"Unhealthy\",\"error\":\"Failed to serialize health check response: {SanitizeForLog(ex.Message)}\"}}";
             await context.Response.WriteAsync(errorResponse);
         }
         catch (InvalidOperationException ex)
         {
             // Fallback to simple error response if serialization fails
-            var errorResponse = $"{{\"status\":\"Unhealthy\",\"error\":\"Failed to serialize health check response: {ex.Message}\"}}";
+            var errorResponse = $"{{\"status\":\"Unhealthy\",\"error\":\"Failed to serialize health check response: {SanitizeForLog(ex.Message)}\"}}";
             await context.Response.WriteAsync(errorResponse);
         }
     }
@@ -84,7 +83,7 @@ public static class HealthCheckResponseWriter
 
         var failedChecks = report.Entries
             .Where(e => e.Value.Status == HealthStatus.Unhealthy)
-            .Select(e => $"{e.Key}: {e.Value.Description ?? "no description"}, exception: {e.Value.Exception?.Message ?? "none"}");
+            .Select(e => $"{e.Key}: {e.Value.Description ?? "no description"}, exception: {SanitizeForLog(e.Value.Exception?.Message ?? "none")}");
 
         logger.LogError(
             "Health check FAILED at {Endpoint} - Status: {Status}, Duration: {Duration}ms, Failed checks: {FailedChecks}",
