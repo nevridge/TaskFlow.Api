@@ -1,5 +1,5 @@
-# Use the official .NET 9 SDK image for building
-FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
+# Use the official .NET 10 SDK image for building
+FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 WORKDIR /src
 
 # Copy project file from the correct path
@@ -12,7 +12,7 @@ WORKDIR /src/TaskFlow.Api
 RUN dotnet publish "TaskFlow.Api.csproj" -c Release -o /app/publish /p:UseAppHost=false --no-restore
 
 # Use the official ASP.NET runtime image for final container
-FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS final
+FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS final
 WORKDIR /app
 
 # Create directories for logs and data with proper permissions

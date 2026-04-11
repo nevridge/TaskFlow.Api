@@ -19,12 +19,12 @@ try
     // Add services to the container
     builder.Services.AddControllers();
     builder.Services.AddApiVersioningConfiguration();
-    builder.Services.AddSwagger();
+    OpenApiServiceExtensions.AddOpenApi(builder.Services);
     builder.Services.AddPersistence(builder.Configuration);
     builder.Services.AddApplicationServices();
     builder.Services.AddValidation();
     builder.Services.AddApplicationHealthChecks();
-    builder.Services.AddApplicationInsights();
+    //builder.Services.AddApplicationInsights();
     builder.Services.ConfigureJsonSerialization();
 
     var app = builder.Build();
@@ -62,22 +62,10 @@ try
         }
     }
 
-    // Enable Swagger UI in Development
+    // Enable Scalar / OpenAPI UI in Development
     if (app.Environment.IsDevelopment())
     {
-        app.UseSwagger();
-        app.UseSwaggerUI(c =>
-        {
-            // Build a Swagger endpoint for each discovered API version
-            var provider = app.Services.GetRequiredService<Asp.Versioning.ApiExplorer.IApiVersionDescriptionProvider>();
-            foreach (var description in provider.ApiVersionDescriptions)
-            {
-                c.SwaggerEndpoint(
-                    $"/swagger/{description.GroupName}/swagger.json",
-                    $"TaskFlow API {description.GroupName.ToUpperInvariant()}");
-            }
-            c.RoutePrefix = string.Empty;
-        });
+        app.UseOpenApiWithScalar();
     }
 
     app.UseMiddleware<ValidationMiddleware>();

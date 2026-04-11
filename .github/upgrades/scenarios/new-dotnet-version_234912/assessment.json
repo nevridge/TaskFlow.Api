@@ -1,0 +1,1097 @@
+{
+  "settings": {
+    "components": {
+      "code": true,
+      "binaries": false
+    },
+    "targetId": "net10.0",
+    "targetDisplayName": ".NETCoreApp,Version=v10.0"
+  },
+  "analysisStartTime": "2026-04-11T02:52:26.341688Z",
+  "analysisEndTime": "2026-04-11T02:52:30.6029438Z",
+  "privacyModeHelpUrl": "https://go.microsoft.com/fwlink/?linkid=2270980",
+  "stats": {
+    "summary": {
+      "projects": 2,
+      "issues": 7,
+      "incidents": 35,
+      "effort": 35
+    },
+    "charts": {
+      "severity": {
+        "Mandatory": 4,
+        "Optional": 1,
+        "Potential": 30,
+        "Information": 0
+      },
+      "category": {
+        "NuGet": 8,
+        "Project": 2,
+        "Api": 25
+      }
+    }
+  },
+  "projects": [
+    {
+      "path": "TaskFlow.Api\\TaskFlow.Api.csproj",
+      "startingProject": true,
+      "issues": 6,
+      "storyPoints": 10,
+      "properties": {
+        "appName": "TaskFlow.Api",
+        "projectKind": "AspNetCore",
+        "frameworks": [
+          "net9.0"
+        ],
+        "languages": [
+          "C#"
+        ],
+        "tools": [
+          "MSBuild"
+        ],
+        "isSdkStyle": true,
+        "numberOfFiles": 42,
+        "numberOfCodeFiles": 40,
+        "linesTotal": 1988,
+        "linesOfCode": 1955,
+        "totalApiScanned": 2218,
+        "minLinesOfCodeToChange": 3,
+        "maxLinesOfCodeToChange": 3
+      },
+      "ruleInstances": [
+        {
+          "incidentId": "6837f245-5fc7-4174-ba2a-fe541925f9fc",
+          "ruleId": "NuGet.0002",
+          "projectPath": "TaskFlow.Api\\TaskFlow.Api.csproj",
+          "state": "Active",
+          "location": {
+            "snippetModel": {
+              "unrestricted": "Microsoft.AspNetCore.OpenApi, 9.0.10\n\nRecommendation:\n\nRemove Microsoft.AspNetCore.OpenApi, and replace with new package Microsoft.AspNetCore.OpenApi 10.0.5",
+              "protected": "Microsoft.AspNetCore.OpenApi, 9.0.10\n\nRecommendation:\n\nRemove Microsoft.AspNetCore.OpenApi, and replace with new package Microsoft.AspNetCore.OpenApi 10.0.5"
+            },
+            "kind": "File",
+            "path": "TaskFlow.Api\\TaskFlow.Api.csproj",
+            "snippet": "Microsoft.AspNetCore.OpenApi, 9.0.10\n\nRecommendation:\n\nRemove Microsoft.AspNetCore.OpenApi, and replace with new package Microsoft.AspNetCore.OpenApi 10.0.5",
+            "protectedSnippet": "Microsoft.AspNetCore.OpenApi, 9.0.10\n\nRecommendation:\n\nRemove Microsoft.AspNetCore.OpenApi, and replace with new package Microsoft.AspNetCore.OpenApi 10.0.5",
+            "label": "Microsoft.AspNetCore.OpenApi 9.0.10",
+            "properties": {
+              "PackageId": "Microsoft.AspNetCore.OpenApi",
+              "PackageVersion": "9.0.10",
+              "PackageNewVersion": "10.0.5",
+              "PackageReplacements": null
+            }
+          }
+        },
+        {
+          "incidentId": "9a2f0a6f-2d55-4a29-8043-01ca9c343863",
+          "ruleId": "NuGet.0002",
+          "projectPath": "TaskFlow.Api\\TaskFlow.Api.csproj",
+          "state": "Active",
+          "location": {
+            "snippetModel": {
+              "unrestricted": "Microsoft.EntityFrameworkCore, 9.0.10\n\nRecommendation:\n\nRemove Microsoft.EntityFrameworkCore, and replace with new package Microsoft.EntityFrameworkCore 10.0.5",
+              "protected": "Microsoft.EntityFrameworkCore, 9.0.10\n\nRecommendation:\n\nRemove Microsoft.EntityFrameworkCore, and replace with new package Microsoft.EntityFrameworkCore 10.0.5"
+            },
+            "kind": "File",
+            "path": "TaskFlow.Api\\TaskFlow.Api.csproj",
+            "snippet": "Microsoft.EntityFrameworkCore, 9.0.10\n\nRecommendation:\n\nRemove Microsoft.EntityFrameworkCore, and replace with new package Microsoft.EntityFrameworkCore 10.0.5",
+            "protectedSnippet": "Microsoft.EntityFrameworkCore, 9.0.10\n\nRecommendation:\n\nRemove Microsoft.EntityFrameworkCore, and replace with new package Microsoft.EntityFrameworkCore 10.0.5",
+            "label": "Microsoft.EntityFrameworkCore 9.0.10",
+            "properties": {
+              "PackageId": "Microsoft.EntityFrameworkCore",
+              "PackageVersion": "9.0.10",
+              "PackageNewVersion": "10.0.5",
+              "PackageReplacements": null
+            }
+          }
+        },
+        {
+          "incidentId": "db2ee1ea-f3b7-49ab-ba2d-db156471dad5",
+          "ruleId": "NuGet.0002",
+          "projectPath": "TaskFlow.Api\\TaskFlow.Api.csproj",
+          "state": "Active",
+          "location": {
+            "snippetModel": {
+              "unrestricted": "Microsoft.EntityFrameworkCore.Sqlite, 9.0.10\n\nRecommendation:\n\nRemove Microsoft.EntityFrameworkCore.Sqlite, and replace with new package Microsoft.EntityFrameworkCore.Sqlite 10.0.5",
+              "protected": "Microsoft.EntityFrameworkCore.Sqlite, 9.0.10\n\nRecommendation:\n\nRemove Microsoft.EntityFrameworkCore.Sqlite, and replace with new package Microsoft.EntityFrameworkCore.Sqlite 10.0.5"
+            },
+            "kind": "File",
+            "path": "TaskFlow.Api\\TaskFlow.Api.csproj",
+            "snippet": "Microsoft.EntityFrameworkCore.Sqlite, 9.0.10\n\nRecommendation:\n\nRemove Microsoft.EntityFrameworkCore.Sqlite, and replace with new package Microsoft.EntityFrameworkCore.Sqlite 10.0.5",
+            "protectedSnippet": "Microsoft.EntityFrameworkCore.Sqlite, 9.0.10\n\nRecommendation:\n\nRemove Microsoft.EntityFrameworkCore.Sqlite, and replace with new package Microsoft.EntityFrameworkCore.Sqlite 10.0.5",
+            "label": "Microsoft.EntityFrameworkCore.Sqlite 9.0.10",
+            "properties": {
+              "PackageId": "Microsoft.EntityFrameworkCore.Sqlite",
+              "PackageVersion": "9.0.10",
+              "PackageNewVersion": "10.0.5",
+              "PackageReplacements": null
+            }
+          }
+        },
+        {
+          "incidentId": "39fd46da-ff71-49e5-9a70-5a997688623b",
+          "ruleId": "NuGet.0002",
+          "projectPath": "TaskFlow.Api\\TaskFlow.Api.csproj",
+          "state": "Active",
+          "location": {
+            "snippetModel": {
+              "unrestricted": "Microsoft.EntityFrameworkCore.Tools, 9.0.10\n\nRecommendation:\n\nRemove Microsoft.EntityFrameworkCore.Tools, and replace with new package Microsoft.EntityFrameworkCore.Tools 10.0.5",
+              "protected": "Microsoft.EntityFrameworkCore.Tools, 9.0.10\n\nRecommendation:\n\nRemove Microsoft.EntityFrameworkCore.Tools, and replace with new package Microsoft.EntityFrameworkCore.Tools 10.0.5"
+            },
+            "kind": "File",
+            "path": "TaskFlow.Api\\TaskFlow.Api.csproj",
+            "snippet": "Microsoft.EntityFrameworkCore.Tools, 9.0.10\n\nRecommendation:\n\nRemove Microsoft.EntityFrameworkCore.Tools, and replace with new package Microsoft.EntityFrameworkCore.Tools 10.0.5",
+            "protectedSnippet": "Microsoft.EntityFrameworkCore.Tools, 9.0.10\n\nRecommendation:\n\nRemove Microsoft.EntityFrameworkCore.Tools, and replace with new package Microsoft.EntityFrameworkCore.Tools 10.0.5",
+            "label": "Microsoft.EntityFrameworkCore.Tools 9.0.10",
+            "properties": {
+              "PackageId": "Microsoft.EntityFrameworkCore.Tools",
+              "PackageVersion": "9.0.10",
+              "PackageNewVersion": "10.0.5",
+              "PackageReplacements": null
+            }
+          }
+        },
+        {
+          "incidentId": "407b771a-cc85-45ee-9ef4-3b7ba1b1f120",
+          "ruleId": "NuGet.0002",
+          "projectPath": "TaskFlow.Api\\TaskFlow.Api.csproj",
+          "state": "Active",
+          "location": {
+            "snippetModel": {
+              "unrestricted": "Microsoft.Extensions.Diagnostics.HealthChecks.EntityFrameworkCore, 9.0.10\n\nRecommendation:\n\nRemove Microsoft.Extensions.Diagnostics.HealthChecks.EntityFrameworkCore, and replace with new package Microsoft.Extensions.Diagnostics.HealthChecks.EntityFrameworkCore 10.0.5",
+              "protected": "Microsoft.Extensions.Diagnostics.HealthChecks.EntityFrameworkCore, 9.0.10\n\nRecommendation:\n\nRemove Microsoft.Extensions.Diagnostics.HealthChecks.EntityFrameworkCore, and replace with new package Microsoft.Extensions.Diagnostics.HealthChecks.EntityFrameworkCore 10.0.5"
+            },
+            "kind": "File",
+            "path": "TaskFlow.Api\\TaskFlow.Api.csproj",
+            "snippet": "Microsoft.Extensions.Diagnostics.HealthChecks.EntityFrameworkCore, 9.0.10\n\nRecommendation:\n\nRemove Microsoft.Extensions.Diagnostics.HealthChecks.EntityFrameworkCore, and replace with new package Microsoft.Extensions.Diagnostics.HealthChecks.EntityFrameworkCore 10.0.5",
+            "protectedSnippet": "Microsoft.Extensions.Diagnostics.HealthChecks.EntityFrameworkCore, 9.0.10\n\nRecommendation:\n\nRemove Microsoft.Extensions.Diagnostics.HealthChecks.EntityFrameworkCore, and replace with new package Microsoft.Extensions.Diagnostics.HealthChecks.EntityFrameworkCore 10.0.5",
+            "label": "Microsoft.Extensions.Diagnostics.HealthChecks.EntityFrameworkCore 9.0.10",
+            "properties": {
+              "PackageId": "Microsoft.Extensions.Diagnostics.HealthChecks.EntityFrameworkCore",
+              "PackageVersion": "9.0.10",
+              "PackageNewVersion": "10.0.5",
+              "PackageReplacements": null
+            }
+          }
+        },
+        {
+          "incidentId": "d5800d72-bea7-4c9b-808d-f8d4347755be",
+          "ruleId": "NuGet.0001",
+          "projectPath": "TaskFlow.Api\\TaskFlow.Api.csproj",
+          "state": "Active",
+          "location": {
+            "snippetModel": {
+              "unrestricted": "Microsoft.VisualStudio.Azure.Containers.Tools.Targets, 1.22.1\n\nRecommendation:\n\nNo supported version found",
+              "protected": "Microsoft.VisualStudio.Azure.Containers.Tools.Targets, 1.22.1\n\nRecommendation:\n\nNo supported version found"
+            },
+            "kind": "File",
+            "path": "TaskFlow.Api\\TaskFlow.Api.csproj",
+            "snippet": "Microsoft.VisualStudio.Azure.Containers.Tools.Targets, 1.22.1\n\nRecommendation:\n\nNo supported version found",
+            "protectedSnippet": "Microsoft.VisualStudio.Azure.Containers.Tools.Targets, 1.22.1\n\nRecommendation:\n\nNo supported version found",
+            "label": "Microsoft.VisualStudio.Azure.Containers.Tools.Targets 1.22.1",
+            "properties": {
+              "PackageId": "Microsoft.VisualStudio.Azure.Containers.Tools.Targets",
+              "PackageVersion": "1.22.1",
+              "PackageNewVersion": null,
+              "PackageReplacements": null
+            }
+          }
+        },
+        {
+          "incidentId": "19b5f6e5-5418-47ae-895a-cd44dd4c8938",
+          "ruleId": "Project.0002",
+          "projectPath": "TaskFlow.Api\\TaskFlow.Api.csproj",
+          "state": "Active",
+          "location": {
+            "snippetModel": {
+              "unrestricted": "Current target framework: net9.0\nRecommended target framework: net10.0",
+              "protected": "Current target framework: net9.0\nRecommended target framework: net10.0"
+            },
+            "kind": "File",
+            "path": "TaskFlow.Api\\TaskFlow.Api.csproj",
+            "snippet": "Current target framework: net9.0\nRecommended target framework: net10.0",
+            "protectedSnippet": "Current target framework: net9.0\nRecommended target framework: net10.0",
+            "properties": {
+              "CurrentTargetFramework": "net9.0",
+              "RecommendedTargetFramework": "net10.0"
+            }
+          }
+        },
+        {
+          "incidentId": "e36d511b-d7d4-4487-b17b-13385d9477eb",
+          "ruleId": "Api.0003",
+          "description": "Breaking change: System.Text.Json metadata reader now unescapes metadata property names ",
+          "projectPath": "TaskFlow.Api\\TaskFlow.Api.csproj",
+          "state": "Active",
+          "location": {
+            "snippetModel": {
+              "unrestricted": "model = JsonSerializer.Deserialize(body, modelType, _jsonOptions);",
+              "protected": "M:System.Text.Json.JsonSerializer.Deserialize(System.String,System.Type,System.Text.Json.JsonSerializerOptions)"
+            },
+            "kind": "File",
+            "path": "TaskFlow.Api\\Middleware\\ValidationMiddleware.cs",
+            "snippet": "model = JsonSerializer.Deserialize(body, modelType, _jsonOptions);",
+            "protectedSnippet": "M:System.Text.Json.JsonSerializer.Deserialize(System.String,System.Type,System.Text.Json.JsonSerializerOptions)",
+            "label": "M:System.Text.Json.JsonSerializer.Deserialize(System.String,System.Type,System.Text.Json.JsonSerializerOptions)",
+            "links": [
+              {
+                "title": "API documentation",
+                "url": "https://github.com/dotnet/docs/blob/main/docs/core/compatibility/serialization/9.0/json-metadata-reader.md",
+                "isCustom": false
+              }
+            ],
+            "line": 59,
+            "column": 16
+          }
+        },
+        {
+          "incidentId": "dfe6aaed-b6f6-464b-8f32-f62cafc50780",
+          "ruleId": "Api.0002",
+          "description": "Breaking change: New TimeSpan.From*() overloads that take integers ",
+          "projectPath": "TaskFlow.Api\\TaskFlow.Api.csproj",
+          "state": "Active",
+          "location": {
+            "snippetModel": {
+              "unrestricted": "Log.Logger = new LoggerConfiguration()\r\n            .WriteTo.Console()\r\n            .WriteTo.File(\r\n                path: logPath,\r\n                rollingInterval: RollingInterval.Day,\r\n                shared: true,\r\n                flushToDiskInterval: TimeSpan.FromSeconds(1))\r\n            .CreateLogger();",
+              "protected": "M:System.TimeSpan.FromSeconds(System.Int64)"
+            },
+            "kind": "File",
+            "path": "TaskFlow.Api\\Extensions\\LoggingServiceExtensions.cs",
+            "snippet": "Log.Logger = new LoggerConfiguration()\r\n            .WriteTo.Console()\r\n            .WriteTo.File(\r\n                path: logPath,\r\n                rollingInterval: RollingInterval.Day,\r\n                shared: true,\r\n                flushToDiskInterval: TimeSpan.FromSeconds(1))\r\n            .CreateLogger();",
+            "protectedSnippet": "M:System.TimeSpan.FromSeconds(System.Int64)",
+            "label": "M:System.TimeSpan.FromSeconds(System.Int64)",
+            "links": [
+              {
+                "title": "API documentation",
+                "url": "https://github.com/dotnet/docs/blob/main/docs/core/compatibility/core-libraries/9.0/timespan-from-overloads.md",
+                "isCustom": false
+              }
+            ],
+            "line": 33,
+            "column": 8
+          }
+        },
+        {
+          "incidentId": "98edbabc-b752-45b7-9f89-393fc8548cb3",
+          "ruleId": "Api.0001",
+          "description": "Breaking change: DynamicallyAccessedMembers annotation removed from trim-unsafe configuration APIs ",
+          "projectPath": "TaskFlow.Api\\TaskFlow.Api.csproj",
+          "state": "Active",
+          "location": {
+            "snippetModel": {
+              "unrestricted": "var shouldMigrate = env.IsDevelopment()\r\n                            || builder.Configuration.GetValue\u003Cbool\u003E(\u0022Database:MigrateOnStartup\u0022);",
+              "protected": "M:Microsoft.Extensions.Configuration.ConfigurationBinder.GetValue\u0060\u00601(Microsoft.Extensions.Configuration.IConfiguration,System.String)"
+            },
+            "kind": "File",
+            "path": "TaskFlow.Api\\Program.cs",
+            "snippet": "var shouldMigrate = env.IsDevelopment()\r\n                            || builder.Configuration.GetValue\u003Cbool\u003E(\u0022Database:MigrateOnStartup\u0022);",
+            "protectedSnippet": "M:Microsoft.Extensions.Configuration.ConfigurationBinder.GetValue\u0060\u00601(Microsoft.Extensions.Configuration.IConfiguration,System.String)",
+            "label": "M:Microsoft.Extensions.Configuration.ConfigurationBinder.GetValue\u0060\u00601(Microsoft.Extensions.Configuration.IConfiguration,System.String)",
+            "links": [
+              {
+                "title": "API documentation",
+                "url": "https://github.com/dotnet/docs/blob/main/docs/core/compatibility/extensions/10.0/dynamically-accessed-members-configuration.md",
+                "isCustom": false
+              }
+            ],
+            "line": 35,
+            "column": 8
+          }
+        }
+      ],
+      "features": []
+    },
+    {
+      "path": "TaskFlow.Api.Tests\\TaskFlow.Api.Tests.csproj",
+      "startingProject": true,
+      "issues": 4,
+      "storyPoints": 25,
+      "properties": {
+        "appName": "TaskFlow.Api.Tests",
+        "projectKind": "DotNetCoreApp",
+        "frameworks": [
+          "net9.0"
+        ],
+        "languages": [
+          "C#"
+        ],
+        "tools": [
+          "MSBuild"
+        ],
+        "isSdkStyle": true,
+        "numberOfFiles": 15,
+        "numberOfCodeFiles": 13,
+        "linesTotal": 5551,
+        "linesOfCode": 2941,
+        "totalApiScanned": 4713,
+        "minLinesOfCodeToChange": 22,
+        "maxLinesOfCodeToChange": 22
+      },
+      "ruleInstances": [
+        {
+          "incidentId": "837a4081-4f8c-4a8a-923f-a7e25c53cbe1",
+          "ruleId": "NuGet.0002",
+          "projectPath": "TaskFlow.Api.Tests\\TaskFlow.Api.Tests.csproj",
+          "state": "Active",
+          "location": {
+            "snippetModel": {
+              "unrestricted": "Microsoft.EntityFrameworkCore.InMemory, 9.0.10\n\nRecommendation:\n\nRemove Microsoft.EntityFrameworkCore.InMemory, and replace with new package Microsoft.EntityFrameworkCore.InMemory 10.0.5",
+              "protected": "Microsoft.EntityFrameworkCore.InMemory, 9.0.10\n\nRecommendation:\n\nRemove Microsoft.EntityFrameworkCore.InMemory, and replace with new package Microsoft.EntityFrameworkCore.InMemory 10.0.5"
+            },
+            "kind": "File",
+            "path": "TaskFlow.Api.Tests\\TaskFlow.Api.Tests.csproj",
+            "snippet": "Microsoft.EntityFrameworkCore.InMemory, 9.0.10\n\nRecommendation:\n\nRemove Microsoft.EntityFrameworkCore.InMemory, and replace with new package Microsoft.EntityFrameworkCore.InMemory 10.0.5",
+            "protectedSnippet": "Microsoft.EntityFrameworkCore.InMemory, 9.0.10\n\nRecommendation:\n\nRemove Microsoft.EntityFrameworkCore.InMemory, and replace with new package Microsoft.EntityFrameworkCore.InMemory 10.0.5",
+            "label": "Microsoft.EntityFrameworkCore.InMemory 9.0.10",
+            "properties": {
+              "PackageId": "Microsoft.EntityFrameworkCore.InMemory",
+              "PackageVersion": "9.0.10",
+              "PackageNewVersion": "10.0.5",
+              "PackageReplacements": null
+            }
+          }
+        },
+        {
+          "incidentId": "535c522b-2619-4c4c-a972-e1a5c16307d6",
+          "ruleId": "NuGet.0005",
+          "projectPath": "TaskFlow.Api.Tests\\TaskFlow.Api.Tests.csproj",
+          "state": "Active",
+          "location": {
+            "snippetModel": {
+              "unrestricted": "xunit, 2.9.3\n\nRecommendation:\n\nThis package will only be updated for security issues. All future feature work has moved onto v3.\n\nGuide for migrating from xUnit.net v2 to v3: https://xunit.net/docs/getting-started/v3/migration\nRemove xunit, and replace with new package xunit, 2.9.3",
+              "protected": "xunit, 2.9.3\n\nRecommendation:\n\nThis package will only be updated for security issues. All future feature work has moved onto v3.\n\nGuide for migrating from xUnit.net v2 to v3: https://xunit.net/docs/getting-started/v3/migration\nRemove xunit, and replace with new package xunit, 2.9.3"
+            },
+            "kind": "File",
+            "path": "TaskFlow.Api.Tests\\TaskFlow.Api.Tests.csproj",
+            "snippet": "xunit, 2.9.3\n\nRecommendation:\n\nThis package will only be updated for security issues. All future feature work has moved onto v3.\n\nGuide for migrating from xUnit.net v2 to v3: https://xunit.net/docs/getting-started/v3/migration\nRemove xunit, and replace with new package xunit, 2.9.3",
+            "protectedSnippet": "xunit, 2.9.3\n\nRecommendation:\n\nThis package will only be updated for security issues. All future feature work has moved onto v3.\n\nGuide for migrating from xUnit.net v2 to v3: https://xunit.net/docs/getting-started/v3/migration\nRemove xunit, and replace with new package xunit, 2.9.3",
+            "label": "xunit 2.9.3",
+            "properties": {
+              "PackageId": "xunit",
+              "PackageVersion": "2.9.3",
+              "PackageNewVersion": null,
+              "PackageReplacements": null
+            }
+          }
+        },
+        {
+          "incidentId": "b2229b64-2d95-429b-942d-fe2a3ffdd850",
+          "ruleId": "Project.0002",
+          "projectPath": "TaskFlow.Api.Tests\\TaskFlow.Api.Tests.csproj",
+          "state": "Active",
+          "location": {
+            "snippetModel": {
+              "unrestricted": "Current target framework: net9.0\nRecommended target framework: net10.0",
+              "protected": "Current target framework: net9.0\nRecommended target framework: net10.0"
+            },
+            "kind": "File",
+            "path": "TaskFlow.Api.Tests\\TaskFlow.Api.Tests.csproj",
+            "snippet": "Current target framework: net9.0\nRecommended target framework: net10.0",
+            "protectedSnippet": "Current target framework: net9.0\nRecommended target framework: net10.0",
+            "properties": {
+              "CurrentTargetFramework": "net9.0",
+              "RecommendedTargetFramework": "net10.0"
+            }
+          }
+        },
+        {
+          "incidentId": "077ee7e5-0c89-48cc-b988-3716b79a720f",
+          "ruleId": "Api.0002",
+          "description": "Breaking change: New TimeSpan.From*() overloads that take integers ",
+          "projectPath": "TaskFlow.Api.Tests\\TaskFlow.Api.Tests.csproj",
+          "state": "Active",
+          "location": {
+            "snippetModel": {
+              "unrestricted": "var healthReport = new HealthReport(\r\n            new Dictionary\u003Cstring, HealthReportEntry\u003E\r\n            {\r\n                [\u0022database\u0022] = new HealthReportEntry(\r\n                    HealthStatus.Healthy,\r\n                    \u0022Database is healthy\u0022,\r\n                    TimeSpan.FromMilliseconds(50),\r\n                    null,\r\n                    customData)\r\n            },\r\n            TimeSpan.FromMilliseconds(100));",
+              "protected": "M:System.TimeSpan.FromMilliseconds(System.Int64,System.Int64)"
+            },
+            "kind": "File",
+            "path": "TaskFlow.Api.Tests\\HealthChecks\\HealthCheckResponseWriterTests.cs",
+            "snippet": "var healthReport = new HealthReport(\r\n            new Dictionary\u003Cstring, HealthReportEntry\u003E\r\n            {\r\n                [\u0022database\u0022] = new HealthReportEntry(\r\n                    HealthStatus.Healthy,\r\n                    \u0022Database is healthy\u0022,\r\n                    TimeSpan.FromMilliseconds(50),\r\n                    null,\r\n                    customData)\r\n            },\r\n            TimeSpan.FromMilliseconds(100));",
+            "protectedSnippet": "M:System.TimeSpan.FromMilliseconds(System.Int64,System.Int64)",
+            "label": "M:System.TimeSpan.FromMilliseconds(System.Int64,System.Int64)",
+            "links": [
+              {
+                "title": "API documentation",
+                "url": "https://github.com/dotnet/docs/blob/main/docs/core/compatibility/core-libraries/9.0/timespan-from-overloads.md",
+                "isCustom": false
+              }
+            ],
+            "line": 183,
+            "column": 8
+          }
+        },
+        {
+          "incidentId": "d47b5ba0-553e-417f-aef0-a1fddf760ba8",
+          "ruleId": "Api.0002",
+          "description": "Breaking change: New TimeSpan.From*() overloads that take integers ",
+          "projectPath": "TaskFlow.Api.Tests\\TaskFlow.Api.Tests.csproj",
+          "state": "Active",
+          "location": {
+            "snippetModel": {
+              "unrestricted": "var healthReport = new HealthReport(\r\n            new Dictionary\u003Cstring, HealthReportEntry\u003E\r\n            {\r\n                [\u0022database\u0022] = new HealthReportEntry(\r\n                    HealthStatus.Healthy,\r\n                    \u0022Database is healthy\u0022,\r\n                    TimeSpan.FromMilliseconds(50),\r\n                    null,\r\n                    customData)\r\n            },\r\n            TimeSpan.FromMilliseconds(100));",
+              "protected": "M:System.TimeSpan.FromMilliseconds(System.Int64,System.Int64)"
+            },
+            "kind": "File",
+            "path": "TaskFlow.Api.Tests\\HealthChecks\\HealthCheckResponseWriterTests.cs",
+            "snippet": "var healthReport = new HealthReport(\r\n            new Dictionary\u003Cstring, HealthReportEntry\u003E\r\n            {\r\n                [\u0022database\u0022] = new HealthReportEntry(\r\n                    HealthStatus.Healthy,\r\n                    \u0022Database is healthy\u0022,\r\n                    TimeSpan.FromMilliseconds(50),\r\n                    null,\r\n                    customData)\r\n            },\r\n            TimeSpan.FromMilliseconds(100));",
+            "protectedSnippet": "M:System.TimeSpan.FromMilliseconds(System.Int64,System.Int64)",
+            "label": "M:System.TimeSpan.FromMilliseconds(System.Int64,System.Int64)",
+            "links": [
+              {
+                "title": "API documentation",
+                "url": "https://github.com/dotnet/docs/blob/main/docs/core/compatibility/core-libraries/9.0/timespan-from-overloads.md",
+                "isCustom": false
+              }
+            ],
+            "line": 183,
+            "column": 8
+          }
+        },
+        {
+          "incidentId": "c4939b52-9b5b-4420-bedc-42eacdb7ed10",
+          "ruleId": "Api.0002",
+          "description": "Breaking change: New TimeSpan.From*() overloads that take integers ",
+          "projectPath": "TaskFlow.Api.Tests\\TaskFlow.Api.Tests.csproj",
+          "state": "Active",
+          "location": {
+            "snippetModel": {
+              "unrestricted": "var healthReport = new HealthReport(\r\n            new Dictionary\u003Cstring, HealthReportEntry\u003E\r\n            {\r\n                [\u0022service\u0022] = new HealthReportEntry(\r\n                    HealthStatus.Degraded,\r\n                    \u0022Service is degraded\u0022,\r\n                    TimeSpan.FromMilliseconds(100),\r\n                    null,\r\n                    null)\r\n            },\r\n            TimeSpan.FromMilliseconds(150));",
+              "protected": "M:System.TimeSpan.FromMilliseconds(System.Int64,System.Int64)"
+            },
+            "kind": "File",
+            "path": "TaskFlow.Api.Tests\\HealthChecks\\HealthCheckResponseWriterTests.cs",
+            "snippet": "var healthReport = new HealthReport(\r\n            new Dictionary\u003Cstring, HealthReportEntry\u003E\r\n            {\r\n                [\u0022service\u0022] = new HealthReportEntry(\r\n                    HealthStatus.Degraded,\r\n                    \u0022Service is degraded\u0022,\r\n                    TimeSpan.FromMilliseconds(100),\r\n                    null,\r\n                    null)\r\n            },\r\n            TimeSpan.FromMilliseconds(150));",
+            "protectedSnippet": "M:System.TimeSpan.FromMilliseconds(System.Int64,System.Int64)",
+            "label": "M:System.TimeSpan.FromMilliseconds(System.Int64,System.Int64)",
+            "links": [
+              {
+                "title": "API documentation",
+                "url": "https://github.com/dotnet/docs/blob/main/docs/core/compatibility/core-libraries/9.0/timespan-from-overloads.md",
+                "isCustom": false
+              }
+            ],
+            "line": 146,
+            "column": 8
+          }
+        },
+        {
+          "incidentId": "75c0fbf1-b2a0-4aee-8493-784e9f3e6341",
+          "ruleId": "Api.0002",
+          "description": "Breaking change: New TimeSpan.From*() overloads that take integers ",
+          "projectPath": "TaskFlow.Api.Tests\\TaskFlow.Api.Tests.csproj",
+          "state": "Active",
+          "location": {
+            "snippetModel": {
+              "unrestricted": "var healthReport = new HealthReport(\r\n            new Dictionary\u003Cstring, HealthReportEntry\u003E\r\n            {\r\n                [\u0022service\u0022] = new HealthReportEntry(\r\n                    HealthStatus.Degraded,\r\n                    \u0022Service is degraded\u0022,\r\n                    TimeSpan.FromMilliseconds(100),\r\n                    null,\r\n                    null)\r\n            },\r\n            TimeSpan.FromMilliseconds(150));",
+              "protected": "M:System.TimeSpan.FromMilliseconds(System.Int64,System.Int64)"
+            },
+            "kind": "File",
+            "path": "TaskFlow.Api.Tests\\HealthChecks\\HealthCheckResponseWriterTests.cs",
+            "snippet": "var healthReport = new HealthReport(\r\n            new Dictionary\u003Cstring, HealthReportEntry\u003E\r\n            {\r\n                [\u0022service\u0022] = new HealthReportEntry(\r\n                    HealthStatus.Degraded,\r\n                    \u0022Service is degraded\u0022,\r\n                    TimeSpan.FromMilliseconds(100),\r\n                    null,\r\n                    null)\r\n            },\r\n            TimeSpan.FromMilliseconds(150));",
+            "protectedSnippet": "M:System.TimeSpan.FromMilliseconds(System.Int64,System.Int64)",
+            "label": "M:System.TimeSpan.FromMilliseconds(System.Int64,System.Int64)",
+            "links": [
+              {
+                "title": "API documentation",
+                "url": "https://github.com/dotnet/docs/blob/main/docs/core/compatibility/core-libraries/9.0/timespan-from-overloads.md",
+                "isCustom": false
+              }
+            ],
+            "line": 146,
+            "column": 8
+          }
+        },
+        {
+          "incidentId": "1da75dfc-dc3e-4257-98eb-a12225aefb8b",
+          "ruleId": "Api.0002",
+          "description": "Breaking change: New TimeSpan.From*() overloads that take integers ",
+          "projectPath": "TaskFlow.Api.Tests\\TaskFlow.Api.Tests.csproj",
+          "state": "Active",
+          "location": {
+            "snippetModel": {
+              "unrestricted": "var healthReport = new HealthReport(\r\n            new Dictionary\u003Cstring, HealthReportEntry\u003E\r\n            {\r\n                [\u0022database\u0022] = new HealthReportEntry(\r\n                    HealthStatus.Healthy,\r\n                    \u0022Database is healthy\u0022,\r\n                    TimeSpan.FromMilliseconds(30),\r\n                    null,\r\n                    null),\r\n                [\u0022api\u0022] = new HealthReportEntry(\r\n                    HealthStatus.Healthy,\r\n                    \u0022API is running\u0022,\r\n                    TimeSpan.FromMilliseconds(10),\r\n                    null,\r\n                    null)\r\n            },\r\n            TimeSpan.FromMilliseconds(50));",
+              "protected": "M:System.TimeSpan.FromMilliseconds(System.Int64,System.Int64)"
+            },
+            "kind": "File",
+            "path": "TaskFlow.Api.Tests\\HealthChecks\\HealthCheckResponseWriterTests.cs",
+            "snippet": "var healthReport = new HealthReport(\r\n            new Dictionary\u003Cstring, HealthReportEntry\u003E\r\n            {\r\n                [\u0022database\u0022] = new HealthReportEntry(\r\n                    HealthStatus.Healthy,\r\n                    \u0022Database is healthy\u0022,\r\n                    TimeSpan.FromMilliseconds(30),\r\n                    null,\r\n                    null),\r\n                [\u0022api\u0022] = new HealthReportEntry(\r\n                    HealthStatus.Healthy,\r\n                    \u0022API is running\u0022,\r\n                    TimeSpan.FromMilliseconds(10),\r\n                    null,\r\n                    null)\r\n            },\r\n            TimeSpan.FromMilliseconds(50));",
+            "protectedSnippet": "M:System.TimeSpan.FromMilliseconds(System.Int64,System.Int64)",
+            "label": "M:System.TimeSpan.FromMilliseconds(System.Int64,System.Int64)",
+            "links": [
+              {
+                "title": "API documentation",
+                "url": "https://github.com/dotnet/docs/blob/main/docs/core/compatibility/core-libraries/9.0/timespan-from-overloads.md",
+                "isCustom": false
+              }
+            ],
+            "line": 108,
+            "column": 8
+          }
+        },
+        {
+          "incidentId": "f248971f-31e2-4108-94a1-a7ca1bbc1712",
+          "ruleId": "Api.0002",
+          "description": "Breaking change: New TimeSpan.From*() overloads that take integers ",
+          "projectPath": "TaskFlow.Api.Tests\\TaskFlow.Api.Tests.csproj",
+          "state": "Active",
+          "location": {
+            "snippetModel": {
+              "unrestricted": "var healthReport = new HealthReport(\r\n            new Dictionary\u003Cstring, HealthReportEntry\u003E\r\n            {\r\n                [\u0022database\u0022] = new HealthReportEntry(\r\n                    HealthStatus.Healthy,\r\n                    \u0022Database is healthy\u0022,\r\n                    TimeSpan.FromMilliseconds(30),\r\n                    null,\r\n                    null),\r\n                [\u0022api\u0022] = new HealthReportEntry(\r\n                    HealthStatus.Healthy,\r\n                    \u0022API is running\u0022,\r\n                    TimeSpan.FromMilliseconds(10),\r\n                    null,\r\n                    null)\r\n            },\r\n            TimeSpan.FromMilliseconds(50));",
+              "protected": "M:System.TimeSpan.FromMilliseconds(System.Int64,System.Int64)"
+            },
+            "kind": "File",
+            "path": "TaskFlow.Api.Tests\\HealthChecks\\HealthCheckResponseWriterTests.cs",
+            "snippet": "var healthReport = new HealthReport(\r\n            new Dictionary\u003Cstring, HealthReportEntry\u003E\r\n            {\r\n                [\u0022database\u0022] = new HealthReportEntry(\r\n                    HealthStatus.Healthy,\r\n                    \u0022Database is healthy\u0022,\r\n                    TimeSpan.FromMilliseconds(30),\r\n                    null,\r\n                    null),\r\n                [\u0022api\u0022] = new HealthReportEntry(\r\n                    HealthStatus.Healthy,\r\n                    \u0022API is running\u0022,\r\n                    TimeSpan.FromMilliseconds(10),\r\n                    null,\r\n                    null)\r\n            },\r\n            TimeSpan.FromMilliseconds(50));",
+            "protectedSnippet": "M:System.TimeSpan.FromMilliseconds(System.Int64,System.Int64)",
+            "label": "M:System.TimeSpan.FromMilliseconds(System.Int64,System.Int64)",
+            "links": [
+              {
+                "title": "API documentation",
+                "url": "https://github.com/dotnet/docs/blob/main/docs/core/compatibility/core-libraries/9.0/timespan-from-overloads.md",
+                "isCustom": false
+              }
+            ],
+            "line": 108,
+            "column": 8
+          }
+        },
+        {
+          "incidentId": "72518f42-8db5-4c79-a34b-9d45545fc985",
+          "ruleId": "Api.0002",
+          "description": "Breaking change: New TimeSpan.From*() overloads that take integers ",
+          "projectPath": "TaskFlow.Api.Tests\\TaskFlow.Api.Tests.csproj",
+          "state": "Active",
+          "location": {
+            "snippetModel": {
+              "unrestricted": "var healthReport = new HealthReport(\r\n            new Dictionary\u003Cstring, HealthReportEntry\u003E\r\n            {\r\n                [\u0022database\u0022] = new HealthReportEntry(\r\n                    HealthStatus.Healthy,\r\n                    \u0022Database is healthy\u0022,\r\n                    TimeSpan.FromMilliseconds(30),\r\n                    null,\r\n                    null),\r\n                [\u0022api\u0022] = new HealthReportEntry(\r\n                    HealthStatus.Healthy,\r\n                    \u0022API is running\u0022,\r\n                    TimeSpan.FromMilliseconds(10),\r\n                    null,\r\n                    null)\r\n            },\r\n            TimeSpan.FromMilliseconds(50));",
+              "protected": "M:System.TimeSpan.FromMilliseconds(System.Int64,System.Int64)"
+            },
+            "kind": "File",
+            "path": "TaskFlow.Api.Tests\\HealthChecks\\HealthCheckResponseWriterTests.cs",
+            "snippet": "var healthReport = new HealthReport(\r\n            new Dictionary\u003Cstring, HealthReportEntry\u003E\r\n            {\r\n                [\u0022database\u0022] = new HealthReportEntry(\r\n                    HealthStatus.Healthy,\r\n                    \u0022Database is healthy\u0022,\r\n                    TimeSpan.FromMilliseconds(30),\r\n                    null,\r\n                    null),\r\n                [\u0022api\u0022] = new HealthReportEntry(\r\n                    HealthStatus.Healthy,\r\n                    \u0022API is running\u0022,\r\n                    TimeSpan.FromMilliseconds(10),\r\n                    null,\r\n                    null)\r\n            },\r\n            TimeSpan.FromMilliseconds(50));",
+            "protectedSnippet": "M:System.TimeSpan.FromMilliseconds(System.Int64,System.Int64)",
+            "label": "M:System.TimeSpan.FromMilliseconds(System.Int64,System.Int64)",
+            "links": [
+              {
+                "title": "API documentation",
+                "url": "https://github.com/dotnet/docs/blob/main/docs/core/compatibility/core-libraries/9.0/timespan-from-overloads.md",
+                "isCustom": false
+              }
+            ],
+            "line": 108,
+            "column": 8
+          }
+        },
+        {
+          "incidentId": "321e0905-6bda-470e-80df-1769b2106efa",
+          "ruleId": "Api.0002",
+          "description": "Breaking change: New TimeSpan.From*() overloads that take integers ",
+          "projectPath": "TaskFlow.Api.Tests\\TaskFlow.Api.Tests.csproj",
+          "state": "Active",
+          "location": {
+            "snippetModel": {
+              "unrestricted": "var healthReport = new HealthReport(\r\n            new Dictionary\u003Cstring, HealthReportEntry\u003E\r\n            {\r\n                [\u0022database\u0022] = new HealthReportEntry(\r\n                    HealthStatus.Unhealthy,\r\n                    \u0022Database connection failed\u0022,\r\n                    TimeSpan.FromMilliseconds(50),\r\n                    new InvalidOperationException(\u0022Connection error\u0022),\r\n                    null)\r\n            },\r\n            TimeSpan.FromMilliseconds(100));",
+              "protected": "M:System.TimeSpan.FromMilliseconds(System.Int64,System.Int64)"
+            },
+            "kind": "File",
+            "path": "TaskFlow.Api.Tests\\HealthChecks\\HealthCheckResponseWriterTests.cs",
+            "snippet": "var healthReport = new HealthReport(\r\n            new Dictionary\u003Cstring, HealthReportEntry\u003E\r\n            {\r\n                [\u0022database\u0022] = new HealthReportEntry(\r\n                    HealthStatus.Unhealthy,\r\n                    \u0022Database connection failed\u0022,\r\n                    TimeSpan.FromMilliseconds(50),\r\n                    new InvalidOperationException(\u0022Connection error\u0022),\r\n                    null)\r\n            },\r\n            TimeSpan.FromMilliseconds(100));",
+            "protectedSnippet": "M:System.TimeSpan.FromMilliseconds(System.Int64,System.Int64)",
+            "label": "M:System.TimeSpan.FromMilliseconds(System.Int64,System.Int64)",
+            "links": [
+              {
+                "title": "API documentation",
+                "url": "https://github.com/dotnet/docs/blob/main/docs/core/compatibility/core-libraries/9.0/timespan-from-overloads.md",
+                "isCustom": false
+              }
+            ],
+            "line": 74,
+            "column": 8
+          }
+        },
+        {
+          "incidentId": "c8d44049-711b-4b82-8e68-30a50f06fef2",
+          "ruleId": "Api.0002",
+          "description": "Breaking change: New TimeSpan.From*() overloads that take integers ",
+          "projectPath": "TaskFlow.Api.Tests\\TaskFlow.Api.Tests.csproj",
+          "state": "Active",
+          "location": {
+            "snippetModel": {
+              "unrestricted": "var healthReport = new HealthReport(\r\n            new Dictionary\u003Cstring, HealthReportEntry\u003E\r\n            {\r\n                [\u0022database\u0022] = new HealthReportEntry(\r\n                    HealthStatus.Unhealthy,\r\n                    \u0022Database connection failed\u0022,\r\n                    TimeSpan.FromMilliseconds(50),\r\n                    new InvalidOperationException(\u0022Connection error\u0022),\r\n                    null)\r\n            },\r\n            TimeSpan.FromMilliseconds(100));",
+              "protected": "M:System.TimeSpan.FromMilliseconds(System.Int64,System.Int64)"
+            },
+            "kind": "File",
+            "path": "TaskFlow.Api.Tests\\HealthChecks\\HealthCheckResponseWriterTests.cs",
+            "snippet": "var healthReport = new HealthReport(\r\n            new Dictionary\u003Cstring, HealthReportEntry\u003E\r\n            {\r\n                [\u0022database\u0022] = new HealthReportEntry(\r\n                    HealthStatus.Unhealthy,\r\n                    \u0022Database connection failed\u0022,\r\n                    TimeSpan.FromMilliseconds(50),\r\n                    new InvalidOperationException(\u0022Connection error\u0022),\r\n                    null)\r\n            },\r\n            TimeSpan.FromMilliseconds(100));",
+            "protectedSnippet": "M:System.TimeSpan.FromMilliseconds(System.Int64,System.Int64)",
+            "label": "M:System.TimeSpan.FromMilliseconds(System.Int64,System.Int64)",
+            "links": [
+              {
+                "title": "API documentation",
+                "url": "https://github.com/dotnet/docs/blob/main/docs/core/compatibility/core-libraries/9.0/timespan-from-overloads.md",
+                "isCustom": false
+              }
+            ],
+            "line": 74,
+            "column": 8
+          }
+        },
+        {
+          "incidentId": "b649f46e-8b8f-440a-8c69-8d6a3cd74765",
+          "ruleId": "Api.0002",
+          "description": "Breaking change: New TimeSpan.From*() overloads that take integers ",
+          "projectPath": "TaskFlow.Api.Tests\\TaskFlow.Api.Tests.csproj",
+          "state": "Active",
+          "location": {
+            "snippetModel": {
+              "unrestricted": "var healthReport = new HealthReport(\r\n            new Dictionary\u003Cstring, HealthReportEntry\u003E\r\n            {\r\n                [\u0022database\u0022] = new HealthReportEntry(\r\n                    HealthStatus.Healthy,\r\n                    \u0022Database is healthy\u0022,\r\n                    TimeSpan.FromMilliseconds(50),\r\n                    null,\r\n                    null)\r\n            },\r\n            TimeSpan.FromMilliseconds(100));",
+              "protected": "M:System.TimeSpan.FromMilliseconds(System.Int64,System.Int64)"
+            },
+            "kind": "File",
+            "path": "TaskFlow.Api.Tests\\HealthChecks\\HealthCheckResponseWriterTests.cs",
+            "snippet": "var healthReport = new HealthReport(\r\n            new Dictionary\u003Cstring, HealthReportEntry\u003E\r\n            {\r\n                [\u0022database\u0022] = new HealthReportEntry(\r\n                    HealthStatus.Healthy,\r\n                    \u0022Database is healthy\u0022,\r\n                    TimeSpan.FromMilliseconds(50),\r\n                    null,\r\n                    null)\r\n            },\r\n            TimeSpan.FromMilliseconds(100));",
+            "protectedSnippet": "M:System.TimeSpan.FromMilliseconds(System.Int64,System.Int64)",
+            "label": "M:System.TimeSpan.FromMilliseconds(System.Int64,System.Int64)",
+            "links": [
+              {
+                "title": "API documentation",
+                "url": "https://github.com/dotnet/docs/blob/main/docs/core/compatibility/core-libraries/9.0/timespan-from-overloads.md",
+                "isCustom": false
+              }
+            ],
+            "line": 40,
+            "column": 8
+          }
+        },
+        {
+          "incidentId": "7bf78646-5f96-47c9-a372-081b092b4e25",
+          "ruleId": "Api.0002",
+          "description": "Breaking change: New TimeSpan.From*() overloads that take integers ",
+          "projectPath": "TaskFlow.Api.Tests\\TaskFlow.Api.Tests.csproj",
+          "state": "Active",
+          "location": {
+            "snippetModel": {
+              "unrestricted": "var healthReport = new HealthReport(\r\n            new Dictionary\u003Cstring, HealthReportEntry\u003E\r\n            {\r\n                [\u0022database\u0022] = new HealthReportEntry(\r\n                    HealthStatus.Healthy,\r\n                    \u0022Database is healthy\u0022,\r\n                    TimeSpan.FromMilliseconds(50),\r\n                    null,\r\n                    null)\r\n            },\r\n            TimeSpan.FromMilliseconds(100));",
+              "protected": "M:System.TimeSpan.FromMilliseconds(System.Int64,System.Int64)"
+            },
+            "kind": "File",
+            "path": "TaskFlow.Api.Tests\\HealthChecks\\HealthCheckResponseWriterTests.cs",
+            "snippet": "var healthReport = new HealthReport(\r\n            new Dictionary\u003Cstring, HealthReportEntry\u003E\r\n            {\r\n                [\u0022database\u0022] = new HealthReportEntry(\r\n                    HealthStatus.Healthy,\r\n                    \u0022Database is healthy\u0022,\r\n                    TimeSpan.FromMilliseconds(50),\r\n                    null,\r\n                    null)\r\n            },\r\n            TimeSpan.FromMilliseconds(100));",
+            "protectedSnippet": "M:System.TimeSpan.FromMilliseconds(System.Int64,System.Int64)",
+            "label": "M:System.TimeSpan.FromMilliseconds(System.Int64,System.Int64)",
+            "links": [
+              {
+                "title": "API documentation",
+                "url": "https://github.com/dotnet/docs/blob/main/docs/core/compatibility/core-libraries/9.0/timespan-from-overloads.md",
+                "isCustom": false
+              }
+            ],
+            "line": 40,
+            "column": 8
+          }
+        },
+        {
+          "incidentId": "05d925bd-6b70-4f47-b3f4-0f2decadf0db",
+          "ruleId": "Api.0002",
+          "description": "Breaking change: New TimeSpan.From*() overloads that take integers ",
+          "projectPath": "TaskFlow.Api.Tests\\TaskFlow.Api.Tests.csproj",
+          "state": "Active",
+          "location": {
+            "snippetModel": {
+              "unrestricted": "var healthReport = new HealthReport(\r\n            new Dictionary\u003Cstring, HealthReportEntry\u003E\r\n            {\r\n                [\u0022database\u0022] = new HealthReportEntry(\r\n                    HealthStatus.Unhealthy,\r\n                    \u0022Database connection failed\u0022,\r\n                    TimeSpan.FromMilliseconds(5000),\r\n                    new InvalidOperationException(exceptionMessage),\r\n                    null)\r\n            },\r\n            TimeSpan.FromMilliseconds(5100));",
+              "protected": "M:System.TimeSpan.FromMilliseconds(System.Int64,System.Int64)"
+            },
+            "kind": "File",
+            "path": "TaskFlow.Api.Tests\\HealthChecks\\HealthCheckLoggingTests.cs",
+            "snippet": "var healthReport = new HealthReport(\r\n            new Dictionary\u003Cstring, HealthReportEntry\u003E\r\n            {\r\n                [\u0022database\u0022] = new HealthReportEntry(\r\n                    HealthStatus.Unhealthy,\r\n                    \u0022Database connection failed\u0022,\r\n                    TimeSpan.FromMilliseconds(5000),\r\n                    new InvalidOperationException(exceptionMessage),\r\n                    null)\r\n            },\r\n            TimeSpan.FromMilliseconds(5100));",
+            "protectedSnippet": "M:System.TimeSpan.FromMilliseconds(System.Int64,System.Int64)",
+            "label": "M:System.TimeSpan.FromMilliseconds(System.Int64,System.Int64)",
+            "links": [
+              {
+                "title": "API documentation",
+                "url": "https://github.com/dotnet/docs/blob/main/docs/core/compatibility/core-libraries/9.0/timespan-from-overloads.md",
+                "isCustom": false
+              }
+            ],
+            "line": 226,
+            "column": 8
+          }
+        },
+        {
+          "incidentId": "4e96c903-1f7c-450c-aa3d-6956170e8230",
+          "ruleId": "Api.0002",
+          "description": "Breaking change: New TimeSpan.From*() overloads that take integers ",
+          "projectPath": "TaskFlow.Api.Tests\\TaskFlow.Api.Tests.csproj",
+          "state": "Active",
+          "location": {
+            "snippetModel": {
+              "unrestricted": "var healthReport = new HealthReport(\r\n            new Dictionary\u003Cstring, HealthReportEntry\u003E\r\n            {\r\n                [\u0022database\u0022] = new HealthReportEntry(\r\n                    HealthStatus.Unhealthy,\r\n                    \u0022Database connection failed\u0022,\r\n                    TimeSpan.FromMilliseconds(5000),\r\n                    new InvalidOperationException(exceptionMessage),\r\n                    null)\r\n            },\r\n            TimeSpan.FromMilliseconds(5100));",
+              "protected": "M:System.TimeSpan.FromMilliseconds(System.Int64,System.Int64)"
+            },
+            "kind": "File",
+            "path": "TaskFlow.Api.Tests\\HealthChecks\\HealthCheckLoggingTests.cs",
+            "snippet": "var healthReport = new HealthReport(\r\n            new Dictionary\u003Cstring, HealthReportEntry\u003E\r\n            {\r\n                [\u0022database\u0022] = new HealthReportEntry(\r\n                    HealthStatus.Unhealthy,\r\n                    \u0022Database connection failed\u0022,\r\n                    TimeSpan.FromMilliseconds(5000),\r\n                    new InvalidOperationException(exceptionMessage),\r\n                    null)\r\n            },\r\n            TimeSpan.FromMilliseconds(5100));",
+            "protectedSnippet": "M:System.TimeSpan.FromMilliseconds(System.Int64,System.Int64)",
+            "label": "M:System.TimeSpan.FromMilliseconds(System.Int64,System.Int64)",
+            "links": [
+              {
+                "title": "API documentation",
+                "url": "https://github.com/dotnet/docs/blob/main/docs/core/compatibility/core-libraries/9.0/timespan-from-overloads.md",
+                "isCustom": false
+              }
+            ],
+            "line": 226,
+            "column": 8
+          }
+        },
+        {
+          "incidentId": "06cad2bb-69c7-4659-a5fd-a037c8bcde43",
+          "ruleId": "Api.0002",
+          "description": "Breaking change: New TimeSpan.From*() overloads that take integers ",
+          "projectPath": "TaskFlow.Api.Tests\\TaskFlow.Api.Tests.csproj",
+          "state": "Active",
+          "location": {
+            "snippetModel": {
+              "unrestricted": "var healthReport = new HealthReport(\r\n            new Dictionary\u003Cstring, HealthReportEntry\u003E\r\n            {\r\n                [\u0022database\u0022] = new HealthReportEntry(\r\n                    HealthStatus.Unhealthy,\r\n                    \u0022Database connection failed\u0022,\r\n                    TimeSpan.FromMilliseconds(5000),\r\n                    new InvalidOperationException(\u0022Connection error\u0022),\r\n                    null),\r\n                [\u0022external-api\u0022] = new HealthReportEntry(\r\n                    HealthStatus.Unhealthy,\r\n                    \u0022API timeout\u0022,\r\n                    TimeSpan.FromMilliseconds(3000),\r\n                    new TimeoutException(\u0022Request timeout\u0022),\r\n                    null)\r\n            },\r\n            TimeSpan.FromMilliseconds(8000));",
+              "protected": "M:System.TimeSpan.FromMilliseconds(System.Int64,System.Int64)"
+            },
+            "kind": "File",
+            "path": "TaskFlow.Api.Tests\\HealthChecks\\HealthCheckLoggingTests.cs",
+            "snippet": "var healthReport = new HealthReport(\r\n            new Dictionary\u003Cstring, HealthReportEntry\u003E\r\n            {\r\n                [\u0022database\u0022] = new HealthReportEntry(\r\n                    HealthStatus.Unhealthy,\r\n                    \u0022Database connection failed\u0022,\r\n                    TimeSpan.FromMilliseconds(5000),\r\n                    new InvalidOperationException(\u0022Connection error\u0022),\r\n                    null),\r\n                [\u0022external-api\u0022] = new HealthReportEntry(\r\n                    HealthStatus.Unhealthy,\r\n                    \u0022API timeout\u0022,\r\n                    TimeSpan.FromMilliseconds(3000),\r\n                    new TimeoutException(\u0022Request timeout\u0022),\r\n                    null)\r\n            },\r\n            TimeSpan.FromMilliseconds(8000));",
+            "protectedSnippet": "M:System.TimeSpan.FromMilliseconds(System.Int64,System.Int64)",
+            "label": "M:System.TimeSpan.FromMilliseconds(System.Int64,System.Int64)",
+            "links": [
+              {
+                "title": "API documentation",
+                "url": "https://github.com/dotnet/docs/blob/main/docs/core/compatibility/core-libraries/9.0/timespan-from-overloads.md",
+                "isCustom": false
+              }
+            ],
+            "line": 185,
+            "column": 8
+          }
+        },
+        {
+          "incidentId": "0b30ae9d-a17b-4761-bf91-fbbc5ade5db6",
+          "ruleId": "Api.0002",
+          "description": "Breaking change: New TimeSpan.From*() overloads that take integers ",
+          "projectPath": "TaskFlow.Api.Tests\\TaskFlow.Api.Tests.csproj",
+          "state": "Active",
+          "location": {
+            "snippetModel": {
+              "unrestricted": "var healthReport = new HealthReport(\r\n            new Dictionary\u003Cstring, HealthReportEntry\u003E\r\n            {\r\n                [\u0022database\u0022] = new HealthReportEntry(\r\n                    HealthStatus.Unhealthy,\r\n                    \u0022Database connection failed\u0022,\r\n                    TimeSpan.FromMilliseconds(5000),\r\n                    new InvalidOperationException(\u0022Connection error\u0022),\r\n                    null),\r\n                [\u0022external-api\u0022] = new HealthReportEntry(\r\n                    HealthStatus.Unhealthy,\r\n                    \u0022API timeout\u0022,\r\n                    TimeSpan.FromMilliseconds(3000),\r\n                    new TimeoutException(\u0022Request timeout\u0022),\r\n                    null)\r\n            },\r\n            TimeSpan.FromMilliseconds(8000));",
+              "protected": "M:System.TimeSpan.FromMilliseconds(System.Int64,System.Int64)"
+            },
+            "kind": "File",
+            "path": "TaskFlow.Api.Tests\\HealthChecks\\HealthCheckLoggingTests.cs",
+            "snippet": "var healthReport = new HealthReport(\r\n            new Dictionary\u003Cstring, HealthReportEntry\u003E\r\n            {\r\n                [\u0022database\u0022] = new HealthReportEntry(\r\n                    HealthStatus.Unhealthy,\r\n                    \u0022Database connection failed\u0022,\r\n                    TimeSpan.FromMilliseconds(5000),\r\n                    new InvalidOperationException(\u0022Connection error\u0022),\r\n                    null),\r\n                [\u0022external-api\u0022] = new HealthReportEntry(\r\n                    HealthStatus.Unhealthy,\r\n                    \u0022API timeout\u0022,\r\n                    TimeSpan.FromMilliseconds(3000),\r\n                    new TimeoutException(\u0022Request timeout\u0022),\r\n                    null)\r\n            },\r\n            TimeSpan.FromMilliseconds(8000));",
+            "protectedSnippet": "M:System.TimeSpan.FromMilliseconds(System.Int64,System.Int64)",
+            "label": "M:System.TimeSpan.FromMilliseconds(System.Int64,System.Int64)",
+            "links": [
+              {
+                "title": "API documentation",
+                "url": "https://github.com/dotnet/docs/blob/main/docs/core/compatibility/core-libraries/9.0/timespan-from-overloads.md",
+                "isCustom": false
+              }
+            ],
+            "line": 185,
+            "column": 8
+          }
+        },
+        {
+          "incidentId": "4eed8cab-c0d9-49b1-b861-c93ed2bba81b",
+          "ruleId": "Api.0002",
+          "description": "Breaking change: New TimeSpan.From*() overloads that take integers ",
+          "projectPath": "TaskFlow.Api.Tests\\TaskFlow.Api.Tests.csproj",
+          "state": "Active",
+          "location": {
+            "snippetModel": {
+              "unrestricted": "var healthReport = new HealthReport(\r\n            new Dictionary\u003Cstring, HealthReportEntry\u003E\r\n            {\r\n                [\u0022database\u0022] = new HealthReportEntry(\r\n                    HealthStatus.Unhealthy,\r\n                    \u0022Database connection failed\u0022,\r\n                    TimeSpan.FromMilliseconds(5000),\r\n                    new InvalidOperationException(\u0022Connection error\u0022),\r\n                    null),\r\n                [\u0022external-api\u0022] = new HealthReportEntry(\r\n                    HealthStatus.Unhealthy,\r\n                    \u0022API timeout\u0022,\r\n                    TimeSpan.FromMilliseconds(3000),\r\n                    new TimeoutException(\u0022Request timeout\u0022),\r\n                    null)\r\n            },\r\n            TimeSpan.FromMilliseconds(8000));",
+              "protected": "M:System.TimeSpan.FromMilliseconds(System.Int64,System.Int64)"
+            },
+            "kind": "File",
+            "path": "TaskFlow.Api.Tests\\HealthChecks\\HealthCheckLoggingTests.cs",
+            "snippet": "var healthReport = new HealthReport(\r\n            new Dictionary\u003Cstring, HealthReportEntry\u003E\r\n            {\r\n                [\u0022database\u0022] = new HealthReportEntry(\r\n                    HealthStatus.Unhealthy,\r\n                    \u0022Database connection failed\u0022,\r\n                    TimeSpan.FromMilliseconds(5000),\r\n                    new InvalidOperationException(\u0022Connection error\u0022),\r\n                    null),\r\n                [\u0022external-api\u0022] = new HealthReportEntry(\r\n                    HealthStatus.Unhealthy,\r\n                    \u0022API timeout\u0022,\r\n                    TimeSpan.FromMilliseconds(3000),\r\n                    new TimeoutException(\u0022Request timeout\u0022),\r\n                    null)\r\n            },\r\n            TimeSpan.FromMilliseconds(8000));",
+            "protectedSnippet": "M:System.TimeSpan.FromMilliseconds(System.Int64,System.Int64)",
+            "label": "M:System.TimeSpan.FromMilliseconds(System.Int64,System.Int64)",
+            "links": [
+              {
+                "title": "API documentation",
+                "url": "https://github.com/dotnet/docs/blob/main/docs/core/compatibility/core-libraries/9.0/timespan-from-overloads.md",
+                "isCustom": false
+              }
+            ],
+            "line": 185,
+            "column": 8
+          }
+        },
+        {
+          "incidentId": "e3d68f93-7562-41ca-8855-5857485eafc7",
+          "ruleId": "Api.0002",
+          "description": "Breaking change: New TimeSpan.From*() overloads that take integers ",
+          "projectPath": "TaskFlow.Api.Tests\\TaskFlow.Api.Tests.csproj",
+          "state": "Active",
+          "location": {
+            "snippetModel": {
+              "unrestricted": "var healthReport = new HealthReport(\r\n            new Dictionary\u003Cstring, HealthReportEntry\u003E\r\n            {\r\n                [\u0022self\u0022] = new HealthReportEntry(\r\n                    HealthStatus.Healthy,\r\n                    \u0022Application is running\u0022,\r\n                    TimeSpan.FromMilliseconds(10),\r\n                    null,\r\n                    null)\r\n            },\r\n            TimeSpan.FromMilliseconds(15));",
+              "protected": "M:System.TimeSpan.FromMilliseconds(System.Int64,System.Int64)"
+            },
+            "kind": "File",
+            "path": "TaskFlow.Api.Tests\\HealthChecks\\HealthCheckLoggingTests.cs",
+            "snippet": "var healthReport = new HealthReport(\r\n            new Dictionary\u003Cstring, HealthReportEntry\u003E\r\n            {\r\n                [\u0022self\u0022] = new HealthReportEntry(\r\n                    HealthStatus.Healthy,\r\n                    \u0022Application is running\u0022,\r\n                    TimeSpan.FromMilliseconds(10),\r\n                    null,\r\n                    null)\r\n            },\r\n            TimeSpan.FromMilliseconds(15));",
+            "protectedSnippet": "M:System.TimeSpan.FromMilliseconds(System.Int64,System.Int64)",
+            "label": "M:System.TimeSpan.FromMilliseconds(System.Int64,System.Int64)",
+            "links": [
+              {
+                "title": "API documentation",
+                "url": "https://github.com/dotnet/docs/blob/main/docs/core/compatibility/core-libraries/9.0/timespan-from-overloads.md",
+                "isCustom": false
+              }
+            ],
+            "line": 154,
+            "column": 8
+          }
+        },
+        {
+          "incidentId": "c3a699a0-93c5-4ae8-90e7-e8f8157c3c2c",
+          "ruleId": "Api.0002",
+          "description": "Breaking change: New TimeSpan.From*() overloads that take integers ",
+          "projectPath": "TaskFlow.Api.Tests\\TaskFlow.Api.Tests.csproj",
+          "state": "Active",
+          "location": {
+            "snippetModel": {
+              "unrestricted": "var healthReport = new HealthReport(\r\n            new Dictionary\u003Cstring, HealthReportEntry\u003E\r\n            {\r\n                [\u0022self\u0022] = new HealthReportEntry(\r\n                    HealthStatus.Healthy,\r\n                    \u0022Application is running\u0022,\r\n                    TimeSpan.FromMilliseconds(10),\r\n                    null,\r\n                    null)\r\n            },\r\n            TimeSpan.FromMilliseconds(15));",
+              "protected": "M:System.TimeSpan.FromMilliseconds(System.Int64,System.Int64)"
+            },
+            "kind": "File",
+            "path": "TaskFlow.Api.Tests\\HealthChecks\\HealthCheckLoggingTests.cs",
+            "snippet": "var healthReport = new HealthReport(\r\n            new Dictionary\u003Cstring, HealthReportEntry\u003E\r\n            {\r\n                [\u0022self\u0022] = new HealthReportEntry(\r\n                    HealthStatus.Healthy,\r\n                    \u0022Application is running\u0022,\r\n                    TimeSpan.FromMilliseconds(10),\r\n                    null,\r\n                    null)\r\n            },\r\n            TimeSpan.FromMilliseconds(15));",
+            "protectedSnippet": "M:System.TimeSpan.FromMilliseconds(System.Int64,System.Int64)",
+            "label": "M:System.TimeSpan.FromMilliseconds(System.Int64,System.Int64)",
+            "links": [
+              {
+                "title": "API documentation",
+                "url": "https://github.com/dotnet/docs/blob/main/docs/core/compatibility/core-libraries/9.0/timespan-from-overloads.md",
+                "isCustom": false
+              }
+            ],
+            "line": 154,
+            "column": 8
+          }
+        },
+        {
+          "incidentId": "8f5932ba-fbd8-4e14-a8f0-572cf928004a",
+          "ruleId": "Api.0002",
+          "description": "Breaking change: New TimeSpan.From*() overloads that take integers ",
+          "projectPath": "TaskFlow.Api.Tests\\TaskFlow.Api.Tests.csproj",
+          "state": "Active",
+          "location": {
+            "snippetModel": {
+              "unrestricted": "var healthReport = new HealthReport(\r\n            new Dictionary\u003Cstring, HealthReportEntry\u003E\r\n            {\r\n                [\u0022database\u0022] = new HealthReportEntry(\r\n                    HealthStatus.Degraded,\r\n                    \u0022High response time\u0022,\r\n                    TimeSpan.FromMilliseconds(3000),\r\n                    null,\r\n                    null)\r\n            },\r\n            TimeSpan.FromMilliseconds(3100));",
+              "protected": "M:System.TimeSpan.FromMilliseconds(System.Int64,System.Int64)"
+            },
+            "kind": "File",
+            "path": "TaskFlow.Api.Tests\\HealthChecks\\HealthCheckLoggingTests.cs",
+            "snippet": "var healthReport = new HealthReport(\r\n            new Dictionary\u003Cstring, HealthReportEntry\u003E\r\n            {\r\n                [\u0022database\u0022] = new HealthReportEntry(\r\n                    HealthStatus.Degraded,\r\n                    \u0022High response time\u0022,\r\n                    TimeSpan.FromMilliseconds(3000),\r\n                    null,\r\n                    null)\r\n            },\r\n            TimeSpan.FromMilliseconds(3100));",
+            "protectedSnippet": "M:System.TimeSpan.FromMilliseconds(System.Int64,System.Int64)",
+            "label": "M:System.TimeSpan.FromMilliseconds(System.Int64,System.Int64)",
+            "links": [
+              {
+                "title": "API documentation",
+                "url": "https://github.com/dotnet/docs/blob/main/docs/core/compatibility/core-libraries/9.0/timespan-from-overloads.md",
+                "isCustom": false
+              }
+            ],
+            "line": 117,
+            "column": 8
+          }
+        },
+        {
+          "incidentId": "22fed50d-c627-4932-9333-57e3dae4e1fd",
+          "ruleId": "Api.0002",
+          "description": "Breaking change: New TimeSpan.From*() overloads that take integers ",
+          "projectPath": "TaskFlow.Api.Tests\\TaskFlow.Api.Tests.csproj",
+          "state": "Active",
+          "location": {
+            "snippetModel": {
+              "unrestricted": "var healthReport = new HealthReport(\r\n            new Dictionary\u003Cstring, HealthReportEntry\u003E\r\n            {\r\n                [\u0022database\u0022] = new HealthReportEntry(\r\n                    HealthStatus.Degraded,\r\n                    \u0022High response time\u0022,\r\n                    TimeSpan.FromMilliseconds(3000),\r\n                    null,\r\n                    null)\r\n            },\r\n            TimeSpan.FromMilliseconds(3100));",
+              "protected": "M:System.TimeSpan.FromMilliseconds(System.Int64,System.Int64)"
+            },
+            "kind": "File",
+            "path": "TaskFlow.Api.Tests\\HealthChecks\\HealthCheckLoggingTests.cs",
+            "snippet": "var healthReport = new HealthReport(\r\n            new Dictionary\u003Cstring, HealthReportEntry\u003E\r\n            {\r\n                [\u0022database\u0022] = new HealthReportEntry(\r\n                    HealthStatus.Degraded,\r\n                    \u0022High response time\u0022,\r\n                    TimeSpan.FromMilliseconds(3000),\r\n                    null,\r\n                    null)\r\n            },\r\n            TimeSpan.FromMilliseconds(3100));",
+            "protectedSnippet": "M:System.TimeSpan.FromMilliseconds(System.Int64,System.Int64)",
+            "label": "M:System.TimeSpan.FromMilliseconds(System.Int64,System.Int64)",
+            "links": [
+              {
+                "title": "API documentation",
+                "url": "https://github.com/dotnet/docs/blob/main/docs/core/compatibility/core-libraries/9.0/timespan-from-overloads.md",
+                "isCustom": false
+              }
+            ],
+            "line": 117,
+            "column": 8
+          }
+        },
+        {
+          "incidentId": "258d26d9-79b7-48f2-89a2-ce99e074b903",
+          "ruleId": "Api.0002",
+          "description": "Breaking change: New TimeSpan.From*() overloads that take integers ",
+          "projectPath": "TaskFlow.Api.Tests\\TaskFlow.Api.Tests.csproj",
+          "state": "Active",
+          "location": {
+            "snippetModel": {
+              "unrestricted": "var healthReport = new HealthReport(\r\n            new Dictionary\u003Cstring, HealthReportEntry\u003E\r\n            {\r\n                [\u0022database\u0022] = new HealthReportEntry(\r\n                    HealthStatus.Unhealthy,\r\n                    \u0022Database connection failed\u0022,\r\n                    TimeSpan.FromMilliseconds(5000),\r\n                    new InvalidOperationException(\u0022Connection error\u0022),\r\n                    null)\r\n            },\r\n            TimeSpan.FromMilliseconds(5100));",
+              "protected": "M:System.TimeSpan.FromMilliseconds(System.Int64,System.Int64)"
+            },
+            "kind": "File",
+            "path": "TaskFlow.Api.Tests\\HealthChecks\\HealthCheckLoggingTests.cs",
+            "snippet": "var healthReport = new HealthReport(\r\n            new Dictionary\u003Cstring, HealthReportEntry\u003E\r\n            {\r\n                [\u0022database\u0022] = new HealthReportEntry(\r\n                    HealthStatus.Unhealthy,\r\n                    \u0022Database connection failed\u0022,\r\n                    TimeSpan.FromMilliseconds(5000),\r\n                    new InvalidOperationException(\u0022Connection error\u0022),\r\n                    null)\r\n            },\r\n            TimeSpan.FromMilliseconds(5100));",
+            "protectedSnippet": "M:System.TimeSpan.FromMilliseconds(System.Int64,System.Int64)",
+            "label": "M:System.TimeSpan.FromMilliseconds(System.Int64,System.Int64)",
+            "links": [
+              {
+                "title": "API documentation",
+                "url": "https://github.com/dotnet/docs/blob/main/docs/core/compatibility/core-libraries/9.0/timespan-from-overloads.md",
+                "isCustom": false
+              }
+            ],
+            "line": 80,
+            "column": 8
+          }
+        },
+        {
+          "incidentId": "6c7da228-6ad5-44f2-b25d-903fd686b3af",
+          "ruleId": "Api.0002",
+          "description": "Breaking change: New TimeSpan.From*() overloads that take integers ",
+          "projectPath": "TaskFlow.Api.Tests\\TaskFlow.Api.Tests.csproj",
+          "state": "Active",
+          "location": {
+            "snippetModel": {
+              "unrestricted": "var healthReport = new HealthReport(\r\n            new Dictionary\u003Cstring, HealthReportEntry\u003E\r\n            {\r\n                [\u0022database\u0022] = new HealthReportEntry(\r\n                    HealthStatus.Unhealthy,\r\n                    \u0022Database connection failed\u0022,\r\n                    TimeSpan.FromMilliseconds(5000),\r\n                    new InvalidOperationException(\u0022Connection error\u0022),\r\n                    null)\r\n            },\r\n            TimeSpan.FromMilliseconds(5100));",
+              "protected": "M:System.TimeSpan.FromMilliseconds(System.Int64,System.Int64)"
+            },
+            "kind": "File",
+            "path": "TaskFlow.Api.Tests\\HealthChecks\\HealthCheckLoggingTests.cs",
+            "snippet": "var healthReport = new HealthReport(\r\n            new Dictionary\u003Cstring, HealthReportEntry\u003E\r\n            {\r\n                [\u0022database\u0022] = new HealthReportEntry(\r\n                    HealthStatus.Unhealthy,\r\n                    \u0022Database connection failed\u0022,\r\n                    TimeSpan.FromMilliseconds(5000),\r\n                    new InvalidOperationException(\u0022Connection error\u0022),\r\n                    null)\r\n            },\r\n            TimeSpan.FromMilliseconds(5100));",
+            "protectedSnippet": "M:System.TimeSpan.FromMilliseconds(System.Int64,System.Int64)",
+            "label": "M:System.TimeSpan.FromMilliseconds(System.Int64,System.Int64)",
+            "links": [
+              {
+                "title": "API documentation",
+                "url": "https://github.com/dotnet/docs/blob/main/docs/core/compatibility/core-libraries/9.0/timespan-from-overloads.md",
+                "isCustom": false
+              }
+            ],
+            "line": 80,
+            "column": 8
+          }
+        }
+      ],
+      "features": []
+    }
+  ],
+  "rules": {
+    "NuGet.0002": {
+      "id": "NuGet.0002",
+      "isFeature": false,
+      "description": "NuGet package upgrade is recommended for selected target framework.\n\nStandard .NET packages are recommended to have versions matching version of .NET that project targets.\n\nSome other packages also are known to work better for selected target frameworks.",
+      "label": "NuGet package upgrade is recommended",
+      "severity": "Potential",
+      "effort": 1,
+      "links": [
+        {
+          "url": "https://go.microsoft.com/fwlink/?linkid=2262530",
+          "isCustom": false
+        }
+      ]
+    },
+    "NuGet.0001": {
+      "id": "NuGet.0001",
+      "isFeature": false,
+      "description": "NuGet package is incompatible with selected target framework.\n\nPackage needs to be upgraded to a version supporting selected project target framework. If there no new package versions supporting new target framework, different package needs to be used and all code needs to be upgraded to new API.",
+      "label": "NuGet package is incompatible",
+      "severity": "Mandatory",
+      "effort": 1,
+      "links": [
+        {
+          "url": "https://go.microsoft.com/fwlink/?linkid=2262529",
+          "isCustom": false
+        }
+      ]
+    },
+    "Project.0002": {
+      "id": "Project.0002",
+      "isFeature": false,
+      "description": "Project\u0027s target framework(s) needs to be changed to the new target framework that you selected for this upgrade.\n\nDuring upgrade target framework will be adjusted to corresponding platform when applicable. In some cases project would result in multiple target frameworks after the upgrade if it was using features that now have their own platforms in modern .NET frameworks (windows, iOS, Android etc).",
+      "label": "Project\u0027s target framework(s) needs to be changed",
+      "severity": "Mandatory",
+      "effort": 1,
+      "links": [
+        {
+          "title": "Overview of porting from .NET Framework to .NET",
+          "url": "https://go.microsoft.com/fwlink/?linkid=2265227",
+          "isCustom": false
+        },
+        {
+          "title": ".NET project SDKs",
+          "url": "https://go.microsoft.com/fwlink/?linkid=2265226",
+          "isCustom": false
+        }
+      ]
+    },
+    "Api.0003": {
+      "id": "Api.0003",
+      "isFeature": false,
+      "description": "API has a behavioral change in selected .NET version: code and binaries may behave differently at runtime without needing recompilation, but the new behavior might be undesirable and require updates.",
+      "label": "Behavioral change in selected .NET version",
+      "severity": "Potential",
+      "effort": 1
+    },
+    "Api.0002": {
+      "id": "Api.0002",
+      "isFeature": false,
+      "description": "API is source incompatible for selected .NET version: requires code changes to compile successfully when targeting a new version, such as removing obsolete APIs or changing method signatures.",
+      "label": "Source incompatible for selected .NET version",
+      "severity": "Potential",
+      "effort": 1,
+      "links": [
+        {
+          "title": "Breaking changes in .NET",
+          "url": "https://go.microsoft.com/fwlink/?linkid=2262679",
+          "isCustom": false
+        }
+      ]
+    },
+    "Api.0001": {
+      "id": "Api.0001",
+      "isFeature": false,
+      "description": "API is binary incompatible for selected .NET version: affects existing binaries, often requiring recompilation, because the API has changed in a way that prevents older binaries from loading or executing.",
+      "label": "Binary incompatible for selected .NET version",
+      "severity": "Mandatory",
+      "effort": 1,
+      "links": [
+        {
+          "title": "Breaking changes in .NET",
+          "url": "https://go.microsoft.com/fwlink/?linkid=2262679",
+          "isCustom": false
+        }
+      ]
+    },
+    "NuGet.0005": {
+      "id": "NuGet.0005",
+      "isFeature": false,
+      "description": "NuGet package is deprecated.\n\nGo to its documentation and if there is a guidance for replacement of functionality provided by this package.",
+      "label": "NuGet package is deprecated",
+      "severity": "Optional",
+      "effort": 1,
+      "links": [
+        {
+          "url": "https://go.microsoft.com/fwlink/?linkid=2262531",
+          "isCustom": false
+        }
+      ]
+    }
+  }
+}

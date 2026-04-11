@@ -113,11 +113,11 @@ public class ServiceCollectionExtensionsTests
         var services = new ServiceCollection();
 
         // Act
-        services.AddSwagger();
+        OpenApiServiceExtensions.AddOpenApi(services);
+
         // Assert
-        // Swagger services are registered internally
-        // We verify by checking if the service collection has the expected services
-        services.Should().Contain(s => s.ServiceType.Name.Contains("Swagger"));
+        // Microsoft.AspNetCore.OpenApi registers services with "OpenApi" in the name
+        services.Should().Contain(s => s.ServiceType.Name.Contains("OpenApi"));
     }
 
     [Fact]
@@ -180,7 +180,7 @@ public class ServiceCollectionExtensionsTests
         services.AddApplicationServices();
         services.AddValidation();
         services.AddApplicationHealthChecks();
-        services.AddSwagger();
+        OpenApiServiceExtensions.AddOpenApi(services);
         services.ConfigureJsonSerialization();
 
         var serviceProvider = services.BuildServiceProvider();
@@ -212,7 +212,7 @@ public class ServiceCollectionExtensionsTests
         services.AddValidation();
         services.AddApplicationHealthChecks();
         services.AddApplicationInsights();
-        services.AddSwagger();
+        OpenApiServiceExtensions.AddOpenApi(services);
         services.ConfigureJsonSerialization();
 
         // Assert - verify all services are registered in the collection
