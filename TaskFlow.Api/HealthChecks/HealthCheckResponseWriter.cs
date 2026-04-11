@@ -75,6 +75,11 @@ public static class HealthCheckResponseWriter
             return;
         }
 
+        if (!logger.IsEnabled(LogLevel.Error))
+        {
+            return;
+        }
+
         var failedChecks = report.Entries
             .Where(e => e.Value.Status == HealthStatus.Unhealthy)
             .Select(e => $"{e.Key}: {e.Value.Description ?? "no description"}, exception: {e.Value.Exception?.Message ?? "none"}");
@@ -90,6 +95,11 @@ public static class HealthCheckResponseWriter
     private static void LogHealthCheckDegraded(ILogger? logger, string endpoint, HealthReport report)
     {
         if (logger is null)
+        {
+            return;
+        }
+
+        if (!logger.IsEnabled(LogLevel.Warning))
         {
             return;
         }
