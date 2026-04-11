@@ -1,9 +1,9 @@
 using FluentAssertions;
 using FluentValidation;
-using OpenTelemetry.Trace;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
+using OpenTelemetry.Trace;
 using TaskFlow.Api.Data;
 using TaskFlow.Api.Extensions;
 using TaskFlow.Api.Models;

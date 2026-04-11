@@ -70,7 +70,10 @@ public static class HealthCheckResponseWriter
 
     private static void LogHealthCheckFailure(ILogger? logger, string endpoint, HealthReport report)
     {
-        if (logger is null) return;
+        if (logger is null)
+        {
+            return;
+        }
 
         var failedChecks = report.Entries
             .Where(e => e.Value.Status == HealthStatus.Unhealthy)
@@ -86,7 +89,10 @@ public static class HealthCheckResponseWriter
 
     private static void LogHealthCheckDegraded(ILogger? logger, string endpoint, HealthReport report)
     {
-        if (logger is null) return;
+        if (logger is null)
+        {
+            return;
+        }
 
         var degradedChecks = report.Entries
             .Where(e => e.Value.Status == HealthStatus.Degraded)

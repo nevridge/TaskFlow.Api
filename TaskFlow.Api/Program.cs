@@ -91,8 +91,13 @@ catch (Exception ex)
 {
     // Use the DI logger if available, otherwise fall back to stderr for pre-host failures
     if (logger is not null)
+    {
         logger.LogCritical(ex, "Host terminated unexpectedly");
+    }
     else
+    {
         Console.Error.WriteLine($"Host terminated unexpectedly: {ex}");
+    }
+
     throw;
 }

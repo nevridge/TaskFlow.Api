@@ -44,7 +44,9 @@ public static class OpenTelemetryServiceExtensions
                     otlp.Endpoint = new Uri(baseEndpoint + "/v1/traces");
                     otlp.Protocol = OtlpExportProtocol.HttpProtobuf;
                     if (!string.IsNullOrEmpty(header))
+                    {
                         otlp.Headers = header;
+                    }
                 }))
             .WithMetrics(metrics => metrics
                 .AddAspNetCoreInstrumentation()
@@ -54,7 +56,9 @@ public static class OpenTelemetryServiceExtensions
                     otlp.Endpoint = new Uri(baseEndpoint + "/v1/metrics");
                     otlp.Protocol = OtlpExportProtocol.HttpProtobuf;
                     if (!string.IsNullOrEmpty(header))
+                    {
                         otlp.Headers = header;
+                    }
                 }));
 
         return services;
@@ -92,12 +96,16 @@ public static class OpenTelemetryServiceExtensions
                 otlp.Endpoint = new Uri(baseEndpoint + "/v1/logs");
                 otlp.Protocol = OtlpExportProtocol.HttpProtobuf;
                 if (!string.IsNullOrEmpty(header))
+                {
                     otlp.Headers = header;
+                }
             });
         });
 
         if (environment.IsDevelopment())
+        {
             logging.AddConsole();
+        }
 
         return logging;
     }
