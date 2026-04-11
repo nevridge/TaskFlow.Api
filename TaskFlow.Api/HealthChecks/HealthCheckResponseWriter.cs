@@ -1,8 +1,8 @@
 using System.Text.Json;
 using Microsoft.AspNetCore.Http.Json;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Serilog;
 using TaskFlow.Api.Providers;
 
 namespace TaskFlow.Api.HealthChecks;
@@ -16,14 +16,17 @@ public static class HealthCheckResponseWriter
     {
         context.Response.ContentType = "application/json; charset=utf-8";
 
+        var logger = context.RequestServices.GetService<ILoggerFactory>()
+            ?.CreateLogger(nameof(HealthCheckResponseWriter));
+
         // Log health check failures with appropriate severity
         if (report.Status == HealthStatus.Unhealthy)
         {
-            LogHealthCheckFailure(context.Request.Path, report);
+            LogHealthCheckFailure(logger, context.Request.Path, report);
         }
         else if (report.Status == HealthStatus.Degraded)
         {
-            LogHealthCheckDegraded(context.Request.Path, report);
+            LogHealthCheckDegraded(logger, context.Request.Path, report);
         }
 
         // Retrieve options from DI container
@@ -65,40 +68,35 @@ public static class HealthCheckResponseWriter
         }
     }
 
-    private static void LogHealthCheckFailure(string endpoint, HealthReport report)
+    private static void LogHealthCheckFailure(ILogger? logger, string endpoint, HealthReport report)
     {
+        if (logger is null) return;
+
         var failedChecks = report.Entries
             .Where(e => e.Value.Status == HealthStatus.Unhealthy)
-            .Select(e => new
-            {
-                Name = e.Key,
-                e.Value.Description,
-                Duration = e.Value.Duration.TotalMilliseconds,
-                Exception = e.Value.Exception?.Message
-            });
+            .Select(e => $"{e.Key}: {e.Value.Description ?? "no description"}, exception: {e.Value.Exception?.Message ?? "none"}");
 
-        Log.Error("Health check FAILED at {Endpoint} - Status: {Status}, Duration: {Duration}ms, Failed checks: {@FailedChecks}",
+        logger.LogError(
+            "Health check FAILED at {Endpoint} - Status: {Status}, Duration: {Duration}ms, Failed checks: {FailedChecks}",
             endpoint,
             report.Status,
             report.TotalDuration.TotalMilliseconds,
-            failedChecks);
+            string.Join("; ", failedChecks));
     }
 
-    private static void LogHealthCheckDegraded(string endpoint, HealthReport report)
+    private static void LogHealthCheckDegraded(ILogger? logger, string endpoint, HealthReport report)
     {
+        if (logger is null) return;
+
         var degradedChecks = report.Entries
             .Where(e => e.Value.Status == HealthStatus.Degraded)
-            .Select(e => new
-            {
-                Name = e.Key,
-                e.Value.Description,
-                Duration = e.Value.Duration.TotalMilliseconds
-            });
+            .Select(e => $"{e.Key}: {e.Value.Description ?? "no description"}");
 
-        Log.Warning("Health check DEGRADED at {Endpoint} - Status: {Status}, Duration: {Duration}ms, Degraded checks: {@DegradedChecks}",
+        logger.LogWarning(
+            "Health check DEGRADED at {Endpoint} - Status: {Status}, Duration: {Duration}ms, Degraded checks: {DegradedChecks}",
             endpoint,
             report.Status,
             report.TotalDuration.TotalMilliseconds,
-            degradedChecks);
+            string.Join("; ", degradedChecks));
     }
 }
