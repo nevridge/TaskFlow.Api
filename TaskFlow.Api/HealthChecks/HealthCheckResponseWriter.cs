@@ -19,14 +19,16 @@ public static class HealthCheckResponseWriter
         var logger = context.RequestServices.GetService<ILoggerFactory>()
             ?.CreateLogger(nameof(HealthCheckResponseWriter));
 
+        var sanitizedEndpoint = SanitizeForLog(context.Request.Path.ToString());
+
         // Log health check failures with appropriate severity
         if (report.Status == HealthStatus.Unhealthy)
         {
-            LogHealthCheckFailure(logger, context.Request.Path, report);
+            LogHealthCheckFailure(logger, sanitizedEndpoint, report);
         }
         else if (report.Status == HealthStatus.Degraded)
         {
-            LogHealthCheckDegraded(logger, context.Request.Path, report);
+            LogHealthCheckDegraded(logger, sanitizedEndpoint, report);
         }
 
         // Retrieve options from DI container
@@ -114,5 +116,12 @@ public static class HealthCheckResponseWriter
             report.Status,
             report.TotalDuration.TotalMilliseconds,
             string.Join("; ", degradedChecks));
+    }
+
+    private static string SanitizeForLog(string value)
+    {
+        return value
+            .Replace("\r", string.Empty)
+            .Replace("\n", string.Empty);
     }
 }
