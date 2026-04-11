@@ -113,7 +113,7 @@ public class ServiceCollectionExtensionsTests
         var services = new ServiceCollection();
 
         // Act
-        services.AddSwagger();
+        OpenApiServiceExtensions.AddOpenApi(services);
 
         // Assert
         // Microsoft.AspNetCore.OpenApi registers services with "OpenApi" in the name
@@ -180,7 +180,7 @@ public class ServiceCollectionExtensionsTests
         services.AddApplicationServices();
         services.AddValidation();
         services.AddApplicationHealthChecks();
-        services.AddSwagger();
+        OpenApiServiceExtensions.AddOpenApi(services);
         services.ConfigureJsonSerialization();
 
         var serviceProvider = services.BuildServiceProvider();
@@ -212,7 +212,7 @@ public class ServiceCollectionExtensionsTests
         services.AddValidation();
         services.AddApplicationHealthChecks();
         services.AddApplicationInsights();
-        services.AddSwagger();
+        OpenApiServiceExtensions.AddOpenApi(services);
         services.ConfigureJsonSerialization();
 
         // Assert - verify all services are registered in the collection
