@@ -24,6 +24,7 @@ public static class OpenTelemetryServiceExtensions
         var baseEndpoint = (configuration["OpenTelemetry:Endpoint"] ?? "http://localhost:5341/ingest/otlp").TrimEnd('/');
         var serviceName = configuration["OpenTelemetry:ServiceName"] ?? "TaskFlow.Api";
         var header = configuration["OpenTelemetry:Header"];
+        var protocol = ParseProtocol(configuration["OpenTelemetry:Protocol"]);
 
         services.AddHttpLogging(logging =>
         {
@@ -42,7 +43,7 @@ public static class OpenTelemetryServiceExtensions
                 .AddOtlpExporter(otlp =>
                 {
                     otlp.Endpoint = new Uri(baseEndpoint + "/v1/traces");
-                    otlp.Protocol = OtlpExportProtocol.HttpProtobuf;
+                    otlp.Protocol = protocol;
                     if (!string.IsNullOrEmpty(header))
                     {
                         otlp.Headers = header;
@@ -54,7 +55,7 @@ public static class OpenTelemetryServiceExtensions
                 .AddOtlpExporter(otlp =>
                 {
                     otlp.Endpoint = new Uri(baseEndpoint + "/v1/metrics");
-                    otlp.Protocol = OtlpExportProtocol.HttpProtobuf;
+                    otlp.Protocol = protocol;
                     if (!string.IsNullOrEmpty(header))
                     {
                         otlp.Headers = header;
@@ -80,6 +81,7 @@ public static class OpenTelemetryServiceExtensions
         var baseEndpoint = (configuration["OpenTelemetry:Endpoint"] ?? "http://localhost:5341/ingest/otlp").TrimEnd('/');
         var serviceName = configuration["OpenTelemetry:ServiceName"] ?? "TaskFlow.Api";
         var header = configuration["OpenTelemetry:Header"];
+        var protocol = ParseProtocol(configuration["OpenTelemetry:Protocol"]);
 
         logging.ClearProviders();
         logging.AddFilter("Microsoft.AspNetCore.HttpLogging", LogLevel.Information);
@@ -94,7 +96,7 @@ public static class OpenTelemetryServiceExtensions
             options.AddOtlpExporter(otlp =>
             {
                 otlp.Endpoint = new Uri(baseEndpoint + "/v1/logs");
-                otlp.Protocol = OtlpExportProtocol.HttpProtobuf;
+                otlp.Protocol = protocol;
                 if (!string.IsNullOrEmpty(header))
                 {
                     otlp.Headers = header;
@@ -109,4 +111,21 @@ public static class OpenTelemetryServiceExtensions
 
         return logging;
     }
+
+    /// <summary>
+    /// Parses the OTLP export protocol from a configuration string.
+    /// Supported values are "grpc" and "http/protobuf" (case-insensitive).
+    /// Defaults to <see cref="OtlpExportProtocol.HttpProtobuf"/> when the value is null or empty.
+    /// </summary>
+    /// <param name="protocolValue">The protocol string from configuration</param>
+    /// <returns>The corresponding <see cref="OtlpExportProtocol"/> value</returns>
+    /// <exception cref="InvalidOperationException">Thrown when the protocol value is not supported</exception>
+    private static OtlpExportProtocol ParseProtocol(string? protocolValue) =>
+        protocolValue?.ToLowerInvariant() switch
+        {
+            null or "" or "http/protobuf" => OtlpExportProtocol.HttpProtobuf,
+            "grpc" => OtlpExportProtocol.Grpc,
+            _ => throw new InvalidOperationException(
+                $"Unsupported OpenTelemetry protocol '{protocolValue}'. Supported values are 'grpc' and 'http/protobuf'.")
+        };
 }
