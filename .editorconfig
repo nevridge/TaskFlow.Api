@@ -259,3 +259,7 @@ indent_size = 2
 # XML files
 [*.{xml,csproj,props,targets}]
 indent_size = 2
+
+# Test files
+[*Tests.cs]
+dotnet_diagnostic.xUnit1051.severity = none
