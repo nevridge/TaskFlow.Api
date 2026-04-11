@@ -1,5 +1,3 @@
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 using OpenTelemetry.Exporter;
 using OpenTelemetry.Logs;
 using OpenTelemetry.Metrics;
@@ -23,9 +21,17 @@ public static class OpenTelemetryServiceExtensions
         this IServiceCollection services,
         IConfiguration configuration)
     {
-        var endpoint = configuration["OpenTelemetry:Endpoint"] ?? "http://localhost:5341/ingest/otlp";
+        var baseEndpoint = (configuration["OpenTelemetry:Endpoint"] ?? "http://localhost:5341/ingest/otlp").TrimEnd('/');
         var serviceName = configuration["OpenTelemetry:ServiceName"] ?? "TaskFlow.Api";
         var header = configuration["OpenTelemetry:Header"];
+
+        services.AddHttpLogging(logging =>
+        {
+            logging.LoggingFields = Microsoft.AspNetCore.HttpLogging.HttpLoggingFields.RequestMethod
+                | Microsoft.AspNetCore.HttpLogging.HttpLoggingFields.RequestPath
+                | Microsoft.AspNetCore.HttpLogging.HttpLoggingFields.ResponseStatusCode
+                | Microsoft.AspNetCore.HttpLogging.HttpLoggingFields.Duration;
+        });
 
         services.AddOpenTelemetry()
             .ConfigureResource(resource => resource
@@ -35,7 +41,7 @@ public static class OpenTelemetryServiceExtensions
                 .AddHttpClientInstrumentation()
                 .AddOtlpExporter(otlp =>
                 {
-                    otlp.Endpoint = new Uri(endpoint);
+                    otlp.Endpoint = new Uri(baseEndpoint + "/v1/traces");
                     otlp.Protocol = OtlpExportProtocol.HttpProtobuf;
                     if (!string.IsNullOrEmpty(header))
                         otlp.Headers = header;
@@ -45,7 +51,7 @@ public static class OpenTelemetryServiceExtensions
                 .AddHttpClientInstrumentation()
                 .AddOtlpExporter(otlp =>
                 {
-                    otlp.Endpoint = new Uri(endpoint);
+                    otlp.Endpoint = new Uri(baseEndpoint + "/v1/metrics");
                     otlp.Protocol = OtlpExportProtocol.HttpProtobuf;
                     if (!string.IsNullOrEmpty(header))
                         otlp.Headers = header;
@@ -67,7 +73,7 @@ public static class OpenTelemetryServiceExtensions
         IConfiguration configuration,
         IHostEnvironment environment)
     {
-        var endpoint = configuration["OpenTelemetry:Endpoint"] ?? "http://localhost:5341/ingest/otlp";
+        var baseEndpoint = (configuration["OpenTelemetry:Endpoint"] ?? "http://localhost:5341/ingest/otlp").TrimEnd('/');
         var serviceName = configuration["OpenTelemetry:ServiceName"] ?? "TaskFlow.Api";
         var header = configuration["OpenTelemetry:Header"];
 
@@ -79,10 +85,11 @@ public static class OpenTelemetryServiceExtensions
             options.SetResourceBuilder(ResourceBuilder.CreateDefault().AddService(serviceName));
             options.IncludeFormattedMessage = true;
             options.IncludeScopes = true;
+            options.ParseStateValues = true;
 
             options.AddOtlpExporter(otlp =>
             {
-                otlp.Endpoint = new Uri(endpoint);
+                otlp.Endpoint = new Uri(baseEndpoint + "/v1/logs");
                 otlp.Protocol = OtlpExportProtocol.HttpProtobuf;
                 if (!string.IsNullOrEmpty(header))
                     otlp.Headers = header;

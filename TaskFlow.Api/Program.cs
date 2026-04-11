@@ -67,6 +67,7 @@ try
         app.UseOpenApiWithScalar();
     }
 
+    app.UseHttpLogging();
     app.UseMiddleware<ValidationMiddleware>();
 
     // Skip HTTPS redirection in containers
