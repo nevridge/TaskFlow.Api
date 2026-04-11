@@ -1,103 +1,83 @@
 using Asp.Versioning.ApiExplorer;
-using Microsoft.AspNetCore.Mvc.ApiExplorer;
-using Microsoft.Extensions.Options;
-using Microsoft.OpenApi.Models;
-using Swashbuckle.AspNetCore.SwaggerGen;
+using Microsoft.AspNetCore.OpenApi;
+using Scalar.AspNetCore;
 
 namespace TaskFlow.Api.Extensions;
 
 /// <summary>
-/// Extension methods for configuring Swagger/OpenAPI services
+/// Extension methods for configuring OpenAPI / Scalar documentation services.
 /// </summary>
 public static class SwaggerServiceExtensions
 {
     /// <summary>
-    /// Adds Swagger/OpenAPI services to the service collection with API versioning support
+    /// Registers one Microsoft.AspNetCore.OpenApi document per API version.
+    /// Document names match the group-name format configured in
+    /// <see cref="ApiVersioningServiceExtensions"/> (e.g. "v1", "v2").
     /// </summary>
-    /// <param name="services">The service collection</param>
-    /// <returns>The service collection for chaining</returns>
     public static IServiceCollection AddSwagger(this IServiceCollection services)
     {
-        services.AddEndpointsApiExplorer();
-
-        // Register Swagger configuration for API versioning
-        services.AddTransient<IConfigureOptions<SwaggerGenOptions>, ConfigureSwaggerOptions>();
-
-        services.AddSwaggerGen(options =>
+        // Register an OpenAPI document for each known API version.
+        // Add a new services.AddOpenApi("v2", ...) entry when a v2 is introduced.
+        services.AddOpenApi("v1", options =>
         {
-            // Add a custom operation filter to add version parameter in UI
-            options.OperationFilter<SwaggerDefaultValues>();
+            // Use a document transformer so we can reflect deprecation status at
+            // runtime without needing to call BuildServiceProvider() here.
+            options.AddDocumentTransformer<ApiVersionDocumentTransformer>();
         });
 
         return services;
     }
-}
 
-/// <summary>
-/// Configures Swagger generation options for API versioning
-/// </summary>
-public class ConfigureSwaggerOptions(IApiVersionDescriptionProvider provider) : IConfigureOptions<SwaggerGenOptions>
-{
-    private readonly IApiVersionDescriptionProvider _provider = provider;
-
-    public void Configure(SwaggerGenOptions options)
+    /// <summary>
+    /// Maps the OpenAPI JSON endpoints and the Scalar interactive UI.
+    /// Call this inside the development-only block in Program.cs.
+    /// </summary>
+    public static WebApplication UseSwagger(this WebApplication app)
     {
-        // Create a Swagger document for each discovered API version
-        foreach (var description in _provider.ApiVersionDescriptions)
+        // Serve /openapi/{documentName}.json for every registered document.
+        app.MapOpenApi();
+
+        // Mount the Scalar interactive reference UI at /scalar/{documentName}.
+        app.MapScalarApiReference(options =>
         {
-            options.SwaggerDoc(
-                description.GroupName,
-                new OpenApiInfo
-                {
-                    Title = "TaskFlow API",
-                    Version = description.ApiVersion.ToString(),
-                    Description = description.IsDeprecated
-                        ? "This API version has been deprecated."
-                        : "A RESTful task management API demonstrating modern .NET practices."
-                });
-        }
+            options.WithTitle("TaskFlow API");
+        });
+
+        return app;
     }
 }
 
 /// <summary>
-/// Adds default values to Swagger operation metadata
+/// Document transformer that sets OpenAPI document metadata, picking up
+/// deprecation status from <see cref="IApiVersionDescriptionProvider"/> when available.
 /// </summary>
-public class SwaggerDefaultValues : IOperationFilter
+internal sealed class ApiVersionDocumentTransformer(
+    IApiVersionDescriptionProvider? versionProvider = null)
+    : IOpenApiDocumentTransformer
 {
-    public void Apply(OpenApiOperation operation, OperationFilterContext context)
+    public Task TransformAsync(
+        Microsoft.OpenApi.OpenApiDocument document,
+        OpenApiDocumentTransformerContext context,
+        CancellationToken cancellationToken)
     {
-        var apiDescription = context.ApiDescription;
+        var groupName = context.DocumentName; // e.g. "v1"
 
-        // Mark as deprecated if the API version is deprecated
-        operation.Deprecated |= apiDescription.IsDeprecated();
+        // Try to match against a discovered API version description.
+        var versionDescription = versionProvider?.ApiVersionDescriptions
+            .FirstOrDefault(d => d.GroupName == groupName);
 
-        if (operation.Parameters == null)
+        var version = versionDescription?.ApiVersion.ToString() ?? groupName;
+        var isDeprecated = versionDescription?.IsDeprecated ?? false;
+
+        document.Info = new()
         {
-            return;
-        }
+            Title = "TaskFlow API",
+            Version = version,
+            Description = isDeprecated
+                ? $"TaskFlow API {version} — this version has been deprecated."
+                : "A RESTful task management API demonstrating modern .NET practices."
+        };
 
-        foreach (var parameter in operation.Parameters)
-        {
-            var description = apiDescription.ParameterDescriptions
-                .FirstOrDefault(p => p.Name == parameter.Name);
-
-            if (description == null)
-            {
-                continue;
-            }
-
-            parameter.Description ??= description.ModelMetadata?.Description;
-
-            if (parameter.Schema.Default == null && description.DefaultValue != null)
-            {
-                var defaultValueString = description.DefaultValue?.ToString();
-                if (!string.IsNullOrEmpty(defaultValueString))
-                {
-                    parameter.Schema.Default = new Microsoft.OpenApi.Any.OpenApiString(defaultValueString);
-                }
-            }
-
-            parameter.Required |= description.IsRequired;
-        }
+        return Task.CompletedTask;
     }
 }

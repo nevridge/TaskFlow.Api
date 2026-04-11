@@ -114,10 +114,10 @@ public class ServiceCollectionExtensionsTests
 
         // Act
         services.AddSwagger();
+
         // Assert
-        // Swagger services are registered internally
-        // We verify by checking if the service collection has the expected services
-        services.Should().Contain(s => s.ServiceType.Name.Contains("Swagger"));
+        // Microsoft.AspNetCore.OpenApi registers services with "OpenApi" in the name
+        services.Should().Contain(s => s.ServiceType.Name.Contains("OpenApi"));
     }
 
     [Fact]

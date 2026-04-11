@@ -62,22 +62,10 @@ try
         }
     }
 
-    // Enable Swagger UI in Development
+    // Enable Scalar / OpenAPI UI in Development
     if (app.Environment.IsDevelopment())
     {
         app.UseSwagger();
-        app.UseSwaggerUI(c =>
-        {
-            // Build a Swagger endpoint for each discovered API version
-            var provider = app.Services.GetRequiredService<Asp.Versioning.ApiExplorer.IApiVersionDescriptionProvider>();
-            foreach (var description in provider.ApiVersionDescriptions)
-            {
-                c.SwaggerEndpoint(
-                    $"/swagger/{description.GroupName}/swagger.json",
-                    $"TaskFlow API {description.GroupName.ToUpperInvariant()}");
-            }
-            c.RoutePrefix = string.Empty;
-        });
     }
 
     app.UseMiddleware<ValidationMiddleware>();
