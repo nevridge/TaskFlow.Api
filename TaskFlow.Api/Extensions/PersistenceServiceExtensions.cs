@@ -42,7 +42,9 @@ public static class PersistenceServiceExtensions
     internal static void EnsureSqliteDirectoryExists(string? connectionString, ILogger? logger = null)
     {
         if (string.IsNullOrEmpty(connectionString) || !connectionString.StartsWith("Data Source="))
+        {
             return;
+        }
 
         var filePath = connectionString.Replace("Data Source=", "").Split(';')[0];
         var directory = Path.GetDirectoryName(filePath);
