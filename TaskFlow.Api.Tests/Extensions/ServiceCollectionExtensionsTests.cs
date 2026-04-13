@@ -108,7 +108,7 @@ public class ServiceCollectionExtensionsTests
     }
 
     [Fact]
-    public void AddSwagger_ShouldRegisterSwaggerServices()
+    public void AddOpenApi_ShouldRegisterOpenApiServices()
     {
         // Arrange
         var services = new ServiceCollection();
