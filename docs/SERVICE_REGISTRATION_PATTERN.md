@@ -330,20 +330,18 @@ public static IServiceCollection AddFeature(
 ### Pattern 2: OpenAPI Documentation
 
 ```csharp
-public static IServiceCollection AddOpenApiDocumentation(
-    this IServiceCollection services)
+public static class OpenApiServiceExtensions
 {
-    services.AddOpenApi("v1", options =>
+    public static IServiceCollection AddOpenApi(
+        this IServiceCollection services)
     {
-        options.AddDocumentTransformer((doc, ctx, _) =>
+        services.AddOpenApi("v1", options =>
         {
-            doc.Info.Title = "TaskFlow API";
-            doc.Info.Version = "v1";
-            return Task.CompletedTask;
+            options.AddDocumentTransformer<ApiVersionDocumentTransformer>();
         });
-    });
 
-    return services;
+        return services;
+    }
 }
 ```
 
