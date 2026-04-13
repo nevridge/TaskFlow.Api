@@ -39,8 +39,6 @@ TaskFlow.Api provides two Docker configurations for different deployment scenari
 |--------------|----------|----------------|-----------|
 | **Development** (`docker-compose.yml`) | Local dev, fast iteration | ✅ Enabled | ✅ Enabled |
 | **Production** (`docker-compose.prod.yml`) | Production builds, Azure | ❌ Manual | ❌ Disabled |
-| **Development** (`docker-compose.yml`) | Local dev, fast iteration | ✅ Enabled | ✅ Enabled |
-| **Production** (`docker-compose.prod.yml`) | Production builds, Azure | ❌ Manual | ❌ Disabled |
 
 ### Development Deployment
 
