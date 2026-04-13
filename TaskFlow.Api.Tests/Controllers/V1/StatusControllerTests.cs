@@ -288,6 +288,7 @@ public class StatusControllerTests
             UpdatedDate = DateTime.UtcNow
         };
         _mockService.Setup(s => s.GetStatusAsync(1)).ReturnsAsync(existingStatus);
+        _mockService.Setup(s => s.DeleteStatusAsync(1)).Returns(Task.CompletedTask);
 
         // Act
         var result = await _controller.DeleteStatus(1);
