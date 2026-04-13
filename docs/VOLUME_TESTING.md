@@ -73,19 +73,17 @@ Verify that data persists when the container is restarted.
 
 1. **Create test data via API:**
    ```bash
-   curl -X POST http://localhost:8080/api/TaskItems \
+   curl -X POST http://localhost:8080/api/v1/TaskItems \
      -H "Content-Type: application/json" \
-     -d '{"title":"Persistence Test","description":"Testing volume persistence","status":"Todo"}'
+     -d '{"title":"Persistence Test","description":"Testing volume persistence","statusId":1,"isComplete":false}'
    ```
 
 2. **Verify task was created:**
    ```bash
-   curl http://localhost:8080/api/TaskItems
+   curl http://localhost:8080/api/v1/TaskItems
    ```
-   
-   Expected: JSON array containing your task.
 
-3. **Restart the container:**
+   Expected: JSON array containing your task.
    ```bash
    docker compose restart
    ```
@@ -97,9 +95,9 @@ Verify that data persists when the container is restarted.
 
 5. **Verify task still exists:**
    ```bash
-   curl http://localhost:8080/api/TaskItems
+   curl http://localhost:8080/api/v1/TaskItems
    ```
-   
+
    Expected: Same task from step 2 should still be present.
 
 ### Test 3: Data Persistence Across Container Removal
@@ -108,19 +106,17 @@ Verify that data persists even when the container is removed and recreated.
 
 1. **Create test data (if not already done):**
    ```bash
-   curl -X POST http://localhost:8080/api/TaskItems \
+   curl -X POST http://localhost:8080/api/v1/TaskItems \
      -H "Content-Type: application/json" \
-     -d '{"title":"Removal Test","description":"Testing persistence after removal","status":"InProgress"}'
+     -d '{"title":"Removal Test","description":"Testing persistence after removal","statusId":2,"isComplete":false}'
    ```
 
 2. **Count tasks:**
    ```bash
-   curl http://localhost:8080/api/TaskItems | jq '. | length'
+   curl http://localhost:8080/api/v1/TaskItems | jq '. | length'
    ```
-   
-   Note the count (e.g., 2 tasks).
 
-3. **Stop and remove the container (but keep volumes):**
+   Note the count (e.g., 2 tasks).
    ```bash
    docker compose down
    ```
@@ -146,9 +142,9 @@ Verify that data persists even when the container is removed and recreated.
 
 7. **Verify all tasks still exist:**
    ```bash
-   curl http://localhost:8080/api/TaskItems | jq '. | length'
+   curl http://localhost:8080/api/v1/TaskItems | jq '. | length'
    ```
-   
+
    Expected: Same count as step 2. All data should be preserved.
 
 ### Test 4: Volume Cleanup
@@ -175,9 +171,9 @@ Verify that volumes can be removed when needed.
 4. **Verify empty database:**
    ```bash
    sleep 10
-   curl http://localhost:8080/api/TaskItems
+   curl http://localhost:8080/api/v1/TaskItems
    ```
-   
+
    Expected: Empty array `[]` (no tasks).
 
 ## Automated Testing Script
@@ -222,15 +218,15 @@ echo "✓ Volumes created"
 
 echo ""
 echo "Step 5: Create test task..."
-TASK_ID=$(curl -s -X POST http://localhost:8080/api/TaskItems \
+TASK_ID=$(curl -s -X POST http://localhost:8080/api/v1/TaskItems \
   -H "Content-Type: application/json" \
-  -d '{"title":"Test","description":"Testing","status":"Todo"}' \
+  -d '{"title":"Test","description":"Testing","statusId":1,"isComplete":false}' \
   | jq -r '.id')
 echo "✓ Created task: $TASK_ID"
 
 echo ""
 echo "Step 6: Verify task exists..."
-TASK_COUNT=$(curl -s http://localhost:8080/api/TaskItems | jq '. | length')
+TASK_COUNT=$(curl -s http://localhost:8080/api/v1/TaskItems | jq '. | length')
 echo "✓ Task count: $TASK_COUNT"
 [ "$TASK_COUNT" -lt 1 ] && echo "✗ Failed to create task" && exit 1
 
@@ -262,7 +258,7 @@ done
 
 echo ""
 echo "Step 11: Verify data persisted..."
-TASK_COUNT=$(curl -s http://localhost:8080/api/TaskItems | jq '. | length')
+TASK_COUNT=$(curl -s http://localhost:8080/api/v1/TaskItems | jq '. | length')
 echo "✓ Task count after restart: $TASK_COUNT"
 [ "$TASK_COUNT" -lt 1 ] && echo "✗ Data was lost!" && exit 1
 

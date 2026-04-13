@@ -77,16 +77,6 @@ curl -H "x-api-version: 1.0" http://localhost:8080/api/TaskItems
 - For advanced API consumers
 - Testing different versions
 
-### Legacy Endpoints
-
-Endpoints without version prefix continue to work for backward compatibility:
-
-```
-GET /api/TaskItems  # Defaults to v1.0
-```
-
-These endpoints support version 1.0 and maintain the original API contract.
-
 ## Available Versions
 
 ### Version 1.0
@@ -126,14 +116,14 @@ api-supported-versions: 1.0
 
 This header lists all supported API versions, helping clients discover available versions.
 
-### Swagger/OpenAPI Documentation
+### OpenAPI Documentation (Scalar UI)
 
-Swagger UI automatically documents all API versions:
+Scalar UI automatically documents all API versions:
 
-- **V1 Documentation:** Select "TaskFlow API V1" in Swagger UI dropdown
+- **V1 Documentation:** Access Scalar UI at `/scalar/v1`
 - Additional versions will appear as they are added
 
-Access Swagger UI at: `http://localhost:{port}` (in Development mode)
+Access Scalar UI at: `http://localhost:{port}/scalar/v1` (in Development mode)
 
 ## Adding New Versions
 
@@ -185,9 +175,9 @@ public class TaskItemsController : ControllerBase
 
 ```
 Controllers/
-├── TaskItemsController.cs      # Supports v1.0 (legacy route /api/TaskItems)
 └── V1/
-    └── TaskItemsController.cs  # Version 1.0 (versioned route /api/v1/TaskItems)
+    ├── TaskItemsController.cs  # Version 1.0 (/api/v1/TaskItems)
+    └── StatusController.cs     # Version 1.0 (/api/v1/Status)
 ```
 
 Future versions can be added in new namespaces (e.g., `V2/`, `V3/`).
@@ -198,16 +188,15 @@ Future versions can be added in new namespaces (e.g., `V2/`, `V3/`).
 [ApiVersion("1.0")]                    // Declares controller supports v1.0
 [ApiVersion("2.0")]                    // Declares controller supports v2.0
 [Route("api/v{version:apiVersion}/[controller]")]  // Versioned URL template
-[Route("api/[controller]")]            // Legacy non-versioned route
 ```
 
-### Swagger Integration
+### OpenAPI / Scalar Integration
 
-The Swagger UI is automatically configured to:
+Scalar UI is automatically configured to:
 - Generate separate documentation for each API version
 - Group endpoints by version
 - Show version-specific schemas
-- Provide version selector dropdown
+- Provide a version selector
 
 ## Testing
 
@@ -217,9 +206,7 @@ Test both URL versioning (`/api/v1/TaskItems`) and header versioning (`x-api-ver
 
 ## Troubleshooting
 
-**"Unsupported API version" error:** Check `api-supported-versions` header or Swagger docs. Currently only v1.0 is supported.
-
-**Using legacy endpoints:** For new integrations, use versioned routes (`/api/v1/TaskItems`). Legacy routes (`/api/TaskItems`) continue to work for backward compatibility.
+**"Unsupported API version" error:** Check `api-supported-versions` header or Scalar UI docs. Currently only v1.0 is supported.
 
 ## References
 
@@ -236,11 +223,10 @@ TaskFlow.Api implements robust API versioning using Microsoft's recommended prac
 ✅ Header versioning as fallback  
 ✅ Infrastructure ready for multiple versions  
 ✅ Clear documentation for versioning strategy  
-✅ Backward compatibility maintained  
-✅ Easy path to add new versions  
+✅ Easy path to add new versions
 
 This approach provides the foundation for API evolution without disrupting existing consumers. Currently, version 1.0 is available, and the infrastructure is in place to add additional versions as needed.
 
 ---
 
-*Last updated: 2025-11-05*
+*Last updated: 2025-07-01*

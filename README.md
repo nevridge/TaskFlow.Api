@@ -1,6 +1,6 @@
 # TaskFlow.Api
 
-A production-ready .NET 9 Web API for managing tasks, demonstrating modern development practices and cloud deployment patterns.
+A production-ready .NET 10 Web API for managing tasks, demonstrating modern development practices and cloud deployment patterns.
 
 ## Overview
 
@@ -17,19 +17,19 @@ While functional as a task management system, this project serves as a portfolio
 - ✅ Full CRUD operations for task items via REST API
 - 🔄 **API versioning** with URL path and header support (v1.0, with infrastructure for future versions)
 - 🗄️ Entity Framework Core with SQLite persistence
-- 🔍 OpenAPI/Swagger documentation with multi-version support
-- 📊 Structured logging with Serilog
+- 🔍 OpenAPI documentation with Scalar UI and multi-version support
+- 📊 Structured logging via OpenTelemetry (OTLP export)
 - 🏥 Health check endpoints for container orchestration
 - 🐳 Docker support for local and production deployment
 - ☁️ Azure deployment automation with GitHub Actions
 - 🔒 Security scanning (CodeQL + Trivy)
-- 📈 Application Insights telemetry integration
+- 📈 OpenTelemetry tracing, metrics, and logging integration
 - ✅ Automated testing with code coverage enforcement
 
 ## Quick Start
 
 ### Prerequisites
-- [.NET 9 SDK](https://dotnet.microsoft.com/download/dotnet/9.0)
+- [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0)
 - [Docker Desktop](https://www.docker.com/products/docker-desktop) (for containerized development)
 
 ### Run Locally (5 minutes)
@@ -46,8 +46,8 @@ While functional as a task management system, this project serves as a portfolio
    dotnet run --project TaskFlow.Api
    ```
    
-3. **Access Swagger UI:**
-   Navigate to `https://localhost:{port}` (port displayed in console output)
+3. **Access Scalar UI:**
+   Navigate to `https://localhost:{port}/scalar/v1` (port displayed in console output)
 
 The application will automatically apply database migrations on first run.
 
@@ -87,27 +87,27 @@ Access the API at `http://localhost:8080`. Data persists in Docker volumes acros
 
 ```
 TaskFlow.Api/
-├── Controllers/          # REST API endpoints
+├── Controllers/          # REST API endpoints (versioned under V1/)
 ├── Services/             # Business logic layer
 ├── Repositories/         # Data access layer
 ├── Models/               # Domain entities
 ├── DTOs/                 # Data transfer objects
 ├── Validators/           # FluentValidation validators
-├── Configuration/        # DI service registration extensions
+├── Extensions/           # DI service registration extensions
 ├── HealthChecks/         # Custom health check implementations
-├── Middleware/           # Custom middleware components
+├── Providers/            # Shared providers (e.g. JSON serialization options)
 └── Migrations/           # EF Core database migrations
 ```
 
 ## Technology Stack
 
-- **Framework:** .NET 9, ASP.NET Core
+- **Framework:** .NET 10, ASP.NET Core
 - **Database:** Entity Framework Core with SQLite
-- **Logging:** Serilog (console + rolling file)
+- **Logging:** OpenTelemetry (OTLP export — console added in Development)
 - **Validation:** FluentValidation
-- **Testing:** xUnit, Moq, Coverlet (code coverage)
-- **Monitoring:** Health checks, Application Insights
-- **Documentation:** Swagger/OpenAPI
+- **Testing:** xUnit, Moq, NSubstitute, Coverlet (code coverage)
+- **Monitoring:** Health checks, OpenTelemetry (tracing, metrics, logging)
+- **Documentation:** OpenAPI with Scalar UI
 - **Deployment:** Docker, Azure Container Instances (ACI)
 - **CI/CD:** GitHub Actions
 
@@ -136,9 +136,9 @@ If you're evaluating this project for hiring or collaboration, here's what to no
 - **Automated code formatting** checks in CI
 
 ### Observability
-- **Structured logging** with Serilog
+- **Structured logging** with OpenTelemetry (OTLP export to Seq; console added in Development)
 - **Health check endpoints** (`/health`, `/health/ready`, `/health/live`)
-- **Application Insights** telemetry integration
+- **OpenTelemetry tracing and metrics** via OTLP export
 - **Detailed health check responses** with timing metrics
 
 ## API Endpoints
@@ -156,8 +156,7 @@ TaskFlow.Api supports **URL path versioning** for API evolution. Current version
 | DELETE | `/api/v1/TaskItems/{id}` | Delete task |
 
 **Versioning Support:**
-- Use versioned routes (`/api/v1/TaskItems`) for new integrations
-- Legacy routes (`/api/TaskItems`) remain available for backward compatibility
+- Use versioned routes (`/api/v1/TaskItems`) for all integrations
 - Header versioning supported via `x-api-version` header
 - Infrastructure in place to add future versions (v2, v3, etc.)
 
@@ -179,8 +178,10 @@ Configure via `appsettings.json` or environment variables:
 |---------|---------------------|---------|-------------|
 | Database connection | `ConnectionStrings__DefaultConnection` | `Data Source=tasks.db` | SQLite database path |
 | Auto migrations | `Database__MigrateOnStartup` | `false` (true in Development) | Enable automatic migrations |
-| Log path | `LOG_PATH` | `/app/logs/log.txt` | Serilog output path |
-| App Insights | `ApplicationInsights__ConnectionString` | - | Telemetry connection string |
+| OTel service name | `OpenTelemetry__ServiceName` | `TaskFlow.Api` | Service name reported in traces/logs |
+| OTel endpoint | `OpenTelemetry__Endpoint` | `http://localhost:5341/ingest/otlp` | OTLP collector endpoint (e.g. Seq) |
+| OTel auth header | `OpenTelemetry__Header` | - | Optional auth header for the OTLP exporter |
+| OTel protocol | `OpenTelemetry__Protocol` | `http/protobuf` | Export protocol (`http/protobuf` only) |
 
 ## Testing
 
@@ -212,4 +213,4 @@ No license specified. This project is primarily for portfolio and learning purpo
 
 ---
 
-*Last updated: 2025-11-03*
+*Last updated: 2025-07-01*

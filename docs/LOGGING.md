@@ -2,18 +2,9 @@
 
 ## Overview
 
-TaskFlow.Api uses Serilog for structured logging. Logs are written to both console and rolling file outputs.
+TaskFlow.Api uses **OpenTelemetry** for structured logging, exporting logs via OTLP to a configured backend (e.g. Seq). In Development, logs are also written to the console. There is no file-based log sink.
 
 ## Log Configuration
-
-### Log Paths
-
-| Environment | Default Path |
-|-------------|--------------|
-| **Container** | `/app/logs/log.txt` |
-| **Local Development** | `logs/log.txt` |
-
-To override, set the `LOG_PATH` environment variable.
 
 ### Log Levels
 
@@ -25,16 +16,26 @@ Configure in `appsettings.json`:
 
 ```json
 {
-  "Serilog": {
-    "MinimumLevel": {
+  "Logging": {
+    "LogLevel": {
       "Default": "Information",
-      "Override": {
-        "Microsoft": "Warning"
-      }
+      "Microsoft": "Warning",
+      "Microsoft.Hosting.Lifetime": "Information"
     }
   }
 }
 ```
+
+### OTLP Exporter Settings
+
+Configure the OpenTelemetry exporter in `appsettings.json` or via environment variables:
+
+| Setting | Environment Variable | Default |
+|---------|---------------------|---------|
+| Service name | `OpenTelemetry__ServiceName` | `TaskFlow.Api` |
+| OTLP endpoint | `OpenTelemetry__Endpoint` | `http://localhost:5341/ingest/otlp` |
+| Auth header | `OpenTelemetry__Header` | *(none)* |
+| Protocol | `OpenTelemetry__Protocol` | `http/protobuf` |
 
 ## Health Check Failure Logging
 
@@ -122,12 +123,13 @@ docker logs <container-name> | grep "Health check FAILED"
 
 ### Monitoring and Alerting
 
-For production environments, integrate with log aggregation systems:
-- **Application Insights**: Add `Serilog.Sinks.ApplicationInsights` package
-- **ELK Stack**: Add `Serilog.Sinks.Elasticsearch` package
-- **Seq**: Add `Serilog.Sinks.Seq` package
+All logs are exported via OTLP and can be directed to any compatible backend by changing the `OpenTelemetry__Endpoint` setting:
 
-Configure alerts for health check failures by filtering on "Health check FAILED" messages.
+- **Seq**: Default configuration targets `http://localhost:5341/ingest/otlp`
+- **Azure Monitor / Application Insights**: Use the `Azure.Monitor.OpenTelemetry.AspNetCore` package or configure the OTLP endpoint
+- **Grafana / Loki**: Point the endpoint at your Loki OTLP receiver
+
+Configure alerts for health check failures by filtering on "Health check FAILED" log messages in your chosen backend.
 
 ## Application Log Events
 
@@ -148,18 +150,11 @@ Common log events in TaskFlow.Api:
 
 ## Troubleshooting
 
-### No Logs Written
+### Logs Not Appearing in Backend
 
-Check directory permissions and disk space:
-```bash
-ls -la /app/logs
-df -h
-```
+If logs are not arriving at your OTLP backend:
 
-### Docker Logs Not Persisting
-
-Mount the logs directory in `docker-compose.yml`:
-```yaml
-volumes:
-  - ./logs:/app/logs
-```
+1. Verify the `OpenTelemetry__Endpoint` setting is correct
+2. Check that the backend is running and reachable from the container
+3. Confirm the auth header (`OpenTelemetry__Header`) is set if required
+4. In Development, check the console output — logs always appear there regardless of OTLP connectivity

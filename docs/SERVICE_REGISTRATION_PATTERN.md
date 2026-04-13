@@ -14,67 +14,66 @@ TaskFlow.Api uses the **ServiceCollection Extension Pattern** to organize and ma
 
 ## Architecture
 
-All service registration extensions are located in the `TaskFlow.Api.Configuration` namespace under the `Configuration` folder. Each extension class focuses on a specific aspect of the application.
+All service registration extensions are located in the `TaskFlow.Api.Extensions` namespace under the `Extensions` folder. Each extension class focuses on a specific aspect of the application.
 
 ### Extension Classes
 
 | Extension Class | Purpose | Key Services Registered |
 |----------------|---------|------------------------|
-| `PersistenceServiceExtensions` | Database and data access | `TaskDbContext`, `ITaskRepository` |
-| `ApplicationServiceExtensions` | Business logic services | `ITaskService` |
+| `PersistenceServiceExtensions` | Database and data access | `TaskDbContext`, `ITaskRepository`, `IStatusRepository` |
+| `ApplicationServiceExtensions` | Business logic services | `ITaskService`, `IStatusService` |
 | `ValidationServiceExtensions` | Input validation | FluentValidation validators |
 | `HealthCheckServiceExtensions` | Health monitoring | Database and self health checks |
-| `SwaggerServiceExtensions` | API documentation | Swagger/OpenAPI services |
-| `LoggingServiceExtensions` | Logging infrastructure | Serilog configuration |
+| `ApiVersioningServiceExtensions` | API versioning | Versioning middleware and API explorer |
+| `OpenApiServiceExtensions` | API documentation | OpenAPI/Scalar services |
+| `OpenTelemetryServiceExtensions` | Observability | OpenTelemetry tracing, metrics, and logging |
 | `JsonConfigurationExtensions` | JSON serialization | JSON serializer options |
 
 ## Usage in Program.cs
 
-The refactored `Program.cs` demonstrates the pattern:
+The current `Program.cs` demonstrates the pattern:
 
 ```csharp
-using Microsoft.EntityFrameworkCore;
-using Serilog;
-using TaskFlow.Api.Configuration;
-using TaskFlow.Api.Data;
-using TaskFlow.Api.HealthChecks;
-using TaskFlow.Api.Middleware;
+using TaskFlow.Api.Extensions;
 
-// Configure Serilog bootstrap logger
-LoggingServiceExtensions.ConfigureBootstrapLogger();
+var builder = WebApplication.CreateBuilder(args);
 
-try
+// Configure OpenTelemetry logging
+builder.Logging.AddApplicationLogging(builder.Configuration, builder.Environment);
+
+// Add services to the container
+builder.Services.AddControllers();
+builder.Services.AddApiVersioningConfiguration();
+OpenApiServiceExtensions.AddOpenApi(builder.Services);
+builder.Services.AddPersistence(builder.Configuration);
+builder.Services.AddApplicationServices();
+builder.Services.AddValidation();
+builder.Services.AddApplicationHealthChecks();
+builder.Services.AddOpenTelemetryObservability(builder.Configuration);
+builder.Services.ConfigureJsonSerialization();
+
+var app = builder.Build();
+
+// Enable Scalar / OpenAPI UI in Development
+if (app.Environment.IsDevelopment())
 {
-    Log.Information("Starting TaskFlow API (bootstrap logger)");
-
-    var builder = WebApplication.CreateBuilder(args);
-
-    // Configure Serilog as the host logger
-    builder.Host.AddSerilog();
-
-    // Add services to the container
-    builder.Services.AddControllers();
-    builder.Services.AddSwagger();
-    builder.Services.AddPersistence(builder.Configuration);
-    builder.Services.AddApplicationServices();
-    builder.Services.AddValidation();
-    builder.Services.AddApplicationHealthChecks();
-    builder.Services.ConfigureJsonSerialization();
-
-    var app = builder.Build();
-    
-    // ... middleware and endpoint configuration ...
+    app.UseOpenApiWithScalar();
 }
+
+app.UseHttpLogging();
+app.UseAuthorization();
+app.MapControllers();
+// ... health check endpoint mapping ...
 ```
 
 ## Creating New Extension Methods
 
 ### Step 1: Create the Extension Class
 
-Create a new file in the `Configuration` folder:
+Create a new file in the `Extensions` folder:
 
 ```csharp
-namespace TaskFlow.Api.Configuration;
+namespace TaskFlow.Api.Extensions;
 
 /// <summary>
 /// Extension methods for configuring [feature name] services
@@ -306,7 +305,7 @@ public class ServiceCollectionExtensionsTests
 }
 ```
 
-Test files are located in `TaskFlow.Api.Tests/Configuration/`.
+Test files are located in `TaskFlow.Api.Tests/Extensions/`.
 
 ## Common Patterns
 
@@ -328,42 +327,48 @@ public static IServiceCollection AddFeature(
 }
 ```
 
-### Pattern 2: Conditional Registration
+### Pattern 2: OpenAPI Documentation
 
 ```csharp
-public static IServiceCollection AddSwagger(
+public static IServiceCollection AddOpenApiDocumentation(
     this IServiceCollection services)
 {
-    services.AddEndpointsApiExplorer();
-    services.AddSwaggerGen(options =>
+    services.AddOpenApi("v1", options =>
     {
-        options.SwaggerDoc("v1", new OpenApiInfo 
-        { 
-            Title = "TaskFlow API", 
-            Version = "v1" 
+        options.AddDocumentTransformer((doc, ctx, _) =>
+        {
+            doc.Info.Title = "TaskFlow API";
+            doc.Info.Version = "v1";
+            return Task.CompletedTask;
         });
     });
-    
+
     return services;
 }
 ```
 
-### Pattern 3: Host Configuration
+### Pattern 3: Logging Builder Configuration
 
-For services that need to configure the host builder:
+For services that need to configure the logging builder:
 
 ```csharp
-public static class LoggingServiceExtensions
+public static class OpenTelemetryServiceExtensions
 {
-    public static ConfigureHostBuilder AddSerilog(this ConfigureHostBuilder builder)
+    public static ILoggingBuilder AddApplicationLogging(
+        this ILoggingBuilder logging,
+        IConfiguration configuration,
+        IHostEnvironment environment)
     {
-        builder.UseSerilog();
-        return builder;
+        logging.ClearProviders();
+        logging.AddOpenTelemetry(otlp => { /* OTLP config */ });
+        if (environment.IsDevelopment())
+            logging.AddConsole();
+        return logging;
     }
 }
 
 // Usage:
-builder.Host.AddSerilog();
+builder.Logging.AddApplicationLogging(builder.Configuration, builder.Environment);
 ```
 
 ## Migration Guide
