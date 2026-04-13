@@ -200,6 +200,8 @@ public class StatusControllerTests
         };
 
         _mockService.Setup(s => s.GetStatusAsync(1)).ReturnsAsync(existingStatus);
+        _mockService.Setup(s => s.UpdateStatusAsync(It.IsAny<Status>()))
+            .Returns(Task.CompletedTask);
         _mockValidator.Setup(v => v.ValidateAsync(It.IsAny<Status>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(new ValidationResult());
 
