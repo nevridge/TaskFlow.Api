@@ -2,7 +2,6 @@ using System.Text.Json;
 using Microsoft.AspNetCore.Http.Json;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Options;
-using Serilog;
 using TaskFlow.Api.Providers;
 
 namespace TaskFlow.Api.HealthChecks;
@@ -16,14 +15,19 @@ public static class HealthCheckResponseWriter
     {
         context.Response.ContentType = "application/json; charset=utf-8";
 
+        var logger = context.RequestServices.GetService<ILoggerFactory>()
+            ?.CreateLogger(nameof(HealthCheckResponseWriter));
+
+        var sanitizedEndpoint = SanitizeForLog(context.Request.Path.ToString());
+
         // Log health check failures with appropriate severity
         if (report.Status == HealthStatus.Unhealthy)
         {
-            LogHealthCheckFailure(context.Request.Path, report);
+            LogHealthCheckFailure(logger, sanitizedEndpoint, report);
         }
         else if (report.Status == HealthStatus.Degraded)
         {
-            LogHealthCheckDegraded(context.Request.Path, report);
+            LogHealthCheckDegraded(logger, sanitizedEndpoint, report);
         }
 
         // Retrieve options from DI container
@@ -51,54 +55,71 @@ public static class HealthCheckResponseWriter
             await context.Response.WriteAsync(
                 JsonSerializer.Serialize(result, options));
         }
-        catch (JsonException ex)
+        catch (Exception ex) when (ex is JsonException || ex is InvalidOperationException)
         {
-            // Fallback to simple error response if serialization fails
-            var errorResponse = $"{{\"status\":\"Unhealthy\",\"error\":\"Failed to serialize health check response: {ex.Message}\"}}";
-            await context.Response.WriteAsync(errorResponse);
-        }
-        catch (InvalidOperationException ex)
-        {
-            // Fallback to simple error response if serialization fails
-            var errorResponse = $"{{\"status\":\"Unhealthy\",\"error\":\"Failed to serialize health check response: {ex.Message}\"}}";
+            // Fallback to simple error response if serialization fails;
+            // use JsonSerializer.Serialize so ex.Message is properly JSON-escaped.
+            var errorResponse = JsonSerializer.Serialize(new
+            {
+                status = "Unhealthy",
+                error = $"Failed to serialize health check response: {ex.Message}"
+            });
             await context.Response.WriteAsync(errorResponse);
         }
     }
 
-    private static void LogHealthCheckFailure(string endpoint, HealthReport report)
+    private static void LogHealthCheckFailure(ILogger? logger, string endpoint, HealthReport report)
     {
+        if (logger is null)
+        {
+            return;
+        }
+
+        if (!logger.IsEnabled(LogLevel.Error))
+        {
+            return;
+        }
+
         var failedChecks = report.Entries
             .Where(e => e.Value.Status == HealthStatus.Unhealthy)
-            .Select(e => new
-            {
-                Name = e.Key,
-                e.Value.Description,
-                Duration = e.Value.Duration.TotalMilliseconds,
-                Exception = e.Value.Exception?.Message
-            });
+            .Select(e => $"{e.Key}: {e.Value.Description ?? "no description"}, exception: {SanitizeForLog(e.Value.Exception?.Message ?? "none")}");
 
-        Log.Error("Health check FAILED at {Endpoint} - Status: {Status}, Duration: {Duration}ms, Failed checks: {@FailedChecks}",
+        logger.LogError(
+            "Health check FAILED at {Endpoint} - Status: {Status}, Duration: {Duration}ms, Failed checks: {FailedChecks}",
             endpoint,
             report.Status,
             report.TotalDuration.TotalMilliseconds,
-            failedChecks);
+            string.Join("; ", failedChecks));
     }
 
-    private static void LogHealthCheckDegraded(string endpoint, HealthReport report)
+    private static void LogHealthCheckDegraded(ILogger? logger, string endpoint, HealthReport report)
     {
+        if (logger is null)
+        {
+            return;
+        }
+
+        if (!logger.IsEnabled(LogLevel.Warning))
+        {
+            return;
+        }
+
         var degradedChecks = report.Entries
             .Where(e => e.Value.Status == HealthStatus.Degraded)
-            .Select(e => new
-            {
-                Name = e.Key,
-                e.Value.Description,
-                Duration = e.Value.Duration.TotalMilliseconds
-            });
+            .Select(e => $"{e.Key}: {e.Value.Description ?? "no description"}");
 
-        Log.Warning("Health check DEGRADED at {Endpoint} - Status: {Status}, Duration: {Duration}ms, Degraded checks: {@DegradedChecks}",
+        logger.LogWarning(
+            "Health check DEGRADED at {Endpoint} - Status: {Status}, Duration: {Duration}ms, Degraded checks: {DegradedChecks}",
             endpoint,
             report.Status,
             report.TotalDuration.TotalMilliseconds,
-            degradedChecks);
+            string.Join("; ", degradedChecks));
+    }
+
+    private static string SanitizeForLog(string value)
+    {
+        return value
+            .Replace("\r", string.Empty)
+            .Replace("\n", string.Empty);
     }
 }

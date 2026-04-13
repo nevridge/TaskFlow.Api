@@ -1,20 +1,16 @@
 using Microsoft.EntityFrameworkCore;
-using Serilog;
 using TaskFlow.Api.Data;
 using TaskFlow.Api.Extensions;
 using TaskFlow.Api.Middleware;
 
-// Configure Serilog bootstrap logger
-LoggingServiceExtensions.ConfigureBootstrapLogger();
+ILogger? logger = null;
 
 try
 {
-    Log.Information("Starting TaskFlow API (bootstrap logger)");
-
     var builder = WebApplication.CreateBuilder(args);
 
-    // Configure Serilog as the host logger
-    builder.Host.AddSerilog();
+    // Configure OpenTelemetry logging (replaces all other logging providers)
+    builder.Logging.AddApplicationLogging(builder.Configuration, builder.Environment);
 
     // Add services to the container
     builder.Services.AddControllers();
@@ -24,10 +20,13 @@ try
     builder.Services.AddApplicationServices();
     builder.Services.AddValidation();
     builder.Services.AddApplicationHealthChecks();
-    //builder.Services.AddApplicationInsights();
+    builder.Services.AddOpenTelemetryObservability(builder.Configuration);
     builder.Services.ConfigureJsonSerialization();
 
     var app = builder.Build();
+    logger = app.Services.GetRequiredService<ILogger<Program>>();
+
+    logger.LogInformation("Starting TaskFlow API");
 
     // Apply EF migrations
     using (var scope = app.Services.CreateScope())
@@ -38,7 +37,7 @@ try
 
         if (shouldMigrate)
         {
-            Log.Information("Applying EF Core migrations on startup (Environment: {Env})", env.EnvironmentName);
+            logger.LogInformation("Applying EF Core migrations on startup (Environment: {Env})", env.EnvironmentName);
             var db = scope.ServiceProvider.GetRequiredService<TaskDbContext>();
 
             // Ensure the directory exists for SQLite
@@ -50,7 +49,7 @@ try
                 if (!string.IsNullOrEmpty(directory) && !Directory.Exists(directory))
                 {
                     Directory.CreateDirectory(directory);
-                    Log.Information("Created database directory: {Directory}", directory);
+                    logger.LogInformation("Created database directory: {Directory}", directory);
                 }
             }
 
@@ -58,7 +57,7 @@ try
         }
         else
         {
-            Log.Information("Skipping automatic migrations on startup (Environment: {Env})", env.EnvironmentName);
+            logger.LogInformation("Skipping automatic migrations on startup (Environment: {Env})", env.EnvironmentName);
         }
     }
 
@@ -68,6 +67,7 @@ try
         app.UseOpenApiWithScalar();
     }
 
+    app.UseHttpLogging();
     app.UseMiddleware<ValidationMiddleware>();
 
     // Skip HTTPS redirection in containers
@@ -84,17 +84,20 @@ try
     app.MapHealthChecks("/health/ready", HealthCheckServiceExtensions.CreateReadinessHealthCheckOptions());
     app.MapHealthChecks("/health/live", HealthCheckServiceExtensions.CreateLivenessHealthCheckOptions());
 
-    Log.Information("Starting web host on port {Port}", Environment.GetEnvironmentVariable("ASPNETCORE_HTTP_PORTS") ?? "8080");
+    logger.LogInformation("Starting web host on port {Port}", Environment.GetEnvironmentVariable("ASPNETCORE_HTTP_PORTS") ?? "8080");
     app.Run();
 }
 catch (Exception ex)
 {
-    // Ensure serious startup errors are captured
-    Log.Fatal(ex, "Host terminated unexpectedly");
+    // Use the DI logger if available, otherwise fall back to stderr for pre-host failures
+    if (logger is not null)
+    {
+        logger.LogCritical(ex, "Host terminated unexpectedly");
+    }
+    else
+    {
+        Console.Error.WriteLine($"Host terminated unexpectedly: {ex}");
+    }
+
     throw;
-}
-finally
-{
-    // Ensure all logs are flushed and sinks are disposed
-    Log.CloseAndFlush();
 }

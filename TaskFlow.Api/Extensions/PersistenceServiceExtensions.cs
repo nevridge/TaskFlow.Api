@@ -1,5 +1,4 @@
 using Microsoft.EntityFrameworkCore;
-using Serilog;
 using TaskFlow.Api.Data;
 using TaskFlow.Api.Repositories;
 
@@ -22,8 +21,6 @@ public static class PersistenceServiceExtensions
         // Default to /app/data/tasks.db for consistent container paths
         var connectionString = configuration.GetConnectionString("DefaultConnection")
                                ?? "Data Source=/app/data/tasks.db";
-
-        Log.Information("Using connection string: {ConnectionString}", connectionString);
 
         // Register SQLite DB context
         services.AddDbContext<TaskDbContext>(options =>

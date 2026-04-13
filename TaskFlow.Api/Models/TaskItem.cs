@@ -1,5 +1,3 @@
-using System.Text.Json.Serialization;
-
 namespace TaskFlow.Api.Models;
 
 public class TaskItem
