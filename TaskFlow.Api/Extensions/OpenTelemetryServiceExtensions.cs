@@ -114,7 +114,7 @@ public static class OpenTelemetryServiceExtensions
 
     /// <summary>
     /// Parses the OTLP export protocol from a configuration string.
-    /// Supported values are "grpc" and "http/protobuf" (case-insensitive).
+    /// The only supported value is "http/protobuf" (case-insensitive).
     /// Defaults to <see cref="OtlpExportProtocol.HttpProtobuf"/> when the value is null or empty.
     /// </summary>
     /// <param name="protocolValue">The protocol string from configuration</param>
@@ -124,8 +124,7 @@ public static class OpenTelemetryServiceExtensions
         protocolValue?.ToLowerInvariant() switch
         {
             null or "" or "http/protobuf" => OtlpExportProtocol.HttpProtobuf,
-            "grpc" => OtlpExportProtocol.Grpc,
             _ => throw new InvalidOperationException(
-                $"Unsupported OpenTelemetry protocol '{protocolValue}'. Supported values are 'grpc' and 'http/protobuf'.")
+                $"Unsupported OpenTelemetry protocol '{protocolValue}'. The only supported value is 'http/protobuf'.")
         };
 }

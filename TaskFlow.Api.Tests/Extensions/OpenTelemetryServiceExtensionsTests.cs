@@ -57,7 +57,7 @@ public class OpenTelemetryServiceExtensionsTests
     }
 
     [Fact]
-    public void AddOpenTelemetryObservability_WithGrpcProtocol_DoesNotThrow()
+    public void AddOpenTelemetryObservability_WithGrpcProtocol_ThrowsInvalidOperationException()
     {
         var services = new ServiceCollection();
         var config = BuildConfiguration(new Dictionary<string, string?>
@@ -67,7 +67,8 @@ public class OpenTelemetryServiceExtensionsTests
 
         var act = () => services.AddOpenTelemetryObservability(config);
 
-        act.Should().NotThrow();
+        act.Should().Throw<InvalidOperationException>()
+            .WithMessage("*grpc*");
     }
 
     [Fact]
@@ -174,7 +175,7 @@ public class OpenTelemetryServiceExtensionsTests
     }
 
     [Fact]
-    public void AddApplicationLogging_WithGrpcProtocol_DoesNotThrow()
+    public void AddApplicationLogging_WithGrpcProtocol_ThrowsInvalidOperationException()
     {
         var services = new ServiceCollection();
         var config = BuildConfiguration(new Dictionary<string, string?>
@@ -187,7 +188,8 @@ public class OpenTelemetryServiceExtensionsTests
 
         var act = () => services.AddLogging(builder => builder.AddApplicationLogging(config, env));
 
-        act.Should().NotThrow();
+        act.Should().Throw<InvalidOperationException>()
+            .WithMessage("*grpc*");
     }
 
     [Fact]
