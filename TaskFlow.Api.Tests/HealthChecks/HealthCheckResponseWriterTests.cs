@@ -204,4 +204,39 @@ public class HealthCheckResponseWriterTests
         response.Should().Contain("ConnectionString");
         response.Should().Contain("Version");
     }
+
+    [Fact]
+    public async Task WriteHealthCheckResponse_WhenExceptionMessageContainsSpecialChars_ResponseIsValidJson()
+    {
+        // Arrange
+        var context = CreateHttpContextWithServices();
+        var responseBody = new MemoryStream();
+        context.Response.Body = responseBody;
+
+        // Exception message containing JSON-special characters: quotes, backslash, newline
+        var trickyMessage = "message with \"quotes\" and \\ backslash and\nnewline";
+        var healthReport = new HealthReport(
+            new Dictionary<string, HealthReportEntry>
+            {
+                ["service"] = new HealthReportEntry(
+                    HealthStatus.Unhealthy,
+                    "failed",
+                    TimeSpan.FromMilliseconds(5),
+                    new InvalidOperationException(trickyMessage),
+                    null)
+            },
+            TimeSpan.FromMilliseconds(5));
+
+        // Act
+        await HealthCheckResponseWriter.WriteHealthCheckResponse(context, healthReport);
+
+        // Assert – the output must always be valid JSON
+        responseBody.Position = 0;
+        using var reader = new StreamReader(responseBody);
+        var json = await reader.ReadToEndAsync();
+
+        var act = () => System.Text.Json.JsonDocument.Parse(json);
+        act.Should().NotThrow("the response must be valid JSON even when exception messages contain special characters");
+        json.Should().Contain("Unhealthy");
+    }
 }
