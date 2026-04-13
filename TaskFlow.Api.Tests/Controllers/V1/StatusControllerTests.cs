@@ -2,7 +2,7 @@ using FluentAssertions;
 using FluentValidation;
 using FluentValidation.Results;
 using Microsoft.AspNetCore.Mvc;
-using NSubstitute;
+using Moq;
 using TaskFlow.Api.Controllers.V1;
 using TaskFlow.Api.DTOs;
 using TaskFlow.Api.Models;
@@ -12,15 +12,15 @@ namespace TaskFlow.Api.Tests.Controllers.V1;
 
 public class StatusControllerTests
 {
-    private readonly IStatusService _mockService;
-    private readonly IValidator<Status> _mockValidator;
+    private readonly Mock<IStatusService> _mockService;
+    private readonly Mock<IValidator<Status>> _mockValidator;
     private readonly StatusController _controller;
 
     public StatusControllerTests()
     {
-        _mockService = Substitute.For<IStatusService>();
-        _mockValidator = Substitute.For<IValidator<Status>>();
-        _controller = new StatusController(_mockService, _mockValidator);
+        _mockService = new Mock<IStatusService>();
+        _mockValidator = new Mock<IValidator<Status>>();
+        _controller = new StatusController(_mockService.Object, _mockValidator.Object);
     }
 
     [Fact]
@@ -46,7 +46,7 @@ public class StatusControllerTests
                 UpdatedDate = DateTime.UtcNow
             }
         };
-        _mockService.GetAllStatusesAsync().Returns(statuses);
+        _mockService.Setup(s => s.GetAllStatusesAsync()).ReturnsAsync(statuses);
 
         // Act
         var result = await _controller.GetStatuses();
@@ -66,7 +66,7 @@ public class StatusControllerTests
     public async Task GetStatuses_ShouldReturnEmptyList_WhenNoStatuses()
     {
         // Arrange
-        _mockService.GetAllStatusesAsync().Returns([]);
+        _mockService.Setup(s => s.GetAllStatusesAsync()).ReturnsAsync([]);
 
         // Act
         var result = await _controller.GetStatuses();
@@ -89,7 +89,7 @@ public class StatusControllerTests
             CreatedDate = DateTime.UtcNow,
             UpdatedDate = DateTime.UtcNow
         };
-        _mockService.GetStatusAsync(1).Returns(status);
+        _mockService.Setup(s => s.GetStatusAsync(1)).ReturnsAsync(status);
 
         // Act
         var result = await _controller.GetStatus(1);
@@ -109,7 +109,7 @@ public class StatusControllerTests
     public async Task GetStatus_ShouldReturnNotFound_WhenStatusDoesNotExist()
     {
         // Arrange
-        _mockService.GetStatusAsync(999).Returns((Status?)null);
+        _mockService.Setup(s => s.GetStatusAsync(999)).ReturnsAsync((Status?)null);
 
         // Act
         var result = await _controller.GetStatus(999);
@@ -136,9 +136,9 @@ public class StatusControllerTests
             UpdatedDate = DateTime.UtcNow
         };
 
-        _mockValidator.ValidateAsync(Arg.Any<Status>(), Arg.Any<CancellationToken>())
-            .Returns(new ValidationResult());
-        _mockService.CreateStatusAsync(Arg.Any<Status>()).Returns(createdStatus);
+        _mockValidator.Setup(v => v.ValidateAsync(It.IsAny<Status>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new ValidationResult());
+        _mockService.Setup(s => s.CreateStatusAsync(It.IsAny<Status>())).ReturnsAsync(createdStatus);
 
         // Act
         var result = await _controller.Create(createDto);
@@ -170,8 +170,8 @@ public class StatusControllerTests
             new("Name", "Status name is required.")
         };
 
-        _mockValidator.ValidateAsync(Arg.Any<Status>(), Arg.Any<CancellationToken>())
-            .Returns(new ValidationResult(validationFailures));
+        _mockValidator.Setup(v => v.ValidateAsync(It.IsAny<Status>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new ValidationResult(validationFailures));
 
         // Act
         var result = await _controller.Create(createDto);
@@ -199,9 +199,9 @@ public class StatusControllerTests
             UpdatedDate = DateTime.UtcNow
         };
 
-        _mockService.GetStatusAsync(1).Returns(existingStatus);
-        _mockValidator.ValidateAsync(Arg.Any<Status>(), Arg.Any<CancellationToken>())
-            .Returns(new ValidationResult());
+        _mockService.Setup(s => s.GetStatusAsync(1)).ReturnsAsync(existingStatus);
+        _mockValidator.Setup(v => v.ValidateAsync(It.IsAny<Status>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new ValidationResult());
 
         // Act
         var result = await _controller.UpdateStatus(1, updateDto);
@@ -215,8 +215,8 @@ public class StatusControllerTests
             Name = "Updated",
             Description = "Updated description"
         });
-        await _mockService.Received(1).UpdateStatusAsync(Arg.Is<Status>(s =>
-            s.Name == "Updated" && s.Description == "Updated description"));
+        _mockService.Verify(s => s.UpdateStatusAsync(It.Is<Status>(st =>
+            st.Name == "Updated" && st.Description == "Updated description")), Times.Once);
     }
 
     [Fact]
@@ -228,14 +228,14 @@ public class StatusControllerTests
             Name = "Updated",
             Description = "Updated description"
         };
-        _mockService.GetStatusAsync(999).Returns((Status?)null);
+        _mockService.Setup(s => s.GetStatusAsync(999)).ReturnsAsync((Status?)null);
 
         // Act
         var result = await _controller.UpdateStatus(999, updateDto);
 
         // Assert
         result.Result.Should().BeOfType<NotFoundResult>();
-        await _mockService.DidNotReceive().UpdateStatusAsync(Arg.Any<Status>());
+        _mockService.Verify(s => s.UpdateStatusAsync(It.IsAny<Status>()), Times.Never);
     }
 
     [Fact]
@@ -260,9 +260,9 @@ public class StatusControllerTests
             new("Name", "Status name is required.")
         };
 
-        _mockService.GetStatusAsync(1).Returns(existingStatus);
-        _mockValidator.ValidateAsync(Arg.Any<Status>(), Arg.Any<CancellationToken>())
-            .Returns(new ValidationResult(validationFailures));
+        _mockService.Setup(s => s.GetStatusAsync(1)).ReturnsAsync(existingStatus);
+        _mockValidator.Setup(v => v.ValidateAsync(It.IsAny<Status>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new ValidationResult(validationFailures));
 
         // Act
         var result = await _controller.UpdateStatus(1, updateDto);
@@ -270,7 +270,7 @@ public class StatusControllerTests
         // Assert
         var badRequestResult = result.Result.Should().BeOfType<BadRequestObjectResult>().Subject;
         badRequestResult.Value.Should().BeEquivalentTo(validationFailures);
-        await _mockService.DidNotReceive().UpdateStatusAsync(Arg.Any<Status>());
+        _mockService.Verify(s => s.UpdateStatusAsync(It.IsAny<Status>()), Times.Never);
     }
 
     [Fact]
@@ -285,27 +285,27 @@ public class StatusControllerTests
             CreatedDate = DateTime.UtcNow,
             UpdatedDate = DateTime.UtcNow
         };
-        _mockService.GetStatusAsync(1).Returns(existingStatus);
+        _mockService.Setup(s => s.GetStatusAsync(1)).ReturnsAsync(existingStatus);
 
         // Act
         var result = await _controller.DeleteStatus(1);
 
         // Assert
         result.Should().BeOfType<NoContentResult>();
-        await _mockService.Received(1).DeleteStatusAsync(1);
+        _mockService.Verify(s => s.DeleteStatusAsync(1), Times.Once);
     }
 
     [Fact]
     public async Task DeleteStatus_ShouldReturnNotFound_WhenStatusDoesNotExist()
     {
         // Arrange
-        _mockService.GetStatusAsync(999).Returns((Status?)null);
+        _mockService.Setup(s => s.GetStatusAsync(999)).ReturnsAsync((Status?)null);
 
         // Act
         var result = await _controller.DeleteStatus(999);
 
         // Assert
         result.Should().BeOfType<NotFoundResult>();
-        await _mockService.DidNotReceive().DeleteStatusAsync(Arg.Any<int>());
+        _mockService.Verify(s => s.DeleteStatusAsync(It.IsAny<int>()), Times.Never);
     }
 }
