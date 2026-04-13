@@ -32,4 +32,24 @@ public static class PersistenceServiceExtensions
 
         return services;
     }
+
+    /// <summary>
+    /// Ensures the directory for a SQLite Data Source connection string exists,
+    /// creating it if necessary. No-ops for in-memory or non-file connection strings.
+    /// </summary>
+    /// <param name="connectionString">The SQLite connection string</param>
+    /// <param name="logger">Optional logger for directory creation events</param>
+    internal static void EnsureSqliteDirectoryExists(string? connectionString, ILogger? logger = null)
+    {
+        if (string.IsNullOrEmpty(connectionString) || !connectionString.StartsWith("Data Source="))
+            return;
+
+        var filePath = connectionString.Replace("Data Source=", "").Split(';')[0];
+        var directory = Path.GetDirectoryName(filePath);
+        if (!string.IsNullOrEmpty(directory) && !Directory.Exists(directory))
+        {
+            Directory.CreateDirectory(directory);
+            logger?.LogInformation("Created database directory: {Directory}", directory);
+        }
+    }
 }

@@ -36,6 +36,8 @@ public class ServiceCollectionExtensionsTests
         serviceProvider.GetService<TaskDbContext>().Should().NotBeNull();
         serviceProvider.GetService<ITaskRepository>().Should().NotBeNull();
         serviceProvider.GetService<ITaskRepository>().Should().BeOfType<TaskRepository>();
+        serviceProvider.GetService<IStatusRepository>().Should().NotBeNull();
+        serviceProvider.GetService<IStatusRepository>().Should().BeOfType<StatusRepository>();
     }
 
     [Fact]
@@ -58,6 +60,8 @@ public class ServiceCollectionExtensionsTests
         // Assert
         serviceProvider.GetService<ITaskService>().Should().NotBeNull();
         serviceProvider.GetService<ITaskService>().Should().BeOfType<TaskService>();
+        serviceProvider.GetService<IStatusService>().Should().NotBeNull();
+        serviceProvider.GetService<IStatusService>().Should().BeOfType<StatusService>();
     }
 
     [Fact]
@@ -202,7 +206,9 @@ public class ServiceCollectionExtensionsTests
         // Assert - verify all critical services are registered
         serviceProvider.GetService<TaskDbContext>().Should().NotBeNull();
         serviceProvider.GetService<ITaskRepository>().Should().NotBeNull();
+        serviceProvider.GetService<IStatusRepository>().Should().NotBeNull();
         serviceProvider.GetService<ITaskService>().Should().NotBeNull();
+        serviceProvider.GetService<IStatusService>().Should().NotBeNull();
         serviceProvider.GetService<IValidator<TaskItem>>().Should().NotBeNull();
         serviceProvider.GetService<HealthCheckService>().Should().NotBeNull();
     }
@@ -234,7 +240,9 @@ public class ServiceCollectionExtensionsTests
         // Assert - verify all services are registered in the collection
         services.Should().Contain(s => s.ServiceType == typeof(TaskDbContext));
         services.Should().Contain(s => s.ServiceType == typeof(ITaskRepository));
+        services.Should().Contain(s => s.ServiceType == typeof(IStatusRepository));
         services.Should().Contain(s => s.ServiceType == typeof(ITaskService));
+        services.Should().Contain(s => s.ServiceType == typeof(IStatusService));
         services.Should().Contain(s => s.ServiceType == typeof(IValidator<TaskItem>));
         services.Should().Contain(s => s.ServiceType == typeof(HealthCheckService));
         services.Should().Contain(s => s.ServiceType == typeof(TracerProvider));

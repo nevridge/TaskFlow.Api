@@ -32,4 +32,8 @@
     <PackageReference Include="Scalar.AspNetCore" Version="2.13.22" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Middleware\" />
+  </ItemGroup>
+
 </Project>
