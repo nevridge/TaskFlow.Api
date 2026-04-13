@@ -1,5 +1,5 @@
 using FluentAssertions;
-using NSubstitute;
+using Moq;
 using TaskFlow.Api.Models;
 using TaskFlow.Api.Repositories;
 using TaskFlow.Api.Services;
@@ -8,13 +8,13 @@ namespace TaskFlow.Api.Tests.Services;
 
 public class StatusServiceTests
 {
-    private readonly IStatusRepository _mockRepository;
+    private readonly Mock<IStatusRepository> _mockRepository;
     private readonly StatusService _service;
 
     public StatusServiceTests()
     {
-        _mockRepository = Substitute.For<IStatusRepository>();
-        _service = new StatusService(_mockRepository);
+        _mockRepository = new Mock<IStatusRepository>();
+        _service = new StatusService(_mockRepository.Object);
     }
 
     [Fact]
@@ -40,7 +40,7 @@ public class StatusServiceTests
                 UpdatedDate = DateTime.UtcNow
             }
         };
-        _mockRepository.GetAllAsync().Returns(statuses);
+        _mockRepository.Setup(r => r.GetAllAsync()).ReturnsAsync(statuses);
 
         // Act
         var result = await _service.GetAllStatusesAsync();
@@ -48,21 +48,21 @@ public class StatusServiceTests
         // Assert
         result.Should().HaveCount(2);
         result.Should().BeEquivalentTo(statuses);
-        await _mockRepository.Received(1).GetAllAsync();
+        _mockRepository.Verify(r => r.GetAllAsync(), Times.Once);
     }
 
     [Fact]
     public async Task GetAllStatusesAsync_ShouldReturnEmptyList_WhenNoStatuses()
     {
         // Arrange
-        _mockRepository.GetAllAsync().Returns([]);
+        _mockRepository.Setup(r => r.GetAllAsync()).ReturnsAsync([]);
 
         // Act
         var result = await _service.GetAllStatusesAsync();
 
         // Assert
         result.Should().BeEmpty();
-        await _mockRepository.Received(1).GetAllAsync();
+        _mockRepository.Verify(r => r.GetAllAsync(), Times.Once);
     }
 
     [Fact]
@@ -77,7 +77,7 @@ public class StatusServiceTests
             CreatedDate = DateTime.UtcNow,
             UpdatedDate = DateTime.UtcNow
         };
-        _mockRepository.GetByIdAsync(1).Returns(status);
+        _mockRepository.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(status);
 
         // Act
         var result = await _service.GetStatusAsync(1);
@@ -85,21 +85,21 @@ public class StatusServiceTests
         // Assert
         result.Should().NotBeNull();
         result.Should().BeEquivalentTo(status);
-        await _mockRepository.Received(1).GetByIdAsync(1);
+        _mockRepository.Verify(r => r.GetByIdAsync(1), Times.Once);
     }
 
     [Fact]
     public async Task GetStatusAsync_ShouldReturnNull_WhenNotFound()
     {
         // Arrange
-        _mockRepository.GetByIdAsync(999).Returns((Status?)null);
+        _mockRepository.Setup(r => r.GetByIdAsync(999)).ReturnsAsync((Status?)null);
 
         // Act
         var result = await _service.GetStatusAsync(999);
 
         // Assert
         result.Should().BeNull();
-        await _mockRepository.Received(1).GetByIdAsync(999);
+        _mockRepository.Verify(r => r.GetByIdAsync(999), Times.Once);
     }
 
     [Fact]
@@ -121,7 +121,7 @@ public class StatusServiceTests
             CreatedDate = DateTime.UtcNow,
             UpdatedDate = DateTime.UtcNow
         };
-        _mockRepository.AddAsync(newStatus).Returns(createdStatus);
+        _mockRepository.Setup(r => r.AddAsync(newStatus)).ReturnsAsync(createdStatus);
 
         // Act
         var result = await _service.CreateStatusAsync(newStatus);
@@ -130,7 +130,7 @@ public class StatusServiceTests
         result.Should().NotBeNull();
         result.Id.Should().Be(1);
         result.Name.Should().Be("In Progress");
-        await _mockRepository.Received(1).AddAsync(newStatus);
+        _mockRepository.Verify(r => r.AddAsync(newStatus), Times.Once);
     }
 
     [Fact]
@@ -145,12 +145,13 @@ public class StatusServiceTests
             CreatedDate = DateTime.UtcNow,
             UpdatedDate = DateTime.UtcNow
         };
+        _mockRepository.Setup(r => r.UpdateAsync(status)).Returns(Task.CompletedTask);
 
         // Act
         await _service.UpdateStatusAsync(status);
 
         // Assert
-        await _mockRepository.Received(1).UpdateAsync(status);
+        _mockRepository.Verify(r => r.UpdateAsync(status), Times.Once);
     }
 
     [Fact]
@@ -158,11 +159,12 @@ public class StatusServiceTests
     {
         // Arrange
         var statusId = 1;
+        _mockRepository.Setup(r => r.DeleteAsync(statusId)).Returns(Task.CompletedTask);
 
         // Act
         await _service.DeleteStatusAsync(statusId);
 
         // Assert
-        await _mockRepository.Received(1).DeleteAsync(statusId);
+        _mockRepository.Verify(r => r.DeleteAsync(statusId), Times.Once);
     }
 }

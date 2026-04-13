@@ -3,7 +3,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using NSubstitute;
+using Moq;
 using OpenTelemetry.Trace;
 using TaskFlow.Api.Extensions;
 
@@ -140,8 +140,9 @@ public class OpenTelemetryServiceExtensionsTests
             { "OpenTelemetry:Endpoint", "http://localhost:4317" }
         });
 
-        var env = Substitute.For<IHostEnvironment>();
-        env.EnvironmentName.Returns(Environments.Production);
+        var envMock = new Mock<IHostEnvironment>();
+        envMock.Setup(e => e.EnvironmentName).Returns(Environments.Production);
+        var env = envMock.Object;
 
         ILoggingBuilder? capturedBuilder = null;
         services.AddLogging(builder =>
@@ -162,8 +163,9 @@ public class OpenTelemetryServiceExtensionsTests
             { "OpenTelemetry:Endpoint", "http://localhost:4317" }
         });
 
-        var env = Substitute.For<IHostEnvironment>();
-        env.EnvironmentName.Returns(Environments.Development);
+        var envMock = new Mock<IHostEnvironment>();
+        envMock.Setup(e => e.EnvironmentName).Returns(Environments.Development);
+        var env = envMock.Object;
 
         ILoggingBuilder? capturedBuilder = null;
         services.AddLogging(builder =>
@@ -183,8 +185,9 @@ public class OpenTelemetryServiceExtensionsTests
             { "OpenTelemetry:Protocol", "grpc" }
         });
 
-        var env = Substitute.For<IHostEnvironment>();
-        env.EnvironmentName.Returns(Environments.Production);
+        var envMock = new Mock<IHostEnvironment>();
+        envMock.Setup(e => e.EnvironmentName).Returns(Environments.Production);
+        var env = envMock.Object;
 
         var act = () => services.AddLogging(builder => builder.AddApplicationLogging(config, env));
 
@@ -201,8 +204,9 @@ public class OpenTelemetryServiceExtensionsTests
             { "OpenTelemetry:Protocol", "invalid" }
         });
 
-        var env = Substitute.For<IHostEnvironment>();
-        env.EnvironmentName.Returns(Environments.Production);
+        var envMock = new Mock<IHostEnvironment>();
+        envMock.Setup(e => e.EnvironmentName).Returns(Environments.Production);
+        var env = envMock.Object;
 
         var act = () => services.AddLogging(builder => builder.AddApplicationLogging(config, env));
 
@@ -219,8 +223,9 @@ public class OpenTelemetryServiceExtensionsTests
             { "OpenTelemetry:Header", "X-Seq-ApiKey=test-key" }
         });
 
-        var env = Substitute.For<IHostEnvironment>();
-        env.EnvironmentName.Returns(Environments.Production);
+        var envMock = new Mock<IHostEnvironment>();
+        envMock.Setup(e => e.EnvironmentName).Returns(Environments.Production);
+        var env = envMock.Object;
 
         var act = () => services.AddLogging(builder => builder.AddApplicationLogging(config, env));
 
