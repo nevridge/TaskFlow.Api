@@ -35,8 +35,8 @@ TaskFlow.Api provides two Docker configurations for different deployment scenari
 
 **Quick comparison:**
 
-| Configuration | Use Case | Auto-migrations | Swagger |
-|--------------|----------|----------------|---------|
+| Configuration | Use Case | Auto-migrations | Scalar UI |
+|--------------|----------|----------------|-----------|
 | **Development** (`docker-compose.yml`) | Local dev, fast iteration | ✅ Enabled | ✅ Enabled |
 | **Production** (`docker-compose.prod.yml`) | Production builds, Azure | ❌ Manual | ❌ Disabled |
 
@@ -47,7 +47,7 @@ TaskFlow.Api provides two Docker configurations for different deployment scenari
 docker compose up
 ```
 
-Access at `http://localhost:8080` (Swagger UI enabled)
+Access at `http://localhost:8080` (Scalar UI available at `/scalar/v1`)
 
 **Common commands:**
 ```bash
@@ -267,7 +267,25 @@ For detailed security scanning documentation, see [SECURITY_SCANNING.md](SECURIT
 **Core Settings:**
 
 | Variable | Default | Purpose |
-|----------|---------|---------|
+|----------|---------|--------|
+| `ASPNETCORE_ENVIRONMENT` | `Production` | Controls environment-specific behavior |
+| `ConnectionStrings__DefaultConnection` | `Data Source=/app/data/tasks.db` | SQLite database path |
+| `Database__MigrateOnStartup` | `false` (true in Development) | Enable automatic migrations |
+
+**OpenTelemetry Settings:**
+
+| Variable | Default | Purpose |
+|----------|---------|--------|
+| `OpenTelemetry__ServiceName` | `TaskFlow.Api` | Service name reported in traces and logs |
+| `OpenTelemetry__Endpoint` | `http://localhost:5341/ingest/otlp` | OTLP collector endpoint |
+| `OpenTelemetry__Header` | *(none)* | Optional auth header for OTLP exporter |
+| `OpenTelemetry__Protocol` | `http/protobuf` | Export protocol |
+
+**Azure Settings:**
+
+| Variable | Purpose |
+|----------|---------|
+| `ASPNETCORE_URLS` | Configure Kestrel listen URLs |
 | `ASPNETCORE_ENVIRONMENT` | `Production` | Controls environment-specific behavior |
 | `ConnectionStrings__DefaultConnection` | `Data Source=/app/data/tasks.db` | SQLite database path |
 | `Database__MigrateOnStartup` | `false` (true in Development) | Enable automatic migrations |
@@ -403,13 +421,11 @@ dotnet ef migrations remove --project TaskFlow.Api
 **Enable verbose logging:**
 ```json
 {
-  "Serilog": {
-    "MinimumLevel": {
+  "Logging": {
+    "LogLevel": {
       "Default": "Debug",
-      "Override": {
-        "Microsoft": "Information",
-        "System": "Information"
-      }
+      "Microsoft": "Information",
+      "System": "Information"
     }
   }
 }

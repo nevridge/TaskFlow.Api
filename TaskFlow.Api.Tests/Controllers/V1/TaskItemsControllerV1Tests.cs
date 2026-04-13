@@ -201,4 +201,102 @@ public class TaskItemsControllerV1Tests
         result.Should().BeOfType<NotFoundResult>();
         _mockService.Verify(s => s.DeleteTaskAsync(It.IsAny<int>()), Times.Never);
     }
+
+    [Fact]
+    public async Task GetAll_ShouldReturnOkWithEmptyList_WhenNoTasks()
+    {
+        // Arrange
+        _mockService.Setup(s => s.GetAllTasksAsync()).ReturnsAsync([]);
+
+        // Act
+        var result = await _controller.GetAll();
+
+        // Assert
+        var okResult = result.Result.Should().BeOfType<OkObjectResult>().Subject;
+        var dtos = okResult.Value.Should().BeAssignableTo<IEnumerable<TaskItemResponseDto>>().Subject;
+        dtos.Should().BeEmpty();
+        _mockService.Verify(s => s.GetAllTasksAsync(), Times.Once);
+    }
+
+    [Fact]
+    public async Task Create_ShouldReturnBadRequest_WhenValidationFails()
+    {
+        // Arrange
+        var createDto = new CreateTaskItemDto { Title = "", Description = "Description", IsComplete = false };
+        var validationFailures = new List<ValidationFailure>
+        {
+            new("Title", "Title is required.")
+        };
+        _mockValidator.Setup(v => v.ValidateAsync(It.IsAny<TaskItem>(), default))
+            .ReturnsAsync(new ValidationResult(validationFailures));
+
+        // Act
+        var result = await _controller.Create(createDto);
+
+        // Assert
+        var badRequestResult = result.Result.Should().BeOfType<BadRequestObjectResult>().Subject;
+        badRequestResult.Value.Should().BeEquivalentTo(validationFailures);
+        _mockService.Verify(s => s.CreateTaskAsync(It.IsAny<TaskItem>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task Create_ShouldHandleTaskWithNullDescription()
+    {
+        // Arrange
+        var createDto = new CreateTaskItemDto { Title = "Task", Description = null, IsComplete = false };
+        var createdTask = new TaskItem { Id = 1, Title = "Task", Description = null, IsComplete = false };
+        _mockValidator.Setup(v => v.ValidateAsync(It.IsAny<TaskItem>(), default))
+            .ReturnsAsync(new ValidationResult());
+        _mockService.Setup(s => s.CreateTaskAsync(It.IsAny<TaskItem>())).ReturnsAsync(createdTask);
+
+        // Act
+        var result = await _controller.Create(createDto);
+
+        // Assert
+        var createdResult = result.Result.Should().BeOfType<CreatedAtRouteResult>().Subject;
+        var dto = createdResult.Value.Should().BeOfType<TaskItemResponseDto>().Subject;
+        dto.Title.Should().Be("Task");
+        dto.Description.Should().BeNull();
+        dto.IsComplete.Should().BeFalse();
+        dto.StatusName.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task Update_ShouldReturnNotFound_WhenTaskDoesNotExist()
+    {
+        // Arrange
+        var updateDto = new UpdateTaskItemDto { Title = "Updated Task", Description = "Updated Description", IsComplete = true };
+        _mockService.Setup(s => s.GetTaskAsync(999)).ReturnsAsync((TaskItem?)null);
+
+        // Act
+        var result = await _controller.Update(999, updateDto);
+
+        // Assert
+        result.Result.Should().BeOfType<NotFoundResult>();
+        _mockService.Verify(s => s.GetTaskAsync(999), Times.Once);
+        _mockService.Verify(s => s.UpdateTaskAsync(It.IsAny<TaskItem>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task Update_ShouldReturnBadRequest_WhenValidationFails()
+    {
+        // Arrange
+        var updateDto = new UpdateTaskItemDto { Title = "", Description = "Description", IsComplete = true };
+        var existingTask = new TaskItem { Id = 1, Title = "Old Task", Description = "Old Description", IsComplete = false };
+        var validationFailures = new List<ValidationFailure>
+        {
+            new("Title", "Title is required.")
+        };
+        _mockService.Setup(s => s.GetTaskAsync(1)).ReturnsAsync(existingTask);
+        _mockValidator.Setup(v => v.ValidateAsync(It.IsAny<TaskItem>(), default))
+            .ReturnsAsync(new ValidationResult(validationFailures));
+
+        // Act
+        var result = await _controller.Update(1, updateDto);
+
+        // Assert
+        var badRequestResult = result.Result.Should().BeOfType<BadRequestObjectResult>().Subject;
+        badRequestResult.Value.Should().BeEquivalentTo(validationFailures);
+        _mockService.Verify(s => s.UpdateTaskAsync(It.IsAny<TaskItem>()), Times.Never);
+    }
 }

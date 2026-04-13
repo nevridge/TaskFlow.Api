@@ -26,238 +26,6 @@ All endpoints accept and return `application/json`.
 
 ### List All Tasks
 
-Retrieves all task items.
-
-**Endpoint:** `GET /api/TaskItems`
-
-**Response:** `200 OK`
-
-```json
-[
-  {
-    "id": 1,
-    "title": "Complete project documentation",
-    "description": "Write comprehensive API documentation",
-    "isComplete": false,
-    "createdAt": "2025-11-03T10:30:00Z",
-    "completedAt": null
-  },
-  {
-    "id": 2,
-    "title": "Deploy to Azure",
-    "description": "Set up production environment",
-    "isComplete": true,
-    "createdAt": "2025-11-02T14:20:00Z",
-    "completedAt": "2025-11-03T09:15:00Z"
-  }
-]
-```
-
-**Example:**
-```bash
-curl http://localhost:8080/api/TaskItems
-```
-
----
-
-### Get Task by ID
-
-Retrieves a specific task item.
-
-**Endpoint:** `GET /api/TaskItems/{id}`
-
-**Parameters:**
-- `id` (path, integer, required) - Task item ID
-
-**Response:** `200 OK`
-
-```json
-{
-  "id": 1,
-  "title": "Complete project documentation",
-  "description": "Write comprehensive API documentation",
-  "isComplete": false,
-  "createdAt": "2025-11-03T10:30:00Z",
-  "completedAt": null
-}
-```
-
-**Error Response:** `404 Not Found`
-
-```json
-{
-  "type": "https://tools.ietf.org/html/rfc7231#section-6.5.4",
-  "title": "Not Found",
-  "status": 404
-}
-```
-
-**Example:**
-```bash
-curl http://localhost:8080/api/TaskItems/1
-```
-
----
-
-### Create Task
-
-Creates a new task item.
-
-**Endpoint:** `POST /api/TaskItems`
-
-**Request Body:**
-
-```json
-{
-  "title": "Complete project documentation",
-  "description": "Write comprehensive API documentation",
-  "isComplete": false
-}
-```
-
-**Fields:**
-- `title` (string, required, max 200 chars) - Task title
-- `description` (string, optional, max 1000 chars) - Task description
-- `isComplete` (boolean, required) - Completion status
-
-**Response:** `201 Created`
-
-```json
-{
-  "id": 3,
-  "title": "Complete project documentation",
-  "description": "Write comprehensive API documentation",
-  "isComplete": false,
-  "createdAt": "2025-11-03T12:45:00Z",
-  "completedAt": null
-}
-```
-
-**Location Header:** `/api/TaskItems/3`
-
-**Validation Error:** `400 Bad Request`
-
-```json
-{
-  "type": "https://tools.ietf.org/html/rfc7231#section-6.5.1",
-  "title": "One or more validation errors occurred.",
-  "status": 400,
-  "errors": {
-    "Title": ["Title is required"],
-    "Description": ["Description cannot exceed 1000 characters"]
-  }
-}
-```
-
-**Example:**
-```bash
-curl -X POST http://localhost:8080/api/TaskItems \
-  -H "Content-Type: application/json" \
-  -d '{
-    "title": "New Task",
-    "description": "Task description",
-    "isComplete": false
-  }'
-```
-
----
-
-### Update Task
-
-Updates an existing task item.
-
-**Endpoint:** `PUT /api/TaskItems/{id}`
-
-**Parameters:**
-- `id` (path, integer, required) - Task item ID to update
-
-**Request Body:**
-
-```json
-{
-  "title": "Updated task title",
-  "description": "Updated description",
-  "isComplete": true
-}
-```
-
-**Fields:**
-- `title` (string, required, max 200 chars) - Task title
-- `description` (string, optional, max 1000 chars) - Task description
-- `isComplete` (boolean, required) - Completion status
-
-**Response:** `204 No Content`
-
-**Error Responses:**
-
-`404 Not Found` - Task doesn't exist
-```json
-{
-  "type": "https://tools.ietf.org/html/rfc7231#section-6.5.4",
-  "title": "Not Found",
-  "status": 404
-}
-```
-
-`400 Bad Request` - Validation failure
-```json
-{
-  "type": "https://tools.ietf.org/html/rfc7231#section-6.5.1",
-  "title": "One or more validation errors occurred.",
-  "status": 400,
-  "errors": {
-    "Title": ["Title cannot exceed 200 characters"]
-  }
-}
-```
-
-**Example:**
-```bash
-curl -X PUT http://localhost:8080/api/TaskItems/1 \
-  -H "Content-Type: application/json" \
-  -d '{
-    "title": "Updated Title",
-    "description": "Updated description",
-    "isComplete": true
-  }'
-```
-
----
-
-### Delete Task
-
-Deletes a task item.
-
-**Endpoint:** `DELETE /api/TaskItems/{id}`
-
-**Parameters:**
-- `id` (path, integer, required) - Task item ID to delete
-
-**Response:** `204 No Content`
-
-**Error Response:** `404 Not Found`
-
-```json
-{
-  "type": "https://tools.ietf.org/html/rfc7231#section-6.5.4",
-  "title": "Not Found",
-  "status": 404
-}
-```
-
-**Example:**
-```bash
-curl -X DELETE http://localhost:8080/api/TaskItems/1
-```
-
----
-
-## Task Items API (v1)
-
-The v1 API introduces improved response models with status name support and enhanced validation.
-
-### List All Tasks (v1)
-
 Retrieves all task items with status information.
 
 **Endpoint:** `GET /api/v1/TaskItems`
@@ -290,7 +58,7 @@ curl http://localhost:8080/api/v1/TaskItems
 
 ---
 
-### Get Task by ID (v1)
+### Get Task by ID
 
 Retrieves a specific task item with status information.
 
@@ -328,7 +96,7 @@ curl http://localhost:8080/api/v1/TaskItems/1
 
 ---
 
-### Create Task (v1)
+### Create Task
 
 Creates a new task item with status assignment.
 
@@ -392,7 +160,7 @@ curl -X POST http://localhost:8080/api/v1/TaskItems \
 
 ---
 
-### Update Task (v1)
+### Update Task
 
 Updates an existing task item, including status assignment.
 
@@ -467,7 +235,7 @@ curl -X PUT http://localhost:8080/api/v1/TaskItems/1 \
 
 ---
 
-### Delete Task (v1)
+### Delete Task
 
 Deletes a task item.
 

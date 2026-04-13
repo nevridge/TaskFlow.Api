@@ -15,7 +15,7 @@ Thank you for your interest in contributing to TaskFlow.Api! This guide outlines
 
 ### Prerequisites
 
-- [.NET 9 SDK](https://dotnet.microsoft.com/download/dotnet/9.0)
+- [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0)
 - [Docker Desktop](https://www.docker.com/products/docker-desktop) (for containerized testing)
 - [Git](https://git-scm.com/)
 - A code editor (Visual Studio, VS Code, or Rider)
@@ -117,7 +117,7 @@ The application will automatically reload when you save changes.
 docker compose up
 ```
 
-Access the API at `http://localhost:8080` with Swagger UI.
+Access the API at `http://localhost:8080` with Scalar UI (`http://localhost:8080/scalar/v1`).
 
 ## Coding Standards
 
@@ -147,10 +147,10 @@ The CI pipeline will fail if code is not properly formatted.
 
 When adding new services, follow the Service Registration Pattern:
 
-1. **Create extension class** in `Configuration/` folder:
+1. **Create extension class** in `Extensions/` folder:
    ```csharp
-   namespace TaskFlow.Api.Configuration;
-   
+   namespace TaskFlow.Api.Extensions;
+
    public static class YourServiceExtensions
    {
        public static IServiceCollection AddYourServices(
@@ -282,7 +282,7 @@ TaskFlow.Api.Tests/
 ├── Services/           # Service layer tests
 ├── Repositories/       # Repository tests
 ├── Validators/         # Validation tests
-└── Integration/        # End-to-end tests
+└── Extensions/         # DI registration tests
 ```
 
 **Example unit test:**
@@ -337,12 +337,12 @@ dotnet watch test --project TaskFlow.Api.Tests
 dotnet test /p:CollectCoverage=true /p:CoverageThreshold=58
 ```
 
-### Integration Tests
+### Extension Registration Tests
 
-Integration tests should:
-- Use in-memory database for isolation
-- Test complete request/response cycles
-- Verify database state changes
+DI registration tests should:
+- Use an in-memory `ServiceCollection`
+- Verify services can be resolved from the built provider
+- Cover all registered interfaces and implementations
 - Clean up after each test
 
 ## Pull Request Process

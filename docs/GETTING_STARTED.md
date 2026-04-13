@@ -5,13 +5,13 @@ This guide walks you through setting up TaskFlow.Api for local development.
 ## Prerequisites
 
 ### Required
-- [.NET 9 SDK](https://dotnet.microsoft.com/download/dotnet/9.0) installed
+- [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) installed
 - A terminal/command prompt
 - A code editor (Visual Studio, VS Code, Rider, etc.)
 
 ### Optional
 - [Docker Desktop](https://www.docker.com/products/docker-desktop) - for containerized development
-- [Visual Studio 2022](https://visualstudio.microsoft.com/) (17.0+) - for IDE-based Docker support
+- [Visual Studio 2022 or later](https://visualstudio.microsoft.com/) - for IDE-based Docker support
 - [Postman](https://www.postman.com/) - for API testing
 
 ## Local Development Setup
@@ -36,8 +36,8 @@ This guide walks you through setting up TaskFlow.Api for local development.
 
 4. **Access the API:**
    - The console will display the URL (e.g., `https://localhost:5001`)
-   - Navigate to the URL in your browser to see Swagger UI
-   - API endpoints are available at `https://localhost:{port}/api/TaskItems`
+   - Navigate to `https://localhost:{port}/scalar/v1` to see the Scalar UI
+   - API endpoints are available at `https://localhost:{port}/api/v1/TaskItems`
 
 The application will:
 - Automatically apply database migrations on first run
@@ -125,14 +125,14 @@ Expected response:
 
 **Using curl:**
 ```bash
-curl -X POST http://localhost:8080/api/TaskItems \
+curl -X POST http://localhost:8080/api/v1/TaskItems \
   -H "Content-Type: application/json" \
   -d '{"title":"My First Task","description":"Getting started with TaskFlow","isComplete":false}'
 ```
 
 **Using PowerShell:**
 ```powershell
-Invoke-RestMethod -Uri http://localhost:8080/api/TaskItems `
+Invoke-RestMethod -Uri http://localhost:8080/api/v1/TaskItems `
   -Method Post `
   -ContentType "application/json" `
   -Body '{"title":"My First Task","description":"Getting started with TaskFlow","isComplete":false}'
@@ -141,16 +141,16 @@ Invoke-RestMethod -Uri http://localhost:8080/api/TaskItems `
 ### List All Tasks
 
 ```bash
-curl http://localhost:8080/api/TaskItems
+curl http://localhost:8080/api/v1/TaskItems
 ```
 
-## Using Swagger UI
+## Using Scalar UI
 
-In Development mode, Swagger UI is automatically enabled:
+In Development mode, Scalar UI is automatically enabled:
 
-1. Navigate to `https://localhost:{port}` (for direct run) or `http://localhost:8080` (for Docker)
+1. Navigate to `https://localhost:{port}/scalar/v1` (for direct run) or `http://localhost:8080/scalar/v1` (for Docker)
 2. You'll see an interactive API documentation interface
-3. Click "Try it out" on any endpoint to test it
+3. Click any endpoint to expand it and use "Try" to test it
 4. No authentication is required for local development
 
 ## Using Postman
@@ -209,13 +209,11 @@ export ConnectionStrings__DefaultConnection="Data Source=/custom/path/database.d
 
 ### Logging
 
-Logs are written to:
-- **Console:** Always enabled
-- **File:** `logs/log.txt` (or `/app/logs/log.txt` in Docker)
+Logs are exported via OpenTelemetry OTLP to the configured backend (default: Seq at `http://localhost:5341/ingest/otlp`). In Development, logs are also written to the console.
 
-To change log location:
+To change the OTLP endpoint:
 ```bash
-export LOG_PATH="/custom/path/application.log"
+export OpenTelemetry__Endpoint="http://your-otlp-backend:4317"
 ```
 
 ### Auto-Migration Control
@@ -308,7 +306,7 @@ If migrations fail to apply:
 
 ## Next Steps
 
-- **Explore the API:** Try all CRUD operations in Swagger UI
+- **Explore the API:** Try all CRUD operations in Scalar UI
 - **Review the code:** Check out the architecture in [ARCHITECTURE.md](ARCHITECTURE.md)
 - **Deploy to Azure:** See [DEPLOYMENT.md](DEPLOYMENT.md) for deployment instructions
 - **Run tests:** `dotnet test` to see the test suite

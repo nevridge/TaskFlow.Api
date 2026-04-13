@@ -1,7 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using TaskFlow.Api.Data;
 using TaskFlow.Api.Extensions;
-using TaskFlow.Api.Middleware;
 
 ILogger? logger = null;
 
@@ -41,17 +40,7 @@ try
             var db = scope.ServiceProvider.GetRequiredService<TaskDbContext>();
 
             // Ensure the directory exists for SQLite
-            var dbPath = db.Database.GetConnectionString();
-            if (!string.IsNullOrEmpty(dbPath) && dbPath.StartsWith("Data Source="))
-            {
-                var filePath = dbPath.Replace("Data Source=", "").Split(';')[0];
-                var directory = Path.GetDirectoryName(filePath);
-                if (!string.IsNullOrEmpty(directory) && !Directory.Exists(directory))
-                {
-                    Directory.CreateDirectory(directory);
-                    logger.LogInformation("Created database directory: {Directory}", directory);
-                }
-            }
+            PersistenceServiceExtensions.EnsureSqliteDirectoryExists(db.Database.GetConnectionString(), logger);
 
             db.Database.Migrate();
         }
@@ -68,7 +57,6 @@ try
     }
 
     app.UseHttpLogging();
-    app.UseMiddleware<ValidationMiddleware>();
 
     // Skip HTTPS redirection in containers
     if (!app.Environment.IsEnvironment("Container") &&

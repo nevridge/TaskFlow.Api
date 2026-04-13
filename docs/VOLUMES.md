@@ -44,7 +44,7 @@ TaskFlow.Api supports two types of volume mounting:
 
 | Purpose | Path | Description |
 |---------|------|-------------|
-| Logs | `/app/logs/` | Application logs written by Serilog |
+| Logs | `/app/logs/` | Container log output directory (mounted for persistence) |
 | Database | `/app/data/` | SQLite database files |
 
 ### Docker Named Volumes (docker-compose)
@@ -55,25 +55,6 @@ TaskFlow.Api supports two types of volume mounting:
 | `taskflow-logs` | `/app/logs` | Persists application logs |
 
 ## Environment Variables
-
-### LOG_PATH
-
-Controls the path where application logs are written.
-
-- **Default**: `/app/logs/log.txt`
-- **Format**: Full file path including filename
-- **Example**: `LOG_PATH=/app/logs/application.log`
-
-**Usage in docker-compose.yml:**
-```yaml
-environment:
-  - LOG_PATH=/app/logs/log.txt
-```
-
-**Usage in docker run:**
-```bash
-docker run -e LOG_PATH=/custom/logs/app.log taskflow-api:latest
-```
 
 ### ConnectionStrings__DefaultConnection
 
@@ -165,11 +146,7 @@ This configuration:
    # List database files (using service name)
    docker compose exec taskflow-api ls -la /app/data
    
-   # View logs (inside container)
-   docker compose exec taskflow-api ls -la /app/logs
-   docker compose exec taskflow-api tail -f /app/logs/log*.txt
-   
-   # Or use docker compose logs to view container logs
+   # View container logs
    docker compose logs -f
    ```
 
@@ -235,7 +212,6 @@ This configuration:
      -p 8080:8080 \
      -v taskflow-prod-data:/app/data \
      -v taskflow-prod-logs:/app/logs \
-     -e LOG_PATH=/app/logs/taskflow.log \
      -e ConnectionStrings__DefaultConnection="Data Source=/app/data/production.db" \
      --name taskflow-api \
      taskflow-api:latest
@@ -247,13 +223,12 @@ When deploying to Azure App Service, the `/home` directory is persistent across 
 
 **Option 1: Use Azure persistent storage (recommended)**
 
-Override the paths to use `/home`:
+Override the database path to use `/home`:
 ```bash
 az webapp config appsettings set \
   --resource-group TaskFlowRG \
   --name taskflowapi \
   --settings \
-    LOG_PATH=/home/logs/log.txt \
     ConnectionStrings__DefaultConnection="Data Source=/home/data/tasks.db"
 ```
 

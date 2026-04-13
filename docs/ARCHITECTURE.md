@@ -72,38 +72,46 @@ Environment-specific behavior controlled via configuration:
 
 ```
 TaskFlow.Api/
-├── Configuration/              # DI service registration extensions
+├── Extensions/                 # DI service registration extensions
 │   ├── PersistenceServiceExtensions.cs
 │   ├── ApplicationServiceExtensions.cs
 │   ├── ValidationServiceExtensions.cs
 │   ├── HealthCheckServiceExtensions.cs
-│   ├── SwaggerServiceExtensions.cs
-│   ├── LoggingServiceExtensions.cs
+│   ├── ApiVersioningServiceExtensions.cs
+│   ├── OpenApiServiceExtensions.cs
+│   ├── OpenTelemetryServiceExtensions.cs
 │   └── JsonConfigurationExtensions.cs
 ├── Controllers/                # REST API endpoints
-│   └── TaskItemsController.cs
+│   └── V1/
+│       ├── TaskItemsController.cs
+│       └── StatusController.cs
 ├── Data/                       # EF Core DbContext
 │   └── TaskDbContext.cs
 ├── DTOs/                       # Data transfer objects
-│   ├── TaskItemCreateDto.cs
-│   ├── TaskItemUpdateDto.cs
+│   ├── CreateTaskItemDto.cs
+│   ├── UpdateTaskItemDto.cs
 │   └── TaskItemResponseDto.cs
 ├── HealthChecks/               # Health check implementations
 │   └── HealthCheckResponseWriter.cs
-├── Middleware/                 # Custom middleware
-│   └── RequestLoggingMiddleware.cs
 ├── Migrations/                 # EF Core migrations
 ├── Models/                     # Domain entities
-│   └── TaskItem.cs
+│   ├── TaskItem.cs
+│   └── Status.cs
+├── Providers/                  # Shared providers
+│   └── JsonSerializerOptionsProvider.cs
 ├── Repositories/               # Data access layer
 │   ├── ITaskRepository.cs
-│   └── TaskRepository.cs
+│   ├── TaskRepository.cs
+│   ├── IStatusRepository.cs
+│   └── StatusRepository.cs
 ├── Services/                   # Business logic
 │   ├── ITaskService.cs
-│   └── TaskService.cs
+│   ├── TaskService.cs
+│   ├── IStatusService.cs
+│   └── StatusService.cs
 ├── Validators/                 # FluentValidation validators
-│   ├── TaskItemCreateDtoValidator.cs
-│   └── TaskItemUpdateDtoValidator.cs
+│   ├── TaskItemValidator.cs
+│   └── StatusValidator.cs
 └── Program.cs                  # Application entry point
 ```
 
@@ -140,13 +148,13 @@ TaskFlow.Api uses the **ServiceCollection Extension Pattern** to organize depend
 
 | Extension Class | Purpose | Services Registered |
 |----------------|---------|---------------------|
-| `PersistenceServiceExtensions` | Database and data access | `TaskDbContext`, `ITaskRepository` |
-| `ApplicationServiceExtensions` | Business logic services | `ITaskService` |
+| `PersistenceServiceExtensions` | Database and data access | `TaskDbContext`, `ITaskRepository`, `IStatusRepository` |
+| `ApplicationServiceExtensions` | Business logic services | `ITaskService`, `IStatusService` |
 | `ValidationServiceExtensions` | Input validation | FluentValidation validators |
 | `HealthCheckServiceExtensions` | Health monitoring | Database and self health checks |
 | `ApiVersioningServiceExtensions` | API versioning | API versioning middleware and explorer |
-| `SwaggerServiceExtensions` | API documentation | Swagger/OpenAPI with versioning support |
-| `LoggingServiceExtensions` | Logging infrastructure | Serilog configuration |
+| `OpenApiServiceExtensions` | API documentation | OpenAPI/Scalar services |
+| `OpenTelemetryServiceExtensions` | Observability | OpenTelemetry tracing, metrics, and logging |
 | `JsonConfigurationExtensions` | JSON serialization | JSON serializer options |
 
 #### Usage in Program.cs
@@ -155,13 +163,15 @@ TaskFlow.Api uses the **ServiceCollection Extension Pattern** to organize depend
 var builder = WebApplication.CreateBuilder(args);
 
 // Clean, readable service registration
+builder.Logging.AddApplicationLogging(builder.Configuration, builder.Environment);
 builder.Services.AddControllers();
 builder.Services.AddApiVersioningConfiguration();
-builder.Services.AddSwagger();
+OpenApiServiceExtensions.AddOpenApi(builder.Services);
 builder.Services.AddPersistence(builder.Configuration);
 builder.Services.AddApplicationServices();
 builder.Services.AddValidation();
 builder.Services.AddApplicationHealthChecks();
+builder.Services.AddOpenTelemetryObservability(builder.Configuration);
 builder.Services.ConfigureJsonSerialization();
 ```
 
@@ -169,7 +179,7 @@ builder.Services.ConfigureJsonSerialization();
 
 When adding new services, follow this pattern:
 
-1. **Create extension class** in `Configuration/` folder
+1. **Create extension class** in `Extensions/` folder
 2. **Define static extension method** on `IServiceCollection`
 3. **Group related services** logically
 4. **Update Program.cs** with single method call
@@ -177,7 +187,7 @@ When adding new services, follow this pattern:
 **Example:**
 
 ```csharp
-namespace TaskFlow.Api.Configuration;
+namespace TaskFlow.Api.Extensions;
 
 public static class CachingServiceExtensions
 {
@@ -248,10 +258,11 @@ public class TaskItem
 
 **Create DTO (API input):**
 ```csharp
-public class TaskItemCreateDto
+public class CreateTaskItemDto
 {
     public string Title { get; set; } = string.Empty;
     public string? Description { get; set; }
+    public int? StatusId { get; set; }
     public bool IsComplete { get; set; }
 }
 ```
@@ -264,8 +275,7 @@ public class TaskItemResponseDto
     public string Title { get; set; } = string.Empty;
     public string? Description { get; set; }
     public bool IsComplete { get; set; }
-    public DateTime CreatedAt { get; set; }
-    public DateTime? CompletedAt { get; set; }
+    public string? StatusName { get; set; }
 }
 ```
 
@@ -408,25 +418,20 @@ readinessProbe:
 
 **DbContext:**
 ```csharp
-public class TaskDbContext : DbContext
+public class TaskDbContext(DbContextOptions<TaskDbContext> options) : DbContext(options)
 {
-    public TaskDbContext(DbContextOptions<TaskDbContext> options)
-        : base(options)
-    {
-    }
-
     public DbSet<TaskItem> TaskItems => Set<TaskItem>();
+    public DbSet<Status> Statuses => Set<Status>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
-        
+
         // Entity configuration
         modelBuilder.Entity<TaskItem>(entity =>
         {
             entity.HasKey(e => e.Id);
             entity.Property(e => e.Title).IsRequired().HasMaxLength(200);
-            entity.Property(e => e.Description).HasMaxLength(1000);
         });
     }
 }
@@ -484,38 +489,28 @@ No code changes needed—EF Core handles the abstraction.
 
 ## Logging Strategy
 
-### Serilog Configuration
+### OpenTelemetry Configuration
 
-Structured logging with Serilog provides rich, queryable logs.
+Structured logging with OpenTelemetry exports logs via OTLP.
 
-**Bootstrap logger:**
+**Application logging setup:**
 ```csharp
-Log.Logger = new LoggerConfiguration()
-    .MinimumLevel.Information()
-    .WriteTo.Console()
-    .CreateBootstrapLogger();
+builder.Logging.AddApplicationLogging(builder.Configuration, builder.Environment);
 ```
 
-**Host logger:**
-```csharp
-builder.Host.UseSerilog((context, services, configuration) => configuration
-    .ReadFrom.Configuration(context.Configuration)
-    .ReadFrom.Services(services)
-    .Enrich.FromLogContext()
-    .WriteTo.Console()
-    .WriteTo.File(
-        logPath,
-        rollingInterval: RollingInterval.Day,
-        retainedFileCountLimit: 7));
-```
+This call:
+- Clears all default logging providers
+- Adds an OTLP exporter targeting the configured endpoint
+- Adds a console exporter in Development only
 
-### Log Enrichment
+### OTLP Exporter Settings
 
-Logs include contextual information:
-- Request ID
-- User information (if authenticated)
-- Environment name
-- Application name
+| Setting | Environment Variable | Default |
+|---------|---------------------|---------|
+| Service name | `OpenTelemetry__ServiceName` | `TaskFlow.Api` |
+| OTLP endpoint | `OpenTelemetry__Endpoint` | `http://localhost:5341/ingest/otlp` |
+| Auth header | `OpenTelemetry__Header` | *(none)* |
+| Protocol | `OpenTelemetry__Protocol` | `http/protobuf` |
 
 ### Health Check Logging
 
@@ -538,7 +533,7 @@ TaskFlow.Api.Tests/
 ├── Services/           # Service layer tests
 ├── Repositories/       # Repository tests with in-memory DB
 ├── Validators/         # Validation logic tests
-└── Integration/        # End-to-end integration tests
+└── Extensions/         # DI registration integration tests
 ```
 
 **Code coverage enforcement:**
@@ -624,7 +619,7 @@ builder.Services.AddApiVersioningConfiguration();
 - Header versioning (fallback): `x-api-version: 1.0`
 - Default version: 1.0
 - Version discovery via response headers: `api-supported-versions`
-- Multi-version Swagger documentation
+- Multi-version OpenAPI/Scalar documentation
 
 **Controller implementation:**
 ```csharp

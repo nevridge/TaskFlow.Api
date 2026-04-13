@@ -41,17 +41,17 @@ public class TaskDbContext(DbContextOptions<TaskDbContext> options) : DbContext(
 
     public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
-        SetTimestamps();
+        SetStatusTimestamps();
         return base.SaveChangesAsync(cancellationToken);
     }
 
     public override int SaveChanges()
     {
-        SetTimestamps();
+        SetStatusTimestamps();
         return base.SaveChanges();
     }
 
-    private void SetTimestamps()
+    private void SetStatusTimestamps()
     {
         var entries = ChangeTracker.Entries()
             .Where(e => e.Entity is Status &&

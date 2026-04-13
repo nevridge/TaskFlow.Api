@@ -24,13 +24,13 @@ TaskFlow.Api supports multiple Docker configurations optimized for different dep
 | Aspect | Development (`Dockerfile.dev`) | Production (`Dockerfile`) |
 |--------|-------------------------------|--------------------------|
 | **Build Context** | `./TaskFlow.Api` directory | Repository root (`.`) |
-| **Base Images** | .NET 9 SDK → .NET 9 ASP.NET runtime | .NET 9 SDK → .NET 9 ASP.NET runtime |
+| **Base Images** | .NET 10 SDK → .NET 10 ASP.NET runtime | .NET 10 SDK → .NET 10 ASP.NET runtime |
 | **Environment** | `ASPNETCORE_ENVIRONMENT=Development` | `ASPNETCORE_ENVIRONMENT=Production` |
 | **Copy Strategy** | Single-stage from local dir | Multi-stage with explicit paths |
 | **Database Path** | `/app/data/tasks.dev.db` (via appsettings) | `/app/data/tasks.db` (via appsettings) |
 | **Auto Migrations** | Enabled by default | Disabled by default |
 | **Port** | 8080 | 8080 |
-| **Swagger UI** | Enabled | Disabled |
+| **Scalar UI** | Enabled | Disabled |
 | **Optimizations** | Standard | Release build with `--no-restore` |
 
 ### Docker Compose Files
@@ -123,8 +123,8 @@ Some differences between environments are intentional and necessary:
 
 **Reason**: Different features and behaviors needed per environment.
 
-- **Development**: Enables Swagger UI, detailed error pages, and verbose logging
-- **Production**: Disables Swagger, shows generic error pages, optimized logging
+- **Development**: Enables Scalar UI, detailed error pages, and verbose logging
+- **Production**: Disables Scalar UI, shows generic error pages, optimized logging
 
 **Impact**: Production-like testing requires explicitly setting `ASPNETCORE_ENVIRONMENT=Production`.
 
@@ -154,7 +154,7 @@ docker-compose up
 - ✅ Fast startup
 - ✅ Development environment
 - ✅ Automatic migrations
-- ✅ Swagger UI enabled
+- ✅ Scalar UI enabled
 - ✅ Verbose logging
 
 ### Production-Like Local Testing
@@ -182,7 +182,7 @@ docker-compose -f docker-compose.prod.yml run --rm -e Database__MigrateOnStartup
 **Characteristics:**
 - ✅ Production environment
 - ✅ Manual migration control
-- ✅ Swagger UI disabled
+- ✅ Scalar UI disabled
 - ✅ Production logging
 - ⚠️ Requires explicit migration
 
@@ -284,9 +284,9 @@ docker exec taskflow-api printenv | grep ASPNETCORE_ENVIRONMENT
 docker exec taskflow-api ls -la /app/data/
 # Expected: tasks.dev.db exists
 
-# Check Swagger
-curl http://localhost:8080/swagger
-# Expected: HTTP 200 with Swagger UI
+# Check Scalar UI
+curl http://localhost:8080/scalar/v1
+# Expected: HTTP 200 with Scalar UI
 
 # Check health
 curl http://localhost:8080/health
@@ -310,9 +310,9 @@ docker exec taskflow-api-prod printenv | grep ASPNETCORE_ENVIRONMENT
 docker exec taskflow-api-prod ls -la /app/data/
 # Expected: tasks.db exists (or none if migrations not run)
 
-# Check Swagger (should be disabled)
-curl http://localhost:8080/swagger
-# Expected: HTTP 404 or redirect to /
+# Check Scalar UI (should be disabled in production)
+curl http://localhost:8080/scalar/v1
+# Expected: HTTP 404
 
 # Check health
 curl http://localhost:8080/health
@@ -349,11 +349,11 @@ docker-compose -f docker-compose.prod.yml run --rm \
 dotnet ef database update --project TaskFlow.Api
 ```
 
-### Issue: "Swagger UI not working in production"
+### Issue: "Scalar UI not available in production"
 
-**Cause**: Swagger is disabled in production environment (by design).
+**Cause**: Scalar UI is disabled in production environment (by design).
 
-**Solution**: This is expected behavior. To test with Swagger:
+**Solution**: This is expected behavior. To use Scalar UI:
 ```bash
 # Use development compose
 docker-compose up
@@ -453,7 +453,7 @@ docker run ...
 | Port | 8080 |
 | Volume mounts | `./data:/app/data`, `./logs:/app/logs` |
 | Health check configuration | 30s interval, 40s start period |
-| Base images | .NET 9 SDK and ASP.NET runtime |
+| Base images | .NET 10 SDK and ASP.NET runtime |
 | Directory permissions | `chmod 777 /app/logs /app/data` |
 
 ### New Additions for Consistency
