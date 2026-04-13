@@ -59,18 +59,6 @@ Health check failures are automatically logged for troubleshooting.
 [Warning] Health check DEGRADED at /health/ready - Status: Degraded, Duration: 156.34ms, Degraded checks: [{"Name":"database","Description":"High response time","Duration":150.12}]
 ```
 
-### Finding Logs
-
-**Log files:** Check `/app/logs/log.txt` (containers) or `logs/log.txt` (local)
-
-**Search examples:**
-```bash
-# Find failures
-grep "Health check FAILED" /app/logs/log.txt
-
-# View recent logs
-tail -50 /app/logs/log.txt
-
 # Docker
 docker logs <container-name> | grep "Health check FAILED"
 ```
