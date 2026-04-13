@@ -1,3 +1,4 @@
+using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using TaskFlow.Api.Data;
 using TaskFlow.Api.Repositories;
@@ -41,13 +42,22 @@ public static class PersistenceServiceExtensions
     /// <param name="logger">Optional logger for directory creation events</param>
     internal static void EnsureSqliteDirectoryExists(string? connectionString, ILogger? logger = null)
     {
-        if (string.IsNullOrEmpty(connectionString) || !connectionString.StartsWith("Data Source="))
+        if (string.IsNullOrEmpty(connectionString))
         {
             return;
         }
 
-        var filePath = connectionString.Replace("Data Source=", "").Split(';')[0];
-        var directory = Path.GetDirectoryName(filePath);
+        var builder = new SqliteConnectionStringBuilder(connectionString);
+        var dataSource = builder.DataSource;
+
+        // Skip in-memory, empty, or special-keyword sources (e.g. ":memory:")
+        if (string.IsNullOrEmpty(dataSource) || dataSource.StartsWith(':')
+            || dataSource.Equals("file::memory:", StringComparison.OrdinalIgnoreCase))
+        {
+            return;
+        }
+
+        var directory = Path.GetDirectoryName(dataSource);
         if (!string.IsNullOrEmpty(directory) && !Directory.Exists(directory))
         {
             Directory.CreateDirectory(directory);
