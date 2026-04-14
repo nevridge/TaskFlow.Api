@@ -9,4 +9,5 @@ public class CreateTaskItemDto
     public int StatusId { get; set; } = 1; // Default to 'To Do' status
     public bool IsComplete { get; set; }
     public Priority Priority { get; set; } = Priority.Low;
+    public DateTime? DueDate { get; set; }
 }

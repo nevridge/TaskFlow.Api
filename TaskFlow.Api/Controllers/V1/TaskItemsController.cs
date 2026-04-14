@@ -27,6 +27,7 @@ public class TaskItemsController(ITaskService taskService, IValidator<TaskItem> 
             Title = i.Title,
             Description = i.Description,
             IsComplete = i.IsComplete,
+            DueDate = i.DueDate,
             StatusName = i.Status?.Name,
             Priority = i.Priority.ToString()
         });
@@ -49,6 +50,7 @@ public class TaskItemsController(ITaskService taskService, IValidator<TaskItem> 
             Title = item.Title,
             Description = item.Description,
             IsComplete = item.IsComplete,
+            DueDate = item.DueDate,
             StatusName = item.Status?.Name,
             Priority = item.Priority.ToString()
         };
@@ -65,7 +67,8 @@ public class TaskItemsController(ITaskService taskService, IValidator<TaskItem> 
             Description = createDto.Description,
             StatusId = createDto.StatusId,
             IsComplete = createDto.IsComplete,
-            Priority = createDto.Priority
+            Priority = createDto.Priority,
+            DueDate = createDto.DueDate
         };
 
         var validationResult = await _validator.ValidateAsync(item);
@@ -82,6 +85,7 @@ public class TaskItemsController(ITaskService taskService, IValidator<TaskItem> 
             Title = createdItem.Title,
             Description = createdItem.Description,
             IsComplete = createdItem.IsComplete,
+            DueDate = createdItem.DueDate,
             StatusName = createdItem.Status?.Name,
             Priority = createdItem.Priority.ToString()
         };
@@ -105,6 +109,7 @@ public class TaskItemsController(ITaskService taskService, IValidator<TaskItem> 
         existing.IsComplete = updateDto.IsComplete;
         existing.StatusId = updateDto.StatusId;
         existing.Priority = updateDto.Priority;
+        existing.DueDate = updateDto.DueDate;
 
         var validationResult = await _validator.ValidateAsync(existing);
         if (!validationResult.IsValid)
@@ -120,6 +125,7 @@ public class TaskItemsController(ITaskService taskService, IValidator<TaskItem> 
             Title = existing.Title,
             Description = existing.Description,
             IsComplete = existing.IsComplete,
+            DueDate = existing.DueDate,
             StatusName = existing.Status?.Name,
             Priority = existing.Priority.ToString()
         };

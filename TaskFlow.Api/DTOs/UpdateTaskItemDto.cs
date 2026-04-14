@@ -9,4 +9,5 @@ public class UpdateTaskItemDto
     public int StatusId { get; set; }
     public bool IsComplete { get; set; }
     public Priority Priority { get; set; }
+    public DateTime? DueDate { get; set; }
 }
