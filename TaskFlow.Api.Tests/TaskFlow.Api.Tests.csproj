@@ -10,6 +10,11 @@
     <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
   </PropertyGroup>
 
+  <!-- Coverlet coverage exclusions: auto-generated, infrastructure, and data-only files -->
+  <PropertyGroup>
+    <ExcludeByFile>**/Migrations/*.cs,**/Models/*.cs,**/DTOs/*.cs,**/Program.cs</ExcludeByFile>
+  </PropertyGroup>
+
   <ItemGroup>
     <PackageReference Include="coverlet.collector" Version="8.0.1">
       <PrivateAssets>all</PrivateAssets>
