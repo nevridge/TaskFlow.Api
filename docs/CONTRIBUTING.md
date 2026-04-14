@@ -328,13 +328,32 @@ dotnet watch test --project TaskFlow.Api.Tests
 
 ### Code Coverage
 
-- Minimum **58% line coverage** required
-- CI pipeline enforces coverage threshold
+- Minimum **75% total line coverage** required — PRs are blocked if coverage falls below this threshold
+- CI pipeline enforces coverage threshold automatically
 - Coverage reports generated for each PR
 
-**Check coverage locally:**
+The following types are excluded from coverage calculations (matching CI):
+
+| Exclusion | Reason |
+|-----------|--------|
+| `[xunit.*]*` | xUnit test framework internals |
+| `TaskFlow.Api.Program` | Application entry point |
+| `TaskFlow.Api.Migrations.*` | EF Core auto-generated migrations |
+| `TaskFlow.Api.Middleware.*` | ASP.NET Core middleware pipeline |
+| `Microsoft.AspNetCore.OpenApi.*` | OpenAPI/Swagger generated code |
+| `System.Runtime.CompilerServices.*` | Compiler-generated code |
+| `TaskFlow.Api.DTOs.*` | Plain data transfer objects |
+
+**Check coverage locally (mirrors CI enforcement):**
 ```bash
-dotnet test /p:CollectCoverage=true /p:CoverageThreshold=58
+dotnet test --configuration Release \
+  /p:CollectCoverage=true \
+  /p:CoverletOutputFormat=cobertura \
+  /p:CoverletOutput=./TestResults/coverage.cobertura.xml \
+  /p:Exclude="[xunit.*]*,[TaskFlow.Api]TaskFlow.Api.Program,[TaskFlow.Api]TaskFlow.Api.Migrations.*,[TaskFlow.Api]TaskFlow.Api.Middleware.*,[TaskFlow.Api]Microsoft.AspNetCore.OpenApi.*,[TaskFlow.Api]System.Runtime.CompilerServices.*,[TaskFlow.Api]TaskFlow.Api.DTOs.*" \
+  /p:Threshold=75 \
+  /p:ThresholdType=line \
+  /p:ThresholdStat=total
 ```
 
 ### Extension Registration Tests
@@ -389,7 +408,7 @@ DI registration tests should:
 
 Your pull request must:
 - ✅ Pass all CI checks (build, test, lint, security)
-- ✅ Meet code coverage requirements (58%+)
+- ✅ Meet code coverage requirements (75%+)
 - ✅ Follow coding standards
 - ✅ Include tests for new functionality
 - ✅ Update relevant documentation

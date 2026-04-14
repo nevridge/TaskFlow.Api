@@ -537,14 +537,18 @@ TaskFlow.Api.Tests/
 ```
 
 **Code coverage enforcement:**
-- Minimum 58% line coverage required
+- Minimum **75% total line coverage** required — PRs are blocked if coverage falls below this threshold
 - CI pipeline fails if coverage drops
 - Coverage reports generated in CI
+- The following types are excluded from coverage: `Program`, `Migrations.*`, `Middleware.*`, `DTOs.*`, OpenAPI/compiler-generated code
 
 **Run tests:**
 ```bash
 dotnet test
-dotnet test /p:CollectCoverage=true
+dotnet test --configuration Release \
+  /p:CollectCoverage=true \
+  /p:Exclude="[xunit.*]*,[TaskFlow.Api]TaskFlow.Api.Program,[TaskFlow.Api]TaskFlow.Api.Migrations.*,[TaskFlow.Api]TaskFlow.Api.Middleware.*,[TaskFlow.Api]Microsoft.AspNetCore.OpenApi.*,[TaskFlow.Api]System.Runtime.CompilerServices.*,[TaskFlow.Api]TaskFlow.Api.DTOs.*" \
+  /p:Threshold=75 /p:ThresholdType=line /p:ThresholdStat=total
 ```
 
 ### 2. Security Scanning
