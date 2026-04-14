@@ -4,22 +4,26 @@ services:
     build:
       context: .
       dockerfile: TaskFlow.Api/Dockerfile
+    container_name: taskflow-api-prod
     ports:
       - "8080:8080"
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
-      - ASPNETCORE_URLS=http://+:8080
       - ASPNETCORE_HTTP_PORTS=8080
       - Database__MigrateOnStartup=false
-      - DOTNET_RUNNING_IN_CONTAINER=true
     volumes:
-      # Mount host directories for data and logs persistence
-      - ./data:/app/data
-      - ./logs:/app/logs
-    container_name: taskflow-api-prod
+      - taskflow-data-prod:/app/data
+      - taskflow-logs-prod:/app/logs
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      test: ["CMD-SHELL", "curl -f http://localhost:8080/health || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 3
       start_period: 40s
+    restart: unless-stopped
+
+volumes:
+  taskflow-data-prod:
+    driver: local
+  taskflow-logs-prod:
+    driver: local
