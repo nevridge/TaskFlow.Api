@@ -24,6 +24,13 @@ namespace TaskFlow.Api.Migrations
                 name: "IX_TaskItems_StatusId",
                 table: "TaskItems");
 
+            // Remap legacy status values to the new enum before renaming the column.
+            // Old: 1=Todo, 2=In Progress, 3=Done
+            // New: 0=Draft, 1=Todo, 2=Completed
+            migrationBuilder.Sql("UPDATE \"TaskItems\" SET \"StatusId\" = 2 WHERE \"StatusId\" = 3");  // Done → Completed
+            migrationBuilder.Sql("UPDATE \"TaskItems\" SET \"StatusId\" = 1 WHERE \"StatusId\" = 2");  // In Progress → Todo
+            // StatusId = 1 (Todo) already matches Status.Todo = 1; no update needed.
+
             migrationBuilder.RenameColumn(
                 name: "StatusId",
                 table: "TaskItems",
@@ -33,6 +40,13 @@ namespace TaskFlow.Api.Migrations
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
+            // Remap new enum values back to legacy status IDs before recreating the FK.
+            // New: 0=Draft, 1=Todo, 2=Completed
+            // Old: 1=Todo, 2=In Progress, 3=Done
+            migrationBuilder.Sql("UPDATE \"TaskItems\" SET \"Status\" = 3 WHERE \"Status\" = 2");  // Completed → Done
+            migrationBuilder.Sql("UPDATE \"TaskItems\" SET \"Status\" = 1 WHERE \"Status\" = 0");  // Draft → Todo (no legacy equivalent)
+            // Status = 1 (Todo) already matches the legacy StatusId = 1; no update needed.
+
             migrationBuilder.RenameColumn(
                 name: "Status",
                 table: "TaskItems",

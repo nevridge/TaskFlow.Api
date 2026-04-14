@@ -238,4 +238,26 @@ public class TaskItemValidatorTests
         result.IsValid.Should().BeTrue();
         result.Errors.Should().BeEmpty();
     }
+
+    [Fact]
+    public async Task Validate_ShouldFail_WhenStatusIsOutOfRange()
+    {
+        // Arrange
+        var task = new TaskItem
+        {
+            Title = "Task",
+            Description = "Description",
+            IsComplete = false,
+            Status = (Status)999
+        };
+
+        // Act
+        var result = await _validator.ValidateAsync(task);
+
+        // Assert
+        result.IsValid.Should().BeFalse();
+        result.Errors.Should().Contain(e =>
+            e.PropertyName == "Status" &&
+            e.ErrorMessage == "Status must be a valid value (Draft, Todo, or Completed).");
+    }
 }
