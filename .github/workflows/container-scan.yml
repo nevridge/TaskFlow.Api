@@ -4,7 +4,6 @@ on:
   pull_request:
     paths:
       - 'TaskFlow.Api/Dockerfile'
-      - 'TaskFlow.Api/Dockerfile.dev'
 
 jobs:
   scan:
@@ -19,8 +18,6 @@ jobs:
         dockerfile:
           - path: 'TaskFlow.Api/Dockerfile'
             name: 'dockerfile'
-          - path: 'TaskFlow.Api/Dockerfile.dev'
-            name: 'dockerfile-dev'
       fail-fast: false
 
     steps:
