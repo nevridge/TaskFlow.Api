@@ -10,6 +10,7 @@ services:
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
       - ASPNETCORE_HTTP_PORTS=8080
+      - DOTNET_RUNNING_IN_CONTAINER=true
       - Database__MigrateOnStartup=false
     volumes:
       - taskflow-data-prod:/app/data
