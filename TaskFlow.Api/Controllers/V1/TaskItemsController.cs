@@ -27,7 +27,8 @@ public class TaskItemsController(ITaskService taskService, IValidator<TaskItem> 
             Title = i.Title,
             Description = i.Description,
             IsComplete = i.IsComplete,
-            StatusName = i.Status?.Name
+            StatusName = i.Status?.Name,
+            Priority = i.Priority.ToString()
         });
         return Ok(dtos);
     }
@@ -48,7 +49,8 @@ public class TaskItemsController(ITaskService taskService, IValidator<TaskItem> 
             Title = item.Title,
             Description = item.Description,
             IsComplete = item.IsComplete,
-            StatusName = item.Status?.Name
+            StatusName = item.Status?.Name,
+            Priority = item.Priority.ToString()
         };
         return Ok(dto);
     }
@@ -62,7 +64,8 @@ public class TaskItemsController(ITaskService taskService, IValidator<TaskItem> 
             Title = createDto.Title,
             Description = createDto.Description,
             StatusId = createDto.StatusId,
-            IsComplete = createDto.IsComplete
+            IsComplete = createDto.IsComplete,
+            Priority = createDto.Priority
         };
 
         var validationResult = await _validator.ValidateAsync(item);
@@ -79,7 +82,8 @@ public class TaskItemsController(ITaskService taskService, IValidator<TaskItem> 
             Title = createdItem.Title,
             Description = createdItem.Description,
             IsComplete = createdItem.IsComplete,
-            StatusName = createdItem.Status?.Name
+            StatusName = createdItem.Status?.Name,
+            Priority = createdItem.Priority.ToString()
         };
 
         return CreatedAtRoute("GetTaskV1", new { version = ApiVersionString, id = createdItem.Id }, responseDto);
@@ -100,6 +104,7 @@ public class TaskItemsController(ITaskService taskService, IValidator<TaskItem> 
         existing.Description = updateDto.Description;
         existing.IsComplete = updateDto.IsComplete;
         existing.StatusId = updateDto.StatusId;
+        existing.Priority = updateDto.Priority;
 
         var validationResult = await _validator.ValidateAsync(existing);
         if (!validationResult.IsValid)
@@ -115,7 +120,8 @@ public class TaskItemsController(ITaskService taskService, IValidator<TaskItem> 
             Title = existing.Title,
             Description = existing.Description,
             IsComplete = existing.IsComplete,
-            StatusName = existing.Status?.Name
+            StatusName = existing.Status?.Name,
+            Priority = existing.Priority.ToString()
         };
 
         return Ok(responseDto); // Return 200 OK with the updated resource

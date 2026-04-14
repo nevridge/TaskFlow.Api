@@ -7,4 +7,5 @@ public class TaskItemResponseDto
     public string? Description { get; set; }
     public bool IsComplete { get; set; }
     public string? StatusName { get; set; } // Flattened - just the status name
+    public string Priority { get; set; } = "Low"; // String representation of the priority
 }

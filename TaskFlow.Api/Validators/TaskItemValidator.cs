@@ -19,5 +19,9 @@ public class TaskItemValidator : AbstractValidator<TaskItem>
                 return await context.Statuses.AnyAsync(s => s.Id == statusId, cancellation);
             })
             .WithMessage("StatusId must be a valid status.");
+
+        RuleFor(t => t.Priority)
+            .IsInEnum()
+            .WithMessage("Priority must be a valid value (Low, Medium, or High).");
     }
 }

@@ -6,6 +6,7 @@ public class TaskItem
     public required string Title { get; set; }
     public string? Description { get; set; }
     public bool IsComplete { get; set; }
+    public Priority Priority { get; set; } = Priority.Low;
 
     // Add foreign key and navigation property
     public int StatusId { get; set; }
