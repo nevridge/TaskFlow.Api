@@ -130,7 +130,7 @@ If you're evaluating this project for hiring or collaboration, here's what to no
 - **Environment-specific configurations** (dev/production)
 
 ### Testing & Quality
-- **Unit and integration tests** with 58%+ code coverage enforcement
+- **Unit and integration tests** with 75%+ code coverage enforcement
 - **Health checks** for readiness and liveness probes
 - **Security scanning** with CodeQL (SAST) and Trivy (container scanning)
 - **Automated code formatting** checks in CI
@@ -189,11 +189,28 @@ Configure via `appsettings.json` or environment variables:
 # Run tests
 dotnet test
 
-# Run tests with coverage
-dotnet test /p:CollectCoverage=true /p:CoverageThreshold=58
+# Run tests with coverage (mirrors CI enforcement)
+dotnet test --configuration Release \
+  /p:CollectCoverage=true \
+  /p:CoverletOutputFormat=cobertura \
+  /p:CoverletOutput=./TestResults/coverage.cobertura.xml \
+  /p:Exclude="[xunit.*]*,[TaskFlow.Api]TaskFlow.Api.Program,[TaskFlow.Api]TaskFlow.Api.Migrations.*,[TaskFlow.Api]TaskFlow.Api.Middleware.*,[TaskFlow.Api]Microsoft.AspNetCore.OpenApi.*,[TaskFlow.Api]System.Runtime.CompilerServices.*,[TaskFlow.Api]TaskFlow.Api.DTOs.*" \
+  /p:Threshold=75 \
+  /p:ThresholdType=line \
+  /p:ThresholdStat=total
 ```
 
-The CI pipeline enforces minimum 58% line coverage and fails builds below this threshold.
+The CI pipeline enforces a minimum of **75% total line coverage** and blocks PRs below this threshold. The following types are excluded from coverage calculations:
+
+| Exclusion | Reason |
+|-----------|--------|
+| `[xunit.*]*` | xUnit test framework internals |
+| `TaskFlow.Api.Program` | Application entry point |
+| `TaskFlow.Api.Migrations.*` | EF Core auto-generated migrations |
+| `TaskFlow.Api.Middleware.*` | ASP.NET Core middleware pipeline |
+| `Microsoft.AspNetCore.OpenApi.*` | OpenAPI/Swagger generated code |
+| `System.Runtime.CompilerServices.*` | Compiler-generated code |
+| `TaskFlow.Api.DTOs.*` | Plain data transfer objects |
 
 ## Contributing
 
