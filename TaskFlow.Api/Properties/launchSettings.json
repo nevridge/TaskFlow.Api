@@ -8,7 +8,8 @@
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development",
         "ASPNETCORE_HTTP_PORTS": "8080",
-        "Database__MigrateOnStartup": "true"
+        "Database__MigrateOnStartup": "true",
+        "DOTNET_RUNNING_IN_CONTAINER": "true"
       },
       "publishAllPorts": false,
       "httpPort": 8080,
