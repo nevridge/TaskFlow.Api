@@ -30,8 +30,8 @@ public class TaskItemsControllerV1Tests
         var dueDate = new DateTime(2025, 12, 31, 0, 0, 0, DateTimeKind.Utc);
         var tasks = new List<TaskItem>
         {
-            new() { Id = 1, Title = "Task 1", Description = "Description 1", IsComplete = false, StatusId = 1, Status = new Status { Id = 1, Name = "Todo" }, Priority = Priority.Low, DueDate = dueDate },
-            new() { Id = 2, Title = "Task 2", Description = "Description 2", IsComplete = true, StatusId = 2, Status = new Status { Id = 2, Name = "Done" }, Priority = Priority.High }
+            new() { Id = 1, Title = "Task 1", Description = "Description 1", IsComplete = false, Status = Status.Todo, Priority = Priority.Low, DueDate = dueDate },
+            new() { Id = 2, Title = "Task 2", Description = "Description 2", IsComplete = true, Status = Status.Completed, Priority = Priority.High }
         };
         _mockService.Setup(s => s.GetAllTasksAsync()).ReturnsAsync(tasks);
 
@@ -42,8 +42,8 @@ public class TaskItemsControllerV1Tests
         var okResult = result.Result.Should().BeOfType<OkObjectResult>().Subject;
         var dtos = okResult.Value.Should().BeAssignableTo<IEnumerable<TaskItemResponseDto>>().Subject;
         dtos.Should().HaveCount(2);
-        dtos.Should().Contain(d => d.Id == 1 && d.Title == "Task 1" && d.StatusName == "Todo" && d.Priority == "Low" && d.DueDate == dueDate);
-        dtos.Should().Contain(d => d.Id == 2 && d.Title == "Task 2" && d.StatusName == "Done" && d.Priority == "High" && d.DueDate == null);
+        dtos.Should().Contain(d => d.Id == 1 && d.Title == "Task 1" && d.Status == "Todo" && d.Priority == "Low" && d.DueDate == dueDate);
+        dtos.Should().Contain(d => d.Id == 2 && d.Title == "Task 2" && d.Status == "Completed" && d.Priority == "High" && d.DueDate == null);
         _mockService.Verify(s => s.GetAllTasksAsync(), Times.Once);
     }
 
@@ -58,8 +58,7 @@ public class TaskItemsControllerV1Tests
             Title = "Task 1",
             Description = "Description",
             IsComplete = false,
-            StatusId = 1,
-            Status = new Status { Id = 1, Name = "Todo" },
+            Status = Status.Todo,
             Priority = Priority.Medium,
             DueDate = dueDate
         };
@@ -75,7 +74,7 @@ public class TaskItemsControllerV1Tests
         dto.Title.Should().Be("Task 1");
         dto.Description.Should().Be("Description");
         dto.IsComplete.Should().BeFalse();
-        dto.StatusName.Should().Be("Todo");
+        dto.Status.Should().Be("Todo");
         dto.Priority.Should().Be("Medium");
         dto.DueDate.Should().Be(dueDate);
         _mockService.Verify(s => s.GetTaskAsync(1), Times.Once);
@@ -105,7 +104,7 @@ public class TaskItemsControllerV1Tests
             Title = "New Task",
             Description = "New Description",
             IsComplete = false,
-            StatusId = 1,
+            Status = Status.Todo,
             Priority = Priority.High,
             DueDate = dueDate
         };
@@ -115,8 +114,7 @@ public class TaskItemsControllerV1Tests
             Title = createDto.Title,
             Description = createDto.Description,
             IsComplete = createDto.IsComplete,
-            StatusId = createDto.StatusId,
-            Status = new Status { Id = 1, Name = "Todo" },
+            Status = createDto.Status,
             Priority = createDto.Priority,
             DueDate = createDto.DueDate
         };
@@ -140,7 +138,7 @@ public class TaskItemsControllerV1Tests
         responseDto.Title.Should().Be("New Task");
         responseDto.Description.Should().Be("New Description");
         responseDto.IsComplete.Should().BeFalse();
-        responseDto.StatusName.Should().Be("Todo");
+        responseDto.Status.Should().Be("Todo");
         responseDto.Priority.Should().Be("High");
         responseDto.DueDate.Should().Be(dueDate);
     }
@@ -155,7 +153,7 @@ public class TaskItemsControllerV1Tests
             Title = "Updated Task",
             Description = "Updated Description",
             IsComplete = true,
-            StatusId = 2,
+            Status = Status.Completed,
             Priority = Priority.Medium,
             DueDate = dueDate
         };
@@ -165,8 +163,7 @@ public class TaskItemsControllerV1Tests
             Title = "Old Task",
             Description = "Old",
             IsComplete = false,
-            StatusId = 1,
-            Status = new Status { Id = 2, Name = "Done" },
+            Status = Status.Completed,
             Priority = Priority.Low
         };
         _mockService.Setup(s => s.GetTaskAsync(1)).ReturnsAsync(existingTask);
@@ -185,7 +182,7 @@ public class TaskItemsControllerV1Tests
         responseDto.Title.Should().Be("Updated Task");
         responseDto.Description.Should().Be("Updated Description");
         responseDto.IsComplete.Should().BeTrue();
-        responseDto.StatusName.Should().Be("Done");
+        responseDto.Status.Should().Be("Completed");
         responseDto.Priority.Should().Be("Medium");
         responseDto.DueDate.Should().Be(dueDate);
         _mockService.Verify(s => s.UpdateTaskAsync(It.IsAny<TaskItem>()), Times.Once);
@@ -195,7 +192,7 @@ public class TaskItemsControllerV1Tests
     public async Task Delete_ShouldReturnNoContent_WhenTaskExists()
     {
         // Arrange
-        var task = new TaskItem { Id = 1, Title = "Task 1", Description = "Description", IsComplete = false, StatusId = 1 };
+        var task = new TaskItem { Id = 1, Title = "Task 1", Description = "Description", IsComplete = false, Status = Status.Todo };
         _mockService.Setup(s => s.GetTaskAsync(1)).ReturnsAsync(task);
         _mockService.Setup(s => s.DeleteTaskAsync(1)).Returns(Task.CompletedTask);
 
@@ -277,7 +274,7 @@ public class TaskItemsControllerV1Tests
         dto.Title.Should().Be("Task");
         dto.Description.Should().BeNull();
         dto.IsComplete.Should().BeFalse();
-        dto.StatusName.Should().BeNull();
+        dto.Status.Should().Be("Draft");
     }
 
     [Fact]
@@ -328,7 +325,7 @@ public class TaskItemsControllerV1Tests
             Title = "Updated Task",
             Description = "Updated Description",
             IsComplete = true,
-            StatusId = 2,
+            Status = Status.Completed,
             Priority = null // omitted — should preserve existing priority
         };
         var existingTask = new TaskItem
@@ -337,8 +334,7 @@ public class TaskItemsControllerV1Tests
             Title = "Old Task",
             Description = "Old",
             IsComplete = false,
-            StatusId = 1,
-            Status = new Status { Id = 2, Name = "Done" },
+            Status = Status.Completed,
             Priority = Priority.High
         };
         _mockService.Setup(s => s.GetTaskAsync(1)).ReturnsAsync(existingTask);

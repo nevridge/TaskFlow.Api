@@ -29,7 +29,6 @@ public static class PersistenceServiceExtensions
 
         // Register repositories
         services.AddScoped<ITaskRepository, TaskRepository>();
-        services.AddScoped<IStatusRepository, StatusRepository>();
 
         return services;
     }
