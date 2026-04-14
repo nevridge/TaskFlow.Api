@@ -246,6 +246,10 @@ jobs:
             --registry-login-server $ACR_NAME.azurecr.io \
             --registry-username $(az acr credential show -n $ACR_NAME --query username -o tsv) \
             --registry-password $(az acr credential show -n $ACR_NAME --query "passwords[0].value" -o tsv) \
+            --environment-variables \
+              ASPNETCORE_ENVIRONMENT=Production \
+              Database__MigrateOnStartup=true \
+              DOTNET_RUNNING_IN_CONTAINER=true \
             --cpu 1 --memory 1.5 \
             --os-type Linux \
             --ports 8080 \

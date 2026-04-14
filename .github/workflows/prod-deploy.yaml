@@ -1,4 +1,4 @@
-﻿name: Deploy to Azure Production
+name: Deploy to Azure Production
 
 on:
   workflow_dispatch: {}
@@ -202,6 +202,10 @@ jobs:
             --registry-login-server ${{ env.ACR_NAME }}.azurecr.io \
             --registry-username $(az acr credential show -n ${{ env.ACR_NAME }} --query username -o tsv) \
             --registry-password $(az acr credential show -n ${{ env.ACR_NAME }} --query "passwords[0].value" -o tsv) \
+            --environment-variables \
+              ASPNETCORE_ENVIRONMENT=Production \
+              Database__MigrateOnStartup=false \
+              DOTNET_RUNNING_IN_CONTAINER=true \
             --cpu 1 --memory 1.5 \
             --os-type Linux \
             --ports 8080 \

@@ -19,26 +19,25 @@ TaskFlow.Api supports multiple Docker configurations optimized for different dep
 
 ## Configuration Comparison
 
-### Dockerfiles
+### Dockerfile
 
-| Aspect | Development (`Dockerfile.dev`) | Production (`Dockerfile`) |
-|--------|-------------------------------|--------------------------|
-| **Build Context** | `./TaskFlow.Api` directory | Repository root (`.`) |
-| **Base Images** | .NET 10 SDK → .NET 10 ASP.NET runtime | .NET 10 SDK → .NET 10 ASP.NET runtime |
-| **Environment** | `ASPNETCORE_ENVIRONMENT=Development` | `ASPNETCORE_ENVIRONMENT=Production` |
-| **Copy Strategy** | Single-stage from local dir | Multi-stage with explicit paths |
-| **Database Path** | `/app/data/tasks.dev.db` (via appsettings) | `/app/data/tasks.db` (via appsettings) |
-| **Auto Migrations** | Enabled by default | Disabled by default |
-| **Port** | 8080 | 8080 |
-| **Scalar UI** | Enabled | Disabled |
-| **Optimizations** | Standard | Release build with `--no-restore` |
+A single multi-stage `TaskFlow.Api/Dockerfile` is used for all environments. The build context is always the repository root (`.`). Runtime behaviour is controlled via environment variables injected by the docker-compose files.
+
+| Aspect | Value |
+|--------|-------|
+| **Build Context** | Repository root (`.`) |
+| **Base Images** | .NET 10 SDK → .NET 10 ASP.NET runtime |
+| **Environment** | Injected at runtime via `ASPNETCORE_ENVIRONMENT` |
+| **Copy Strategy** | Multi-stage with explicit paths |
+| **Port** | 8080 |
+| **Optimizations** | Release build with `--no-restore` |
 
 ### Docker Compose Files
 
 | Aspect | Development (`docker-compose.yml`) | Production (`docker-compose.prod.yml`) |
 |--------|-----------------------------------|--------------------------------------|
-| **Build Context** | `./TaskFlow.Api` | `.` (repository root) |
-| **Dockerfile** | `Dockerfile.dev` | `TaskFlow.Api/Dockerfile` |
+| **Build Context** | `.` (repository root) | `.` (repository root) |
+| **Dockerfile** | `TaskFlow.Api/Dockerfile` | `TaskFlow.Api/Dockerfile` |
 | **Container Name** | `taskflow-api` | `taskflow-api-prod` |
 | **Image Tag** | `taskflow-api:dev` | `taskflow-api:prod` |
 | **Environment** | `Development` | `Production` |
@@ -232,22 +231,9 @@ kubectl apply -f k8s/deployment.yaml
 
 Understanding build context is crucial for successful Docker builds:
 
-### Development Build Context
+### Build Context
 
-```
-docker build -f Dockerfile.dev .
-# Build context: ./TaskFlow.Api directory
-# Dockerfile location: ./TaskFlow.Api/Dockerfile.dev
-```
-
-**Directory structure during build:**
-```
-/src (in container)
-└── TaskFlow.Api.csproj    # Copied from .
-└── *.cs files             # Copied from .
-```
-
-### Production Build Context
+Both development and production builds use the repository root (`.`) as the build context with the unified `TaskFlow.Api/Dockerfile`:
 
 ```
 docker build -f TaskFlow.Api/Dockerfile .
@@ -329,9 +315,8 @@ docker-compose -f docker-compose.prod.yml down
 **Cause**: Incorrect build context.
 
 **Solution**: 
-- For development: `cd TaskFlow.Api && docker build -f Dockerfile.dev .`
-- For production: `docker build -f TaskFlow.Api/Dockerfile .` (from repo root)
-- Or use docker-compose: `docker-compose up` or `docker-compose -f docker-compose.prod.yml up`
+- Use docker-compose: `docker-compose up` or `docker-compose -f docker-compose.prod.yml up`
+- Or build directly: `docker build -f TaskFlow.Api/Dockerfile .` (from repo root)
 
 ### Issue: "Database migrations not applied in production"
 
@@ -389,7 +374,7 @@ docker exec taskflow-api curl http://localhost:8080/health
 docker-compose up
 
 # Less convenient
-cd TaskFlow.Api && docker build -f Dockerfile.dev -t taskflow-api:dev . && \
+docker build -f TaskFlow.Api/Dockerfile -t taskflow-api:dev . && \
   docker run -p 8080:8080 -e ASPNETCORE_ENVIRONMENT=Development ...
 ```
 
