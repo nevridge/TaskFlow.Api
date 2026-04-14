@@ -27,6 +27,7 @@ public class TaskItemsController(ITaskService taskService, IValidator<TaskItem> 
             Title = i.Title,
             Description = i.Description,
             IsComplete = i.IsComplete,
+            DueDate = i.DueDate,
             StatusName = i.Status?.Name
         });
         return Ok(dtos);
@@ -48,6 +49,7 @@ public class TaskItemsController(ITaskService taskService, IValidator<TaskItem> 
             Title = item.Title,
             Description = item.Description,
             IsComplete = item.IsComplete,
+            DueDate = item.DueDate,
             StatusName = item.Status?.Name
         };
         return Ok(dto);
@@ -62,7 +64,8 @@ public class TaskItemsController(ITaskService taskService, IValidator<TaskItem> 
             Title = createDto.Title,
             Description = createDto.Description,
             StatusId = createDto.StatusId,
-            IsComplete = createDto.IsComplete
+            IsComplete = createDto.IsComplete,
+            DueDate = createDto.DueDate
         };
 
         var validationResult = await _validator.ValidateAsync(item);
@@ -79,6 +82,7 @@ public class TaskItemsController(ITaskService taskService, IValidator<TaskItem> 
             Title = createdItem.Title,
             Description = createdItem.Description,
             IsComplete = createdItem.IsComplete,
+            DueDate = createdItem.DueDate,
             StatusName = createdItem.Status?.Name
         };
 
@@ -100,6 +104,7 @@ public class TaskItemsController(ITaskService taskService, IValidator<TaskItem> 
         existing.Description = updateDto.Description;
         existing.IsComplete = updateDto.IsComplete;
         existing.StatusId = updateDto.StatusId;
+        existing.DueDate = updateDto.DueDate;
 
         var validationResult = await _validator.ValidateAsync(existing);
         if (!validationResult.IsValid)
@@ -115,6 +120,7 @@ public class TaskItemsController(ITaskService taskService, IValidator<TaskItem> 
             Title = existing.Title,
             Description = existing.Description,
             IsComplete = existing.IsComplete,
+            DueDate = existing.DueDate,
             StatusName = existing.Status?.Name
         };
 
