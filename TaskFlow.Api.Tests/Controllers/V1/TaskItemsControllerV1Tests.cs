@@ -274,7 +274,7 @@ public class TaskItemsControllerV1Tests
         dto.Title.Should().Be("Task");
         dto.Description.Should().BeNull();
         dto.IsComplete.Should().BeFalse();
-        dto.Status.Should().Be("Todo");
+        dto.Status.Should().Be("Draft");
     }
 
     [Fact]

@@ -7,6 +7,6 @@ public class TaskItem
     public string? Description { get; set; }
     public bool IsComplete { get; set; }
     public Priority Priority { get; set; } = Priority.Low;
-    public Status Status { get; set; } = Status.Todo;
+    public Status Status { get; set; } = Status.Draft;
     public DateTime? DueDate { get; set; }
 }

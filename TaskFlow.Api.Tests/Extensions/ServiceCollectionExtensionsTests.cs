@@ -3,6 +3,7 @@ using FluentValidation;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
+using Microsoft.Extensions.Options;
 using OpenTelemetry.Trace;
 using TaskFlow.Api.Data;
 using TaskFlow.Api.Extensions;
@@ -235,5 +236,22 @@ public class ServiceCollectionExtensionsTests
         services.Should().Contain(s => s.ServiceType == typeof(IValidator<TaskItem>));
         services.Should().Contain(s => s.ServiceType == typeof(HealthCheckService));
         services.Should().Contain(s => s.ServiceType == typeof(TracerProvider));
+    }
+
+    [Fact]
+    public void ConfigureJsonSerialization_OptionLambdas_ExecuteWhenOptionsResolved()
+    {
+        // Arrange
+        var services = new ServiceCollection();
+        services.ConfigureJsonSerialization();
+        var serviceProvider = services.BuildServiceProvider();
+
+        // Act - resolve HttpJson options, which triggers the ConfigureHttpJsonOptions lambda
+        var httpJsonOptions = serviceProvider
+            .GetRequiredService<IOptions<Microsoft.AspNetCore.Http.Json.JsonOptions>>().Value;
+
+        // Assert
+        httpJsonOptions.SerializerOptions.WriteIndented.Should().BeTrue();
+        httpJsonOptions.SerializerOptions.PropertyNamingPolicy.Should().Be(System.Text.Json.JsonNamingPolicy.CamelCase);
     }
 }
