@@ -9,34 +9,10 @@ namespace TaskFlow.Api.Tests.Validators;
 public class TaskItemValidatorTests
 {
     private readonly TaskItemValidator _validator;
-    private readonly TaskDbContext _dbContext;
 
     public TaskItemValidatorTests()
     {
-        // Use in-memory database for testing
-        var options = new DbContextOptionsBuilder<TaskDbContext>()
-            .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString()) // Use unique DB per test
-            .Options;
-        _dbContext = new TaskDbContext(options);
-
-        // Seed a Status for validation
-        SeedStatus();
-
-        _validator = new TaskItemValidator(_dbContext);
-    }
-
-    private void SeedStatus()
-    {
-        var status = new Status
-        {
-            Id = 1,
-            Name = "Active",
-            Description = "Active tasks",
-            CreatedDate = DateTime.UtcNow,
-            UpdatedDate = DateTime.UtcNow
-        };
-        _dbContext.Statuses.Add(status);
-        _dbContext.SaveChanges();
+        _validator = new TaskItemValidator();
     }
 
     [Fact]
@@ -48,7 +24,7 @@ public class TaskItemValidatorTests
             Title = "Valid Task",
             Description = "Valid Description",
             IsComplete = false,
-            StatusId = 1
+            Status = Status.Todo
         };
 
         // Act
@@ -68,7 +44,7 @@ public class TaskItemValidatorTests
             Title = "Valid Task",
             Description = null,
             IsComplete = false,
-            StatusId = 1
+            Status = Status.Todo
         };
 
         // Act
@@ -88,7 +64,7 @@ public class TaskItemValidatorTests
             Title = "Completed Task",
             Description = "Completed",
             IsComplete = true,
-            StatusId = 1
+            Status = Status.Completed
         };
 
         // Act
@@ -108,7 +84,7 @@ public class TaskItemValidatorTests
             Title = string.Empty,
             Description = "Description",
             IsComplete = false,
-            StatusId = 1
+            Status = Status.Todo
         };
 
         // Act
@@ -130,7 +106,7 @@ public class TaskItemValidatorTests
             Title = new string('a', 101), // 101 characters
             Description = "Description",
             IsComplete = false,
-            StatusId = 1
+            Status = Status.Todo
         };
 
         // Act
@@ -152,7 +128,7 @@ public class TaskItemValidatorTests
             Title = new string('a', 100), // Exactly 100 characters
             Description = "Description",
             IsComplete = false,
-            StatusId = 1
+            Status = Status.Todo
         };
 
         // Act
@@ -172,7 +148,7 @@ public class TaskItemValidatorTests
             Title = "A",
             Description = "Description",
             IsComplete = false,
-            StatusId = 1
+            Status = Status.Todo
         };
 
         // Act
@@ -192,7 +168,7 @@ public class TaskItemValidatorTests
             Title = "Valid Task",
             Description = string.Empty,
             IsComplete = false,
-            StatusId = 1
+            Status = Status.Todo
         };
 
         // Act
@@ -212,7 +188,7 @@ public class TaskItemValidatorTests
             Title = "Valid Task",
             Description = new string('a', 10000),
             IsComplete = false,
-            StatusId = 1
+            Status = Status.Todo
         };
 
         // Act
@@ -223,47 +199,43 @@ public class TaskItemValidatorTests
         result.Errors.Should().BeEmpty();
     }
 
-    // Add new tests for StatusId validation
     [Fact]
-    public async Task Validate_ShouldFail_WhenStatusIdIsZero()
+    public async Task Validate_ShouldPass_WhenStatusIsDraft()
     {
         // Arrange
         var task = new TaskItem
         {
-            Title = "Valid Task",
-            Description = "Valid Description",
+            Title = "Draft Task",
+            Description = "Description",
             IsComplete = false,
-            StatusId = 0  // Invalid - doesn't exist in database
+            Status = Status.Draft
         };
 
         // Act
         var result = await _validator.ValidateAsync(task);
 
         // Assert
-        result.IsValid.Should().BeFalse();
-        result.Errors.Should().HaveCount(1);
-        result.Errors.Should().Contain(e => e.PropertyName == "StatusId");
-        result.Errors.Should().Contain(e => e.ErrorMessage == "StatusId must be a valid status.");
+        result.IsValid.Should().BeTrue();
+        result.Errors.Should().BeEmpty();
     }
 
     [Fact]
-    public async Task Validate_ShouldFail_WhenStatusIdDoesNotExist()
+    public async Task Validate_ShouldPass_WhenStatusIsCompleted()
     {
         // Arrange
         var task = new TaskItem
         {
-            Title = "Valid Task",
-            Description = "Valid Description",
-            IsComplete = false,
-            StatusId = 999  // Non-existent
+            Title = "Completed Task",
+            Description = "Description",
+            IsComplete = true,
+            Status = Status.Completed
         };
 
         // Act
         var result = await _validator.ValidateAsync(task);
 
         // Assert
-        result.IsValid.Should().BeFalse();
-        result.Errors.Should().Contain(e => e.PropertyName == "StatusId");
-        result.Errors.Should().Contain(e => e.ErrorMessage == "StatusId must be a valid status.");
+        result.IsValid.Should().BeTrue();
+        result.Errors.Should().BeEmpty();
     }
 }

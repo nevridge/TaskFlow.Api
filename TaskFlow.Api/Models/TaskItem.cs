@@ -7,9 +7,6 @@ public class TaskItem
     public string? Description { get; set; }
     public bool IsComplete { get; set; }
     public Priority Priority { get; set; } = Priority.Low;
+    public Status Status { get; set; } = Status.Todo;
     public DateTime? DueDate { get; set; }
-
-    // Add foreign key and navigation property
-    public int StatusId { get; set; }
-    public Status Status { get; set; } = null!;
 }

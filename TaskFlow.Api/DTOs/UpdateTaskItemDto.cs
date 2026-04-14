@@ -6,7 +6,7 @@ public class UpdateTaskItemDto
 {
     public string Title { get; set; } = string.Empty;
     public string? Description { get; set; }
-    public int StatusId { get; set; }
+    public Status? Status { get; set; }
     public bool IsComplete { get; set; }
     public Priority? Priority { get; set; }
     public DateTime? DueDate { get; set; }
