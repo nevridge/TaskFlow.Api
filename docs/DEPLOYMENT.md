@@ -286,17 +286,8 @@ For detailed security scanning documentation, see [SECURITY_SCANNING.md](SECURIT
 | Variable | Purpose |
 |----------|---------|
 | `ASPNETCORE_URLS` | Configure Kestrel listen URLs |
-| `ASPNETCORE_ENVIRONMENT` | `Production` | Controls environment-specific behavior |
-| `ConnectionStrings__DefaultConnection` | `Data Source=/app/data/tasks.db` | SQLite database path |
-| `Database__MigrateOnStartup` | `false` (true in Development) | Enable automatic migrations |
-| `LOG_PATH` | `/app/logs/log.txt` | Log file location |
-
-**Azure Settings:**
-
-| Variable | Purpose |
-|----------|---------|
+| `LOG_PATH` | Log file location (default: `/app/logs/log.txt`) |
 | `ApplicationInsights__ConnectionString` | Enable Application Insights telemetry |
-| `ASPNETCORE_URLS` | Configure Kestrel listen URLs |
 
 ### Configuration Files
 

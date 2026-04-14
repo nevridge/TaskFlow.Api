@@ -259,6 +259,8 @@ dotnet test /p:CollectCoverage=true
 dotnet watch test --project TaskFlow.Api.Tests
 ```
 
+See the [Contributing Guide](CONTRIBUTING.md#code-coverage) for the full coverage command that mirrors CI enforcement, including thresholds and exclusions.
+
 ### Code Formatting
 
 ```bash

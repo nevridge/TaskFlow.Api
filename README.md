@@ -186,31 +186,10 @@ Configure via `appsettings.json` or environment variables:
 ## Testing
 
 ```bash
-# Run tests
 dotnet test
-
-# Run tests with coverage (mirrors CI enforcement)
-dotnet test --configuration Release \
-  /p:CollectCoverage=true \
-  /p:CoverletOutputFormat=cobertura \
-  /p:CoverletOutput=./TestResults/coverage.cobertura.xml \
-  /p:Exclude="[xunit.*]*,[TaskFlow.Api]TaskFlow.Api.Program,[TaskFlow.Api]TaskFlow.Api.Migrations.*,[TaskFlow.Api]TaskFlow.Api.Middleware.*,[TaskFlow.Api]Microsoft.AspNetCore.OpenApi.*,[TaskFlow.Api]System.Runtime.CompilerServices.*,[TaskFlow.Api]TaskFlow.Api.DTOs.*" \
-  /p:Threshold=75 \
-  /p:ThresholdType=line \
-  /p:ThresholdStat=total
 ```
 
-The CI pipeline enforces a minimum of **75% total line coverage** and blocks PRs below this threshold. The following types are excluded from coverage calculations:
-
-| Exclusion | Reason |
-|-----------|--------|
-| `[xunit.*]*` | xUnit test framework internals |
-| `TaskFlow.Api.Program` | Application entry point |
-| `TaskFlow.Api.Migrations.*` | EF Core auto-generated migrations |
-| `TaskFlow.Api.Middleware.*` | ASP.NET Core middleware pipeline |
-| `Microsoft.AspNetCore.OpenApi.*` | OpenAPI/Swagger generated code |
-| `System.Runtime.CompilerServices.*` | Compiler-generated code |
-| `TaskFlow.Api.DTOs.*` | Plain data transfer objects |
+The CI pipeline enforces a minimum of **75% total line coverage** and blocks PRs below this threshold. See [Contributing Guide](docs/CONTRIBUTING.md#code-coverage) for coverage configuration, excluded types, and how to mirror CI enforcement locally.
 
 ## Contributing
 
