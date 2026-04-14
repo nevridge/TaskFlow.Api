@@ -6,9 +6,12 @@ WORKDIR /app
 RUN apt-get update && apt-get install -y --no-install-recommends curl \
     && rm -rf /var/lib/apt/lists/*
 
-# Create dirs and assign ownership to the built-in non-root 'app' user.
-# Replaces the chmod 777 approach — more secure, same result.
+# Create dirs, add placeholder files so Docker named-volume initialization
+# copies them with the intended ownership, and assign ownership to 'app'.
+# This avoids first-run permission issues for SQLite/log writes when
+# /app/data or /app/logs are mounted as named volumes.
 RUN mkdir -p /app/logs /app/data \
+    && touch /app/logs/.keep /app/data/.keep \
     && chown -R app:app /app/logs /app/data
 
 # ASPNETCORE_ENVIRONMENT is intentionally NOT set here.
