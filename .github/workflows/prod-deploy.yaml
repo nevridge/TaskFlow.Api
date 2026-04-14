@@ -205,6 +205,7 @@ jobs:
             --environment-variables \
               ASPNETCORE_ENVIRONMENT=Production \
               Database__MigrateOnStartup=false \
+              DOTNET_RUNNING_IN_CONTAINER=true \
             --cpu 1 --memory 1.5 \
             --os-type Linux \
             --ports 8080 \
