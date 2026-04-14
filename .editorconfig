@@ -261,3 +261,7 @@ indent_size = 2
 # Test files
 [*Tests.cs]
 dotnet_diagnostic.xUnit1051.severity = none
+
+# Auto-generated migration files - skip formatting/charset enforcement
+[**/Migrations/*.cs]
+generated_code = true

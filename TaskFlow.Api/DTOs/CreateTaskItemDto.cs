@@ -6,4 +6,5 @@ public class CreateTaskItemDto
     public string? Description { get; set; }
     public int StatusId { get; set; } = 1; // Default to 'To Do' status
     public bool IsComplete { get; set; }
+    public DateTime? DueDate { get; set; }
 }
