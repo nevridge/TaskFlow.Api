@@ -13,6 +13,16 @@ namespace TaskFlow.Api.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
+            // Remap legacy status values to the new enum FIRST, while the FK and Statuses
+            // table still exist (SQLite enforces FK constraints on UPDATE when foreign_keys=1).
+            // Old: 1=Todo, 2=In Progress, 3=Done
+            // New: 0=Draft, 1=Todo, 2=Completed
+            // Run In Progress→Todo BEFORE Done→Completed to avoid the second UPDATE catching
+            // rows that were just remapped from 3→2 by the first UPDATE.
+            migrationBuilder.Sql("UPDATE \"TaskItems\" SET \"StatusId\" = 1 WHERE \"StatusId\" = 2");  // In Progress → Todo
+            migrationBuilder.Sql("UPDATE \"TaskItems\" SET \"StatusId\" = 2 WHERE \"StatusId\" = 3");  // Done → Completed
+            // StatusId = 1 (Todo) already matches Status.Todo = 1; no update needed.
+
             migrationBuilder.DropForeignKey(
                 name: "FK_TaskItems_Statuses_StatusId",
                 table: "TaskItems");
@@ -23,13 +33,6 @@ namespace TaskFlow.Api.Migrations
             migrationBuilder.DropIndex(
                 name: "IX_TaskItems_StatusId",
                 table: "TaskItems");
-
-            // Remap legacy status values to the new enum before renaming the column.
-            // Old: 1=Todo, 2=In Progress, 3=Done
-            // New: 0=Draft, 1=Todo, 2=Completed
-            migrationBuilder.Sql("UPDATE \"TaskItems\" SET \"StatusId\" = 2 WHERE \"StatusId\" = 3");  // Done → Completed
-            migrationBuilder.Sql("UPDATE \"TaskItems\" SET \"StatusId\" = 1 WHERE \"StatusId\" = 2");  // In Progress → Todo
-            // StatusId = 1 (Todo) already matches Status.Todo = 1; no update needed.
 
             migrationBuilder.RenameColumn(
                 name: "StatusId",
