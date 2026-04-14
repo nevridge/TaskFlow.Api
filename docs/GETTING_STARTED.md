@@ -83,7 +83,7 @@ The application will:
    - Open `TaskFlow.Api.sln`
 
 2. **Run with Docker (if Container Development Tools installed):**
-   - Select **"Container (Dockerfile.dev)"** from debug dropdown
+   - Select **"Container (Dockerfile)"** from debug dropdown
    - Press **F5** or click Run
    - Visual Studio will handle Docker setup automatically
 

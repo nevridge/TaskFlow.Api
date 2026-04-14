@@ -1,6 +1,23 @@
-﻿{
+{
   "$schema": "https://json.schemastore.org/launchsettings.json",
   "profiles": {
+    "Container (Dockerfile)": {
+      "commandName": "Docker",
+      "launchBrowser": true,
+      "launchUrl": "{Scheme}://{ServiceHost}:{ServicePort}/scalar/v1",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "ASPNETCORE_HTTP_PORTS": "8080",
+        "Database__MigrateOnStartup": "true",
+        "DOTNET_RUNNING_IN_CONTAINER": "true"
+      },
+      "publishAllPorts": false,
+      "httpPort": 8080,
+      "useSSL": false,
+      "DockerfileFile": "Dockerfile",
+      "DockerfileContext": "..",
+      "DockerfileTag": "taskflow-api:dev"
+    },
     "http": {
       "commandName": "Project",
       "dotnetRunMessages": true,
@@ -28,23 +45,6 @@
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
       }
-    },
-    "Container (Dockerfile.dev)": {
-      "commandName": "Docker",
-      "launchBrowser": true,
-      "launchUrl": "{Scheme}://{ServiceHost}:{ServicePort}",
-      "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "Development",
-        "DOTNET_RUNNING_IN_CONTAINER": "true"
-      },
-      "publishAllPorts": false,
-      "httpPort": 8080,
-      "useSSL": false,
-      "dockerfileRunArguments": "-e Database__MigrateOnStartup=true",
-      "DockerfileFile": "Dockerfile.dev",
-      "DockerfileContext": ".",
-      "DockerfileBuildArguments": "",
-      "DockerfileTag": "taskflow-api:dev"
     }
   }
 }

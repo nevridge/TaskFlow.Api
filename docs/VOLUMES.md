@@ -80,7 +80,7 @@ docker run -e ConnectionStrings__DefaultConnection="Data Source=/app/data/tasks.
 
 ### Dockerfile
 
-Both `Dockerfile` and `Dockerfile.dev` create the necessary directories during the build process:
+Both development and production environments use the unified `TaskFlow.Api/Dockerfile`, which creates the necessary directories during the build process:
 
 ```dockerfile
 # Create directories for logs and data with proper permissions
