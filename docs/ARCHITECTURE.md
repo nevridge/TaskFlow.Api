@@ -144,7 +144,7 @@ TaskFlow.Api/
 
 TaskFlow.Api uses the **ServiceCollection Extension Pattern** to organize dependency injection registrations. This keeps `Program.cs` clean and maintainable.
 
-**Usage in Program.cs:**
+#### Usage in Program.cs
 
 ```csharp
 var builder = WebApplication.CreateBuilder(args);
