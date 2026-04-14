@@ -108,7 +108,7 @@ public class TaskItemsController(ITaskService taskService, IValidator<TaskItem> 
         existing.Description = updateDto.Description;
         existing.IsComplete = updateDto.IsComplete;
         existing.StatusId = updateDto.StatusId;
-        existing.Priority = updateDto.Priority;
+        existing.Priority = updateDto.Priority ?? existing.Priority;
         existing.DueDate = updateDto.DueDate;
 
         var validationResult = await _validator.ValidateAsync(existing);

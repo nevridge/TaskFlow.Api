@@ -318,4 +318,41 @@ public class TaskItemsControllerV1Tests
         badRequestResult.Value.Should().BeEquivalentTo(validationFailures);
         _mockService.Verify(s => s.UpdateTaskAsync(It.IsAny<TaskItem>()), Times.Never);
     }
+
+    [Fact]
+    public async Task Update_ShouldPreserveExistingPriority_WhenPriorityOmitted()
+    {
+        // Arrange
+        var updateDto = new UpdateTaskItemDto
+        {
+            Title = "Updated Task",
+            Description = "Updated Description",
+            IsComplete = true,
+            StatusId = 2,
+            Priority = null // omitted — should preserve existing priority
+        };
+        var existingTask = new TaskItem
+        {
+            Id = 1,
+            Title = "Old Task",
+            Description = "Old",
+            IsComplete = false,
+            StatusId = 1,
+            Status = new Status { Id = 2, Name = "Done" },
+            Priority = Priority.High
+        };
+        _mockService.Setup(s => s.GetTaskAsync(1)).ReturnsAsync(existingTask);
+        _mockValidator.Setup(v => v.ValidateAsync(It.IsAny<TaskItem>(), default))
+            .ReturnsAsync(new ValidationResult());
+        _mockService.Setup(s => s.UpdateTaskAsync(It.IsAny<TaskItem>())).Returns(Task.CompletedTask);
+
+        // Act
+        var result = await _controller.Update(1, updateDto);
+
+        // Assert
+        var okResult = result.Result.Should().BeOfType<OkObjectResult>().Subject;
+        var responseDto = okResult.Value.Should().BeOfType<TaskItemResponseDto>().Subject;
+        responseDto.Priority.Should().Be("High"); // Priority preserved from existing task
+        _mockService.Verify(s => s.UpdateTaskAsync(It.IsAny<TaskItem>()), Times.Once);
+    }
 }

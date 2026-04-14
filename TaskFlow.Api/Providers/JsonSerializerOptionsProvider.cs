@@ -18,6 +18,7 @@ public static class JsonSerializerOptionsProvider
         options.WriteIndented = true;
         options.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
         options.ReferenceHandler = ReferenceHandler.IgnoreCycles; // Handle circular references
+        options.Converters.Add(new JsonStringEnumConverter(JsonNamingPolicy.CamelCase)); // Accept and return enums as strings
     }
 
     private static JsonSerializerOptions CreateDefaultOptions()
