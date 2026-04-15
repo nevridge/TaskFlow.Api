@@ -9,7 +9,8 @@
         "ASPNETCORE_ENVIRONMENT": "Development",
         "ASPNETCORE_HTTP_PORTS": "8080",
         "Database__MigrateOnStartup": "true",
-        "DOTNET_RUNNING_IN_CONTAINER": "true"
+        "DOTNET_RUNNING_IN_CONTAINER": "true",
+        "ConnectionStrings__DefaultConnection": "Data Source=/tmp/tasks.dev.db"
       },
       "publishAllPorts": false,
       "httpPort": 8080,

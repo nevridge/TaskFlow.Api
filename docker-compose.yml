@@ -1,4 +1,12 @@
 services:
+  seq:
+    image: datalust/seq:latest
+    container_name: taskflow-seq
+    environment:
+      - ACCEPT_EULA=Y
+      - SEQ_FIRSTRUN_ADMINPASSWORD=admin
+    restart: unless-stopped
+
   taskflow-api:
     image: taskflow-api:dev
     build:
@@ -22,6 +30,9 @@ services:
       retries: 3
       start_period: 40s
     restart: unless-stopped
+    depends_on:
+      seq:
+        condition: service_started
 
 volumes:
   taskflow-data:
