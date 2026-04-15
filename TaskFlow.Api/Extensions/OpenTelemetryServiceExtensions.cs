@@ -1,3 +1,4 @@
+using OpenTelemetry;
 using OpenTelemetry.Exporter;
 using OpenTelemetry.Logs;
 using OpenTelemetry.Metrics;
@@ -93,7 +94,7 @@ public static class OpenTelemetryServiceExtensions
             options.IncludeScopes = true;
             options.ParseStateValues = true;
 
-            options.AddOtlpExporter(otlp =>
+            options.AddOtlpExporter((otlp, processor) =>
             {
                 otlp.Endpoint = new Uri(baseEndpoint + "/v1/logs");
                 otlp.Protocol = protocol;
@@ -101,6 +102,7 @@ public static class OpenTelemetryServiceExtensions
                 {
                     otlp.Headers = header;
                 }
+                processor.ExportProcessorType = ExportProcessorType.Batch;
             });
         });
 
