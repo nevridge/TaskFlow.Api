@@ -13,6 +13,8 @@ services:
       context: .
       dockerfile: TaskFlow.Api/Dockerfile
     container_name: taskflow-api
+    env_file:
+      - TaskFlow.Api/.env
     ports:
       - "8080:8080"
     environment:
@@ -20,6 +22,7 @@ services:
       - ASPNETCORE_HTTP_PORTS=8080
       - DOTNET_RUNNING_IN_CONTAINER=true
       - Database__MigrateOnStartup=true
+      - OpenTelemetry__Endpoint=http://seq:5341/ingest/otlp
     volumes:
       - taskflow-data:/app/data
       - taskflow-logs:/app/logs
