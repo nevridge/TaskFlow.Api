@@ -144,25 +144,11 @@ TaskFlow.Api/
 
 TaskFlow.Api uses the **ServiceCollection Extension Pattern** to organize dependency injection registrations. This keeps `Program.cs` clean and maintainable.
 
-#### Extension Classes
-
-| Extension Class | Purpose | Services Registered |
-|----------------|---------|---------------------|
-| `PersistenceServiceExtensions` | Database and data access | `TaskDbContext`, `ITaskRepository`, `IStatusRepository` |
-| `ApplicationServiceExtensions` | Business logic services | `ITaskService`, `IStatusService` |
-| `ValidationServiceExtensions` | Input validation | FluentValidation validators |
-| `HealthCheckServiceExtensions` | Health monitoring | Database and self health checks |
-| `ApiVersioningServiceExtensions` | API versioning | API versioning middleware and explorer |
-| `OpenApiServiceExtensions` | API documentation | OpenAPI/Scalar services |
-| `OpenTelemetryServiceExtensions` | Observability | OpenTelemetry tracing, metrics, and logging |
-| `JsonConfigurationExtensions` | JSON serialization | JSON serializer options |
-
 #### Usage in Program.cs
 
 ```csharp
 var builder = WebApplication.CreateBuilder(args);
 
-// Clean, readable service registration
 builder.Logging.AddApplicationLogging(builder.Configuration, builder.Environment);
 builder.Services.AddControllers();
 builder.Services.AddApiVersioningConfiguration();
@@ -175,49 +161,7 @@ builder.Services.AddOpenTelemetryObservability(builder.Configuration);
 builder.Services.ConfigureJsonSerialization();
 ```
 
-#### Creating New Extensions
-
-When adding new services, follow this pattern:
-
-1. **Create extension class** in `Extensions/` folder
-2. **Define static extension method** on `IServiceCollection`
-3. **Group related services** logically
-4. **Update Program.cs** with single method call
-
-**Example:**
-
-```csharp
-namespace TaskFlow.Api.Extensions;
-
-public static class CachingServiceExtensions
-{
-    public static IServiceCollection AddCaching(
-        this IServiceCollection services,
-        IConfiguration configuration)
-    {
-        services.AddMemoryCache();
-        services.AddDistributedMemoryCache();
-        
-        // Configure options
-        services.Configure<CacheOptions>(
-            configuration.GetSection("Caching"));
-        
-        // Register cache service
-        services.AddScoped<ICacheService, CacheService>();
-        
-        return services;
-    }
-}
-```
-
-**Benefits:**
-- `Program.cs` stays concise and readable
-- Related services grouped together
-- Easy to find where services are registered
-- Testable in isolation
-- Reusable across projects
-
-For detailed guidance, see the [Service Registration Pattern Documentation](SERVICE_REGISTRATION_PATTERN.md).
+Each extension class focuses on a single logical grouping — persistence, application services, validation, health checks, etc. For the full list of extension classes, how to create new ones, and best practices, see the [Service Registration Pattern Documentation](SERVICE_REGISTRATION_PATTERN.md).
 
 ### Repository Pattern
 
@@ -449,16 +393,8 @@ public class TaskDbContext(DbContextOptions<TaskDbContext> options) : DbContext(
 - Avoids concurrent migration issues
 
 **Migration commands:**
-```bash
-# Create new migration
-dotnet ef migrations add MigrationName --project TaskFlow.Api
 
-# Apply migrations
-dotnet ef database update --project TaskFlow.Api
-
-# Revert migration
-dotnet ef database update PreviousMigrationName --project TaskFlow.Api
-```
+For migration commands and setup steps, see the [Getting Started Guide](GETTING_STARTED.md#database-migrations).
 
 ### SQLite Usage
 
@@ -505,12 +441,7 @@ This call:
 
 ### OTLP Exporter Settings
 
-| Setting | Environment Variable | Default |
-|---------|---------------------|---------|
-| Service name | `OpenTelemetry__ServiceName` | `TaskFlow.Api` |
-| OTLP endpoint | `OpenTelemetry__Endpoint` | `http://localhost:5341/ingest/otlp` |
-| Auth header | `OpenTelemetry__Header` | *(none)* |
-| Protocol | `OpenTelemetry__Protocol` | `http/protobuf` |
+For the full list of OpenTelemetry configuration settings and environment variables, see the [Logging Guide](LOGGING.md#otlp-exporter-settings).
 
 ### Health Check Logging
 
@@ -540,15 +471,12 @@ TaskFlow.Api.Tests/
 - Minimum **75% total line coverage** required — PRs are blocked if coverage falls below this threshold
 - CI pipeline fails if coverage drops
 - Coverage reports generated in CI
-- The following types are excluded from coverage: `Program`, `Migrations.*`, `Middleware.*`, `DTOs.*`, OpenAPI/compiler-generated code
+
+For coverage configuration, excluded types, and how to mirror CI enforcement locally, see the [Contributing Guide](CONTRIBUTING.md#code-coverage).
 
 **Run tests:**
 ```bash
 dotnet test
-dotnet test --configuration Release \
-  /p:CollectCoverage=true \
-  /p:Exclude="[xunit.*]*,[TaskFlow.Api]TaskFlow.Api.Program,[TaskFlow.Api]TaskFlow.Api.Migrations.*,[TaskFlow.Api]TaskFlow.Api.Middleware.*,[TaskFlow.Api]Microsoft.AspNetCore.OpenApi.*,[TaskFlow.Api]System.Runtime.CompilerServices.*,[TaskFlow.Api]TaskFlow.Api.DTOs.*" \
-  /p:Threshold=75 /p:ThresholdType=line /p:ThresholdStat=total
 ```
 
 ### 2. Security Scanning
@@ -645,29 +573,7 @@ See [API Versioning Guide](API_VERSIONING.md) for complete documentation.
 
 ## Documentation Philosophy
 
-Documentation in TaskFlow.Api follows an audience-focused approach:
-
-**For Developers:**
-- Quick start in <5 minutes
-- Clear setup instructions
-- Examples and code snippets
-- Troubleshooting guidance
-
-**For Employers/Reviewers:**
-- Visible quality indicators
-- Architecture decisions explained
-- CI/CD and deployment patterns
-- Testing and security practices
-
-**Structure:**
-- **README:** Overview, quick start, key highlights
-- **docs/:** Comprehensive reference material
-- **Code comments:** Only where necessary to explain "why"
-
-This approach ensures:
-- Easy onboarding for new developers
-- Clear skill assessment for hiring managers
-- Maintainable documentation that stays current
+See the [Contributing Guide](CONTRIBUTING.md#documentation-philosophy) for the documentation approach, audience priorities, and documentation file structure.
 
 ---
 
