@@ -286,8 +286,6 @@ For detailed security scanning documentation, see [SECURITY_SCANNING.md](SECURIT
 | Variable | Purpose |
 |----------|---------|
 | `ASPNETCORE_URLS` | Configure Kestrel listen URLs |
-| `LOG_PATH` | Log file location (default: `/app/logs/log.txt`) |
-| `ApplicationInsights__ConnectionString` | Enable Application Insights telemetry |
 
 ### Configuration Files
 
