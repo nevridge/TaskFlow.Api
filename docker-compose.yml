@@ -2,6 +2,9 @@ services:
   seq:
     image: datalust/seq:latest
     container_name: taskflow-seq
+    ports:
+      - "5341:5341"
+      - "5380:80"
     environment:
       - ACCEPT_EULA=Y
       - SEQ_FIRSTRUN_ADMINPASSWORD=admin
