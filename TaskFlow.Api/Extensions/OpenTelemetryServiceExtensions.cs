@@ -102,7 +102,12 @@ public static class OpenTelemetryServiceExtensions
                 {
                     otlp.Headers = header;
                 }
-                processor.ExportProcessorType = ExportProcessorType.Batch;
+                // Simple processor in Development exports each record immediately, so logs
+                // are visible in Seq without delay and are not lost when VS stops the
+                // container with SIGKILL before the batch can flush.
+                processor.ExportProcessorType = environment.IsDevelopment()
+                    ? ExportProcessorType.Simple
+                    : ExportProcessorType.Batch;
             });
         });
 

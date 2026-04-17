@@ -37,6 +37,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "docs", "docs", "{8D4B7FAA-9
 		docs\VOLUME_TESTING.md = docs\VOLUME_TESTING.md
 	EndProjectSection
 EndProject
+Project("{E53339B2-1760-4266-BCC7-CA923CBCF16C}") = "docker-compose", "docker-compose.dcproj", "{A451F2CD-676B-4552-9A25-D89F92A11AA5}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -71,6 +73,12 @@ Global
 		{F6A54A72-2C70-4FF7-8572-1AB0EB9B8637}.Release|x64.Build.0 = Release|Any CPU
 		{F6A54A72-2C70-4FF7-8572-1AB0EB9B8637}.Release|x86.ActiveCfg = Release|Any CPU
 		{F6A54A72-2C70-4FF7-8572-1AB0EB9B8637}.Release|x86.Build.0 = Release|Any CPU
+		{A451F2CD-676B-4552-9A25-D89F92A11AA5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A451F2CD-676B-4552-9A25-D89F92A11AA5}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{A451F2CD-676B-4552-9A25-D89F92A11AA5}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{A451F2CD-676B-4552-9A25-D89F92A11AA5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A451F2CD-676B-4552-9A25-D89F92A11AA5}.Release|x64.ActiveCfg = Release|Any CPU
+		{A451F2CD-676B-4552-9A25-D89F92A11AA5}.Release|x86.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
