@@ -80,7 +80,7 @@ The application will:
 
 1. **Open the solution:**
    - Launch Visual Studio 2022
-   - Open `TaskFlow.Api.sln`
+   - Open `TaskFlow.sln`
 
 2. **Run with Docker (if Container Development Tools installed):**
    - Select **"Container (Dockerfile)"** from debug dropdown

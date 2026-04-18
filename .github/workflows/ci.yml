@@ -10,7 +10,7 @@ jobs:
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '10.0.x'
-      - run: dotnet format TaskFlow.Api.sln --verify-no-changes
+      - run: dotnet format TaskFlow.sln --verify-no-changes
   build:
     needs: lint
     runs-on: ubuntu-latest
@@ -21,7 +21,7 @@ jobs:
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '10.0.x'
-      - run: dotnet build TaskFlow.Api.sln --configuration Release
+      - run: dotnet build TaskFlow.sln --configuration Release
   test:
     needs: lint
     runs-on: ubuntu-latest
@@ -33,7 +33,7 @@ jobs:
         with:
           dotnet-version: '10.0.x'
       - name: Run tests with coverage and enforce threshold
-        run: dotnet test TaskFlow.Api.sln --configuration Release /p:CollectCoverage=true /p:CoverletOutputFormat=cobertura /p:CoverletOutput=./TestResults/coverage.cobertura.xml /p:Exclude="[xunit.*]*%2c[TaskFlow.Api]TaskFlow.Api.Program%2c[TaskFlow.Api]TaskFlow.Api.Migrations.*%2c[TaskFlow.Api]TaskFlow.Api.Middleware.*%2c[TaskFlow.Api]Microsoft.AspNetCore.OpenApi.*%2c[TaskFlow.Api]System.Runtime.CompilerServices.*%2c[TaskFlow.Api]TaskFlow.Api.DTOs.*" /p:Threshold=75 /p:ThresholdType=line /p:ThresholdStat=total
+        run: dotnet test TaskFlow.sln --configuration Release /p:CollectCoverage=true /p:CoverletOutputFormat=cobertura /p:CoverletOutput=./TestResults/coverage.cobertura.xml /p:Exclude="[xunit.*]*%2c[TaskFlow.Api]TaskFlow.Api.Program%2c[TaskFlow.Api]TaskFlow.Api.Migrations.*%2c[TaskFlow.Api]TaskFlow.Api.Middleware.*%2c[TaskFlow.Api]Microsoft.AspNetCore.OpenApi.*%2c[TaskFlow.Api]System.Runtime.CompilerServices.*%2c[TaskFlow.Api]TaskFlow.Api.DTOs.*" /p:Threshold=75 /p:ThresholdType=line /p:ThresholdStat=total
       - name: Install ReportGenerator
         run: dotnet tool install -g dotnet-reportgenerator-globaltool
       - name: Generate coverage report
