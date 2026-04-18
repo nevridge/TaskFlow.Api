@@ -84,8 +84,9 @@ export function TasksPage() {
 
       <div className="flex flex-wrap gap-3 mb-4">
         <div className="flex gap-2 items-center">
-          <label className="text-xs text-slate-500 font-medium uppercase">Status</label>
+          <label htmlFor="status-filter" className="text-xs text-slate-500 font-medium uppercase">Status</label>
           <select
+            id="status-filter"
             value={statusFilter}
             onChange={e => setStatusFilter(e.target.value as StatusFilter)}
             className="rounded border px-2 py-1 text-sm"
@@ -97,8 +98,9 @@ export function TasksPage() {
           </select>
         </div>
         <div className="flex gap-2 items-center">
-          <label className="text-xs text-slate-500 font-medium uppercase">Priority</label>
+          <label htmlFor="priority-filter" className="text-xs text-slate-500 font-medium uppercase">Priority</label>
           <select
+            id="priority-filter"
             value={priorityFilter}
             onChange={e => setPriorityFilter(e.target.value as PriorityFilter)}
             className="rounded border px-2 py-1 text-sm"
@@ -110,8 +112,9 @@ export function TasksPage() {
           </select>
         </div>
         <div className="flex gap-2 items-center">
-          <label className="text-xs text-slate-500 font-medium uppercase">Sort</label>
+          <label htmlFor="sort-key" className="text-xs text-slate-500 font-medium uppercase">Sort</label>
           <select
+            id="sort-key"
             value={sortKey}
             onChange={e => setSortKey(e.target.value as SortKey)}
             className="rounded border px-2 py-1 text-sm"

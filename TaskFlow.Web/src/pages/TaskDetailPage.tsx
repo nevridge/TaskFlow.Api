@@ -1,6 +1,7 @@
 import { useState } from 'react'
-import { useParams, Link } from 'react-router-dom'
-import { useTaskQuery, useUpdateTaskMutation, useDeleteTaskMutation } from '@/hooks/useTasks'
+import { useParams, Link, useNavigate } from 'react-router-dom'
+import { useQueryClient } from '@tanstack/react-query'
+import { useTaskQuery, useUpdateTaskMutation, useDeleteTaskMutation, taskKeys } from '@/hooks/useTasks'
 import { useNotesQuery, useCreateNoteMutation, useUpdateNoteMutation, useDeleteNoteMutation } from '@/hooks/useNotes'
 import { TaskForm } from '@/components/TaskForm'
 import { NoteCard } from '@/components/NoteCard'
@@ -20,6 +21,9 @@ export function TaskDetailPage() {
   const updateNote = useUpdateNoteMutation(taskId)
   const deleteNote = useDeleteNoteMutation(taskId)
 
+  const navigate = useNavigate()
+  const qc = useQueryClient()
+
   const [editingTask, setEditingTask] = useState(false)
   const [showNoteForm, setShowNoteForm] = useState(false)
   const [editingNote, setEditingNote] = useState<NoteResponseDto | null>(null)
@@ -37,7 +41,12 @@ export function TaskDetailPage() {
 
   function handleDeleteTask() {
     if (window.confirm(`Delete "${task!.title}"?`)) {
-      deleteTask.mutate(taskId)
+      deleteTask.mutate(taskId, {
+        onSuccess: () => {
+          qc.removeQueries({ queryKey: taskKeys.detail(taskId) })
+          navigate('/')
+        },
+      })
     }
   }
 
