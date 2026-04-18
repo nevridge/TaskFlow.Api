@@ -10,7 +10,7 @@ jobs:
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '10.0.x'
-      - run: dotnet format --verify-no-changes
+      - run: dotnet format TaskFlow.Api.sln --verify-no-changes
   build:
     needs: lint
     runs-on: ubuntu-latest
