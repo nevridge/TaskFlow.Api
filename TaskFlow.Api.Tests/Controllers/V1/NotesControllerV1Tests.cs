@@ -198,12 +198,12 @@ public class NotesControllerV1Tests
         var note = new Note { Id = 5, Content = "Note", TaskItemId = 1 };
         _mockTaskService.Setup(s => s.GetTaskAsync(1)).ReturnsAsync(task);
         _mockNoteService.Setup(s => s.GetNoteAsync(1, 5)).ReturnsAsync(note);
-        _mockNoteService.Setup(s => s.DeleteNoteAsync(5)).Returns(Task.CompletedTask);
+        _mockNoteService.Setup(s => s.DeleteNoteAsync(1, 5)).Returns(Task.CompletedTask);
 
         var result = await _controller.Delete(1, 5);
 
         result.Should().BeOfType<NoContentResult>();
-        _mockNoteService.Verify(s => s.DeleteNoteAsync(5), Times.Once);
+        _mockNoteService.Verify(s => s.DeleteNoteAsync(1, 5), Times.Once);
     }
 
     [Fact]

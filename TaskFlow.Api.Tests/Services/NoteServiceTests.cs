@@ -83,10 +83,10 @@ public class NoteServiceTests
     [Fact]
     public async Task DeleteNoteAsync_ShouldCallRepositoryDelete()
     {
-        _mockRepo.Setup(r => r.DeleteAsync(1)).Returns(Task.CompletedTask);
+        _mockRepo.Setup(r => r.DeleteAsync(1, 5)).Returns(Task.CompletedTask);
 
-        await _service.DeleteNoteAsync(1);
+        await _service.DeleteNoteAsync(1, 5);
 
-        _mockRepo.Verify(r => r.DeleteAsync(1), Times.Once);
+        _mockRepo.Verify(r => r.DeleteAsync(1, 5), Times.Once);
     }
 }

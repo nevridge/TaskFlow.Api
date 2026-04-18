@@ -19,6 +19,6 @@ public class NoteService(INoteRepository repo) : INoteService
     public async Task UpdateNoteAsync(Note note) =>
         await _repo.UpdateAsync(note);
 
-    public async Task DeleteNoteAsync(int id) =>
-        await _repo.DeleteAsync(id);
+    public async Task DeleteNoteAsync(int taskId, int noteId) =>
+        await _repo.DeleteAsync(taskId, noteId);
 }

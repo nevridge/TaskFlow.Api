@@ -8,5 +8,5 @@ public interface INoteService
     Task<Note?> GetNoteAsync(int taskId, int noteId);
     Task<Note> CreateNoteAsync(Note note);
     Task UpdateNoteAsync(Note note);
-    Task DeleteNoteAsync(int id);
+    Task DeleteNoteAsync(int taskId, int noteId);
 }

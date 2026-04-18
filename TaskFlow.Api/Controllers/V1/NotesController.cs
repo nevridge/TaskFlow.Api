@@ -9,7 +9,7 @@ namespace TaskFlow.Api.Controllers.V1;
 
 [ApiController]
 [ApiVersion("1.0")]
-[Route("api/v{version:apiVersion}/taskitems/{taskId}/notes")]
+[Route("api/v{version:apiVersion}/TaskItems/{taskId}/notes")]
 public class NotesController(INoteService noteService, ITaskService taskService, IValidator<Note> validator) : ControllerBase
 {
     private const string GetNoteRouteName = "GetNoteV1";
@@ -18,7 +18,7 @@ public class NotesController(INoteService noteService, ITaskService taskService,
     private readonly ITaskService _taskService = taskService;
     private readonly IValidator<Note> _validator = validator;
 
-    // GET: api/v1/taskitems/{taskId}/notes
+    // GET: api/v1/TaskItems/{taskId}/notes
     [HttpGet]
     public async Task<ActionResult<IEnumerable<NoteResponseDto>>> GetAll(int taskId)
     {
@@ -32,7 +32,7 @@ public class NotesController(INoteService noteService, ITaskService taskService,
         return Ok(notes.Select(ToDto));
     }
 
-    // GET: api/v1/taskitems/{taskId}/notes/{id}
+    // GET: api/v1/TaskItems/{taskId}/notes/{id}
     [HttpGet("{id}", Name = GetNoteRouteName)]
     public async Task<ActionResult<NoteResponseDto>> Get(int taskId, int id)
     {
@@ -117,7 +117,7 @@ public class NotesController(INoteService noteService, ITaskService taskService,
             return NotFound();
         }
 
-        await _noteService.DeleteNoteAsync(id);
+        await _noteService.DeleteNoteAsync(taskId, id);
         return NoContent();
     }
 

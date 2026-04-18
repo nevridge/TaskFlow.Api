@@ -29,9 +29,9 @@ public class NoteRepository(TaskDbContext context) : INoteRepository
         await _context.SaveChangesAsync();
     }
 
-    public async Task DeleteAsync(int id)
+    public async Task DeleteAsync(int taskId, int noteId)
     {
-        var note = await _context.Notes.FindAsync(id);
+        var note = await _context.Notes.FirstOrDefaultAsync(n => n.Id == noteId && n.TaskItemId == taskId);
         if (note is null)
         {
             return;

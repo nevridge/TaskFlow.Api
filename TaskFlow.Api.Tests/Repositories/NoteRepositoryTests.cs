@@ -1,4 +1,5 @@
 using FluentAssertions;
+using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using TaskFlow.Api.Data;
 using TaskFlow.Api.Models;
@@ -149,7 +150,7 @@ public class NoteRepositoryTests
         await context.SaveChangesAsync();
         var repo = new NoteRepository(context);
 
-        await repo.DeleteAsync(note.Id);
+        await repo.DeleteAsync(1, note.Id);
 
         var deleted = await context.Notes.FindAsync(note.Id);
         deleted.Should().BeNull();
@@ -161,8 +162,59 @@ public class NoteRepositoryTests
         using var context = CreateInMemoryContext();
         var repo = new NoteRepository(context);
 
-        var act = async () => await repo.DeleteAsync(999);
+        var act = async () => await repo.DeleteAsync(1, 999);
 
         await act.Should().NotThrowAsync();
+    }
+
+    [Fact]
+    public async Task DeleteAsync_ShouldNotDeleteNote_WhenNoteDoesNotBelongToTask()
+    {
+        using var context = CreateInMemoryContext();
+        SeedTask(context, 1);
+        SeedTask(context, 2);
+        var note = new Note { Content = "Task 2 note", TaskItemId = 2 };
+        context.Notes.Add(note);
+        await context.SaveChangesAsync();
+        var repo = new NoteRepository(context);
+
+        await repo.DeleteAsync(1, note.Id);
+
+        var stillExists = await context.Notes.FindAsync(note.Id);
+        stillExists.Should().NotBeNull();
+    }
+
+    [Fact]
+    public async Task DeleteTaskAsync_ShouldCascadeDeleteNotes()
+    {
+        var connection = new SqliteConnection("DataSource=:memory:");
+        connection.Open();
+        var options = new DbContextOptionsBuilder<TaskDbContext>()
+            .UseSqlite(connection)
+            .Options;
+
+        await using (var context = new TaskDbContext(options))
+        {
+            await context.Database.EnsureCreatedAsync();
+            var task = new TaskItem { Title = "Task with notes" };
+            context.TaskItems.Add(task);
+            await context.SaveChangesAsync();
+            context.Notes.AddRange(
+                new Note { Content = "Note 1", TaskItemId = task.Id },
+                new Note { Content = "Note 2", TaskItemId = task.Id }
+            );
+            await context.SaveChangesAsync();
+
+            context.TaskItems.Remove(task);
+            await context.SaveChangesAsync();
+        }
+
+        await using (var context = new TaskDbContext(options))
+        {
+            var remainingNotes = await context.Notes.ToListAsync();
+            remainingNotes.Should().BeEmpty();
+        }
+
+        connection.Close();
     }
 }
