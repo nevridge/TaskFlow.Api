@@ -1,15 +1,17 @@
 services:
   seq:
+    container_name: taskflow-seq
     image: datalust/seq:latest
     ports:
       - "5341:5341"
       - "5380:80"
     environment:
       - ACCEPT_EULA=Y
-      - SEQ_FIRSTRUN_ADMINPASSWORD=admin
+      - SEQ_FIRSTRUN_NOAUTHENTICATION=true
     restart: unless-stopped
 
   taskflow-api:
+    container_name: taskflow-api
     image: taskflow-api:dev
     build:
       context: .
