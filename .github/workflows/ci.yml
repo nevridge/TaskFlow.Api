@@ -40,6 +40,26 @@ jobs:
         run: reportgenerator -reports:"**/TestResults/coverage.cobertura.xml" -targetdir:"coveragereport" -reporttypes:"TextSummary;Html"
       - name: Display coverage summary
         run: cat coveragereport/Summary.txt
+  taskflow-web:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    defaults:
+      run:
+        working-directory: TaskFlow.Web
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: TaskFlow.Web/package-lock.json
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run type-check
+      - run: npm run test -- --run
+      - run: npm run build
+
   smoke-test:
     needs: build
     runs-on: ubuntu-latest

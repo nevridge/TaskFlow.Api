@@ -41,6 +41,19 @@ services:
       seq:
         condition: service_started
 
+  taskflow-web:
+    container_name: taskflow-web
+    image: taskflow-web:dev
+    build:
+      context: ./TaskFlow.Web
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    restart: unless-stopped
+    depends_on:
+      taskflow-api:
+        condition: service_healthy
+
 volumes:
   taskflow-data:
     driver: local

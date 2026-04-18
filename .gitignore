@@ -108,6 +108,10 @@ local.settings.json
 # -----------------------
 # Node modules
 node_modules/
+TaskFlow.Web/node_modules/
+
+# Frontend build output
+TaskFlow.Web/dist/
 
 # Build outputs
 /build/

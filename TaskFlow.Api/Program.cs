@@ -21,6 +21,7 @@ try
     builder.Services.AddApplicationHealthChecks();
     builder.Services.AddOpenTelemetryObservability(builder.Configuration);
     builder.Services.ConfigureJsonSerialization();
+    builder.Services.AddCorsPolicy(builder.Configuration);
 
     var app = builder.Build();
     logger = app.Services.GetRequiredService<ILogger<Program>>();
@@ -57,6 +58,7 @@ try
     }
 
     app.UseHttpLogging();
+    app.UseCorsPolicy();
 
     // Skip HTTPS redirection in containers
     if (!app.Environment.IsEnvironment("Container") &&
