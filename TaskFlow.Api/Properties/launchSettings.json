@@ -11,8 +11,7 @@
         "Database__MigrateOnStartup": "true",
         "DOTNET_RUNNING_IN_CONTAINER": "true",
         "ConnectionStrings__DefaultConnection": "Data Source=/tmp/tasks.dev.db",
-        "OpenTelemetry__Endpoint": "http://host.docker.internal:5341/ingest/otlp",
-        "OpenTelemetry__Header": "X-Seq-ApiKey=pgR7FS6RWVDkIXUtHg3h"
+        "OpenTelemetry__Endpoint": "http://host.docker.internal:5341/ingest/otlp"
       },
       "publishAllPorts": false,
       "httpPort": 8080,

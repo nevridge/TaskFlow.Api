@@ -66,7 +66,9 @@ Tests mirror the main project structure: `Controllers/V1/`, `Services/`, `Reposi
 
 ## Key Configuration
 
-`appsettings.Development.json` uses a local relative DB path (`./data/tasks.dev.db`). The container uses `/app/data/tasks.db`. The `OpenTelemetry` section configures the OTLP export endpoint and Seq API key — override via environment variables or `.env` file (gitignored).
+`appsettings.Development.json` uses a local relative DB path (`./data/tasks.dev.db`). The container uses `/app/data/tasks.db`. The `OpenTelemetry` section configures the OTLP export endpoint — override via environment variables or a local `TaskFlow.Api/.env` file (gitignored).
+
+Create a root `.env` with `COMPOSE_PROJECT_NAME=taskflowapi` for consistent CLI project naming — this file is gitignored and must be created locally.
 
 ## CI/CD
 
