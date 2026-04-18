@@ -1047,7 +1047,7 @@ dotnet test TaskFlow.Api.Tests\TaskFlow.Api.Tests.csproj --configuration Release
 #### Full Solution Build
 
 ```bash
-dotnet build TaskFlow.Api.sln --configuration Release
+dotnet build TaskFlow.sln --configuration Release
 ```
 
 **Success Criteria:**
@@ -1613,7 +1613,7 @@ This source control strategy ensures clean, auditable, and reversible upgrade pr
 
 #### Build Success
 - [x] ✅ **Solution builds without errors**
-  - `dotnet build TaskFlow.Api.sln --configuration Release` exits with code 0
+  - `dotnet build TaskFlow.sln --configuration Release` exits with code 0
   - Both projects compile successfully
 
 - [x] ✅ **Solution builds without warnings**

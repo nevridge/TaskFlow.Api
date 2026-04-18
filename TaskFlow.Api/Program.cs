@@ -21,6 +21,11 @@ try
     builder.Services.AddApplicationHealthChecks();
     builder.Services.AddOpenTelemetryObservability(builder.Configuration);
     builder.Services.ConfigureJsonSerialization();
+    var corsOrigins = CorsServiceExtensions.GetConfiguredOrigins(builder.Configuration);
+    if (corsOrigins.Length > 0)
+    {
+        builder.Services.AddCorsPolicy(builder.Configuration);
+    }
 
     var app = builder.Build();
     logger = app.Services.GetRequiredService<ILogger<Program>>();
@@ -57,6 +62,10 @@ try
     }
 
     app.UseHttpLogging();
+    if (corsOrigins.Length > 0)
+    {
+        app.UseCorsPolicy();
+    }
 
     // Skip HTTPS redirection in containers
     if (!app.Environment.IsEnvironment("Container") &&
