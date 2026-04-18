@@ -20,8 +20,8 @@ This guide walks you through setting up the full TaskFlow stack (API + frontend)
 Runs the API, frontend, and Seq log viewer in one command:
 
 ```bash
-git clone https://github.com/nevridge/TaskFlow.Api.git
-cd TaskFlow.Api
+git clone https://github.com/nevridge/TaskFlow.git
+cd TaskFlow
 docker compose up
 ```
 
@@ -42,8 +42,8 @@ Data persists in Docker volumes. To tear down without losing data: `docker compo
 
 1. **Clone the repository:**
    ```bash
-   git clone https://github.com/nevridge/TaskFlow.Api.git
-   cd TaskFlow.Api
+   git clone https://github.com/nevridge/TaskFlow.git
+   cd TaskFlow
    ```
 
 2. **Restore dependencies:**

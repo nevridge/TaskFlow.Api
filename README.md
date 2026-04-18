@@ -49,8 +49,8 @@ While functional as a task management system, this project serves as a portfolio
 The easiest way to run everything together:
 
 ```bash
-git clone https://github.com/nevridge/TaskFlow.Api.git
-cd TaskFlow.Api
+git clone https://github.com/nevridge/TaskFlow.git
+cd TaskFlow
 docker compose up
 ```
 
