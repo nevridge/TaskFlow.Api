@@ -1,10 +1,24 @@
 services:
+  seq:
+    container_name: taskflow-seq
+    image: datalust/seq:latest
+    ports:
+      - "5341:5341"
+      - "5380:80"
+    environment:
+      - ACCEPT_EULA=Y
+      - SEQ_FIRSTRUN_NOAUTHENTICATION=true
+    restart: unless-stopped
+
   taskflow-api:
+    container_name: taskflow-api
     image: taskflow-api:dev
     build:
       context: .
       dockerfile: TaskFlow.Api/Dockerfile
-    container_name: taskflow-api
+    env_file:
+      - path: TaskFlow.Api/.env
+        required: false
     ports:
       - "8080:8080"
     environment:
@@ -12,6 +26,7 @@ services:
       - ASPNETCORE_HTTP_PORTS=8080
       - DOTNET_RUNNING_IN_CONTAINER=true
       - Database__MigrateOnStartup=true
+      - OpenTelemetry__Endpoint=http://seq:5341/ingest/otlp
     volumes:
       - taskflow-data:/app/data
       - taskflow-logs:/app/logs
@@ -22,6 +37,9 @@ services:
       retries: 3
       start_period: 40s
     restart: unless-stopped
+    depends_on:
+      seq:
+        condition: service_started
 
 volumes:
   taskflow-data:
