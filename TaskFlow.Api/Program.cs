@@ -21,7 +21,8 @@ try
     builder.Services.AddApplicationHealthChecks();
     builder.Services.AddOpenTelemetryObservability(builder.Configuration);
     builder.Services.ConfigureJsonSerialization();
-    if (builder.Environment.IsDevelopment())
+    var corsOrigins = CorsServiceExtensions.GetConfiguredOrigins(builder.Configuration);
+    if (corsOrigins.Length > 0)
     {
         builder.Services.AddCorsPolicy(builder.Configuration);
     }
@@ -61,7 +62,7 @@ try
     }
 
     app.UseHttpLogging();
-    if (app.Environment.IsDevelopment())
+    if (corsOrigins.Length > 0)
     {
         app.UseCorsPolicy();
     }

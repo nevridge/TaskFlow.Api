@@ -4,11 +4,18 @@ public static class CorsServiceExtensions
 {
     private const string PolicyName = "FrontendPolicy";
 
+    public static string[] GetConfiguredOrigins(IConfiguration configuration) =>
+        configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? [];
+
     public static IServiceCollection AddCorsPolicy(
         this IServiceCollection services,
         IConfiguration configuration)
     {
-        var origins = configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? [];
+        var origins = GetConfiguredOrigins(configuration);
+        if (origins.Length == 0)
+        {
+            return services;
+        }
 
         services.AddCors(opts => opts.AddPolicy(PolicyName, policy =>
             policy.WithOrigins(origins)
