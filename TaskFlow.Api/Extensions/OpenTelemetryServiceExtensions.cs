@@ -67,8 +67,8 @@ public static class OpenTelemetryServiceExtensions
     }
 
     /// <summary>
-    /// Clears default logging providers and routes logs to Seq via OTLP.
-    /// A console provider is added when running in the Development environment.
+    /// Clears default logging providers and routes logs to both the console and Seq via OTLP.
+    /// Console acts as a fallback so logs are captured in container stdout if Seq is unreachable.
     /// </summary>
     /// <param name="logging">The logging builder</param>
     /// <param name="configuration">Application configuration used to read endpoint and API key header</param>
@@ -111,10 +111,7 @@ public static class OpenTelemetryServiceExtensions
             });
         });
 
-        if (environment.IsDevelopment())
-        {
-            logging.AddConsole();
-        }
+        logging.AddConsole();
 
         return logging;
     }
