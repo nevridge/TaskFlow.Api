@@ -52,6 +52,9 @@ export function useDeleteTaskMutation() {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: (id: number) => deleteApiV1TaskItemsById({ path: { id } }),
-    onSuccess: () => qc.invalidateQueries({ queryKey: taskKeys.all }),
+    onSuccess: (_result, id) => {
+      qc.invalidateQueries({ queryKey: taskKeys.all })
+      qc.removeQueries({ queryKey: taskKeys.detail(id) })
+    },
   })
 }
