@@ -9,4 +9,5 @@ public class TaskItem
     public Priority Priority { get; set; } = Priority.Low;
     public Status Status { get; set; } = Status.Draft;
     public DateTime? DueDate { get; set; }
+    public ICollection<Note> Notes { get; set; } = [];
 }
