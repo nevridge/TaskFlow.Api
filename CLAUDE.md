@@ -21,7 +21,10 @@ dotnet test /p:CollectCoverage=true /p:CoverletOutputFormat=cobertura
 dotnet format --verify-no-changes
 
 # Docker (dev — includes Seq logging UI at http://localhost:5380)
-docker compose up
+docker compose up -d
+
+# Rebuild full image after VS has clobbered it (VS builds to base stage only)
+docker build -t taskflow-api:dev -f TaskFlow.Api/Dockerfile .
 
 # Docker (production)
 docker compose -f docker-compose.prod.yml up
@@ -50,6 +53,16 @@ Tests mirror the main project structure: `Controllers/V1/`, `Services/`, `Reposi
 - Repository tests use `Microsoft.EntityFrameworkCore.InMemory` — no mocks for the DB layer.
 - Service and controller tests use Moq to mock the layer below.
 - CI enforces **75% line coverage** minimum (`ci.yml`).
+
+## Visual Studio Docker Compose Debugging
+
+**Workflow:** Run `docker compose up -d` in the terminal first, then press F5 in VS. VS attaches to the running container rather than starting one from scratch.
+
+**Required before each VS session:** Close VS completely, ensure no `taskflow-api` or `taskflow-seq` containers are running (`docker compose down`), then reopen VS and press F5. Skipping the restart causes VS to loop endlessly on `docker ps` polling.
+
+**VS rebuilds the image on warmup:** When a solution loads, VS rebuilds `taskflow-api:dev` to the `base` stage only (no app DLLs). After any VS session, run `docker build -t taskflow-api:dev -f TaskFlow.Api/Dockerfile .` to restore the full image before using `docker compose up -d` from the CLI.
+
+**MCR pull failures (IPv6):** If `mcr.microsoft.com` pulls fail with TLS reset, add `150.171.70.10 mcr.microsoft.com` to `C:\Windows\System32\drivers\etc\hosts` to force IPv4.
 
 ## Key Configuration
 
