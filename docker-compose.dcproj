@@ -3,9 +3,8 @@
   <PropertyGroup Label="Globals">
     <ProjectVersion>2.1</ProjectVersion>
     <DockerTargetOS>Linux</DockerTargetOS>
-    <DockerComposeServiceName>taskflow-api</DockerComposeServiceName>
-    <DockerComposeBuildAction>None</DockerComposeBuildAction>
-    <DockerPullDependentImages>false</DockerPullDependentImages>
+    <DockerServiceName>taskflow-api</DockerServiceName>
+    <DependencyAwareStart>true</DependencyAwareStart>
   </PropertyGroup>
   <ItemGroup>
     <None Include="docker-compose.override.yml">
