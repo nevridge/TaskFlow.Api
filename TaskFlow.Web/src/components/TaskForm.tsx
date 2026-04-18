@@ -10,8 +10,8 @@ interface Props {
 export function TaskForm({ task, onSubmit, onCancel }: Props) {
   const [title, setTitle] = useState(task?.title ?? '')
   const [description, setDescription] = useState(task?.description ?? '')
-  const [status, setStatus] = useState<string>(task?.status ?? 'draft')
-  const [priority, setPriority] = useState<string>(task?.priority ?? 'low')
+  const [status, setStatus] = useState<string>((task?.status ?? 'draft').toLowerCase())
+  const [priority, setPriority] = useState<string>((task?.priority ?? 'low').toLowerCase())
   const [dueDate, setDueDate] = useState(task?.dueDate ? task.dueDate.split('T')[0] : '')
 
   function handleSubmit(e: FormEvent) {

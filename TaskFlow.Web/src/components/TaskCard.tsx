@@ -21,8 +21,8 @@ const statusClass: Record<string, string> = {
 }
 
 export function TaskCard({ task, onEdit, onDelete }: Props) {
-  const status = String(task.status ?? 'draft')
-  const priority = String(task.priority ?? 'low')
+  const status = String(task.status ?? 'draft').toLowerCase()
+  const priority = String(task.priority ?? 'low').toLowerCase()
 
   return (
     <div className="rounded-lg border bg-white p-4 shadow-sm flex flex-col gap-2">
