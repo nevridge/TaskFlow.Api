@@ -1,7 +1,6 @@
 services:
   seq:
     image: datalust/seq:latest
-    container_name: taskflow-seq
     ports:
       - "5341:5341"
       - "5380:80"
@@ -15,7 +14,6 @@ services:
     build:
       context: .
       dockerfile: TaskFlow.Api/Dockerfile
-    container_name: taskflow-api
     env_file:
       - TaskFlow.Api/.env
     ports:
