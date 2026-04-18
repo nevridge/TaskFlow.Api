@@ -143,9 +143,9 @@ All server state (fetching, caching, mutation, invalidation) is encapsulated in 
 | File | Variable | Value | Used when |
 |------|----------|-------|-----------|
 | `.env.development` | `VITE_API_BASE_URL` | `http://localhost:8080` | `npm run dev` |
-| `.env.production` | `VITE_API_BASE_URL` | `/api` | `npm run build` |
+| `.env.production` | `VITE_API_BASE_URL` | `http://localhost:8080` | `npm run build` (Docker Compose image) |
 
-The production value `/api` is a relative URL designed to work behind a reverse proxy. When served from Docker, the API is co-located and reachable on the same host.
+The generated SDK paths already include `/api/v1/...`, so `VITE_API_BASE_URL` must be the API origin only (e.g. `http://localhost:8080`). Do not set it to `/api` — that would produce double-prefixed paths like `/api/api/v1/...`. For a same-origin production deployment behind a reverse proxy, use an empty string instead.
 
 The Vite dev server proxy can be redirected via environment variable:
 

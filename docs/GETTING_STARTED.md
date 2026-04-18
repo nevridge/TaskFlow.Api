@@ -375,7 +375,9 @@ The generated files are committed to source control — you don't need a running
 | File | `VITE_API_BASE_URL` | Purpose |
 |------|-------------------|---------|
 | `.env.development` | `http://localhost:8080` | Used by `npm run dev` |
-| `.env.production` | `/api` | Baked into the Docker image at build time |
+| `.env.production` | `http://localhost:8080` | Baked into the Docker image at build time |
+
+The generated SDK paths already include `/api/v1/...`, so `VITE_API_BASE_URL` must be the API origin only. Do not set it to `/api` — that produces double-prefixed paths like `/api/api/v1/...`. For a same-origin deployment behind a reverse proxy, use an empty string.
 
 ### Vite proxy override
 

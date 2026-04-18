@@ -243,7 +243,9 @@ See [API Reference](docs/API.md) for request/response shapes and [API Versioning
 | File | `VITE_API_BASE_URL` | Used when |
 |------|-------------------|-----------|
 | `.env.development` | `http://localhost:8080` | `npm run dev` |
-| `.env.production` | `/api` | `npm run build` (production Docker image) |
+| `.env.production` | `http://localhost:8080` | `npm run build` (Docker Compose image) |
+
+The generated SDK paths already include `/api/v1/...`, so `VITE_API_BASE_URL` must be the API origin only (e.g. `http://localhost:8080`). Do not set it to `/api` — that would produce double-prefixed paths like `/api/api/v1/...`. For a same-origin production deployment behind a reverse proxy, set it to an empty string.
 
 In the Vite dev server, requests to `/api` and `/openapi` are proxied to `process.env.API_TARGET ?? 'http://localhost:8080'`.
 

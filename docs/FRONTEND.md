@@ -272,11 +272,13 @@ Straightforward note display and edit forms. `NoteCard` shows content and timest
 | File | `VITE_API_BASE_URL` | When used |
 |------|-------------------|-----------|
 | `.env.development` | `http://localhost:8080` | `npm run dev` |
-| `.env.production` | `/api` | `npm run build` |
+| `.env.production` | `http://localhost:8080` | `npm run build` (Docker Compose image) |
 
-`VITE_API_BASE_URL` is baked into the bundle at build time by Vite. The production value `/api` is a relative path intended for deployment behind a reverse proxy (or alongside the API in Docker Compose).
+`VITE_API_BASE_URL` is baked into the bundle at build time by Vite. The value must be the API **origin only** — the generated SDK paths already include `/api/v1/...`, so setting this to `/api` would produce double-prefixed requests like `/api/api/v1/...`.
 
-Do not set `VITE_API_BASE_URL` to an empty string — the client will default to `''` which means requests go to the same origin, which works when the API and frontend are served from the same host/port (e.g. behind nginx).
+- **Docker Compose (no reverse proxy):** use `http://localhost:8080` — the browser resolves requests to the API on port 8080.
+- **Same-origin production (behind a reverse proxy):** use an empty string — requests resolve against the current origin.
+- **Do not** set this to `/api` or any path prefix.
 
 ## Vite Dev Server Proxy
 
@@ -389,7 +391,7 @@ taskflow-web:
       condition: service_healthy
 ```
 
-The web service waits for `taskflow-api` to pass its health check before starting. With `VITE_API_BASE_URL=/api` baked in, the frontend in the container calls `/api/...` relative to its own origin — which resolves to port 3000. In the Docker Compose setup there's no reverse proxy, so the frontend makes cross-origin requests to `http://localhost:8080`. CORS is handled by the API's `CorsServiceExtensions`, which reads `Cors:AllowedOrigins` from `appsettings.Development.json`.
+The web service waits for `taskflow-api` to pass its health check before starting. The frontend image is built with `VITE_API_BASE_URL=http://localhost:8080` baked in from `.env.production`, so the browser makes cross-origin requests directly to the API on port 8080. CORS is handled by the API's `CorsServiceExtensions`, which reads `Cors:AllowedOrigins` from `appsettings.Development.json`.
 
 > **Note for local dev:** Running `npm run dev` and `docker compose up` simultaneously may cause port conflicts on 5173 vs 3000 but not on 8080. The dev server proxies to port 8080 either way.
 

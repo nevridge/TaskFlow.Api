@@ -44,7 +44,7 @@ A single multi-stage .NET Dockerfile used for both dev and prod. The build conte
 
 **Frontend (`TaskFlow.Web/Dockerfile`)**
 
-A two-stage Node build. The build stage runs `npm run build` (which bakes `VITE_API_BASE_URL=/api` from `.env.production` into the bundle). The runtime stage serves the static files with `serve -s dist`.
+A two-stage Node build. The build stage runs `npm run build`, baking `VITE_API_BASE_URL=http://localhost:8080` from `.env.production` into the bundle. Because the generated SDK paths already include `/api/v1/...`, the base URL must be the API origin only — not a path prefix like `/api`. The runtime stage serves the static files with `serve -s dist`.
 
 | Aspect | Value |
 |--------|-------|
@@ -79,7 +79,7 @@ A two-stage Node build. The build stage runs `npm run build` (which bakes `VITE_
 | **Image Tag** | `taskflow-web:dev` |
 | **Port Mapping** | `3000:3000` |
 | **Depends on** | `taskflow-api` (health check must pass) |
-| **`VITE_API_BASE_URL`** | `/api` (baked in at build time from `.env.production`) |
+| **`VITE_API_BASE_URL`** | `http://localhost:8080` (baked in at build time from `.env.production`) |
 
 The frontend container waits for `taskflow-api` to pass its health check before starting, ensuring the API is ready to receive requests when the UI loads.
 
@@ -113,16 +113,16 @@ The frontend container waits for `taskflow-api` to pass its health check before 
 
 ### Volume Mounts
 
-**Both environments use identical volume mounts:**
+**Both environments use named Docker volumes:**
 
-| Host Path | Container Path | Purpose |
-|-----------|---------------|---------|
-| `./data` | `/app/data` | Persist SQLite database |
-| `./logs` | `/app/logs` | Persist application logs |
+| Volume Name | Container Path | Purpose |
+|-------------|---------------|---------|
+| `taskflow-data` | `/app/data` | Persist SQLite database |
+| `taskflow-logs` | `/app/logs` | Persist application logs |
 
 **Important Notes:**
-- These directories are created automatically on first run
-- Both are excluded from version control via `.gitignore`
+- Named volumes are managed by Docker and not tied to a host directory
+- Both are created automatically on first `docker compose up`
 - Database files differ by environment: `tasks.dev.db` vs `tasks.db`
 - For detailed volume configuration, see [VOLUMES.md](VOLUMES.md)
 
