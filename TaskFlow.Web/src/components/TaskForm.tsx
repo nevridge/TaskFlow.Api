@@ -21,7 +21,7 @@ export function TaskForm({ task, onSubmit, onCancel }: Props) {
       description: description || null,
       status: status as 'draft' | 'todo' | 'completed',
       priority: priority as 'low' | 'medium' | 'high',
-      dueDate: dueDate ? new Date(dueDate).toISOString() : null,
+      dueDate: dueDate ? `${dueDate}T00:00:00.000Z` : null,
     })
   }
 
