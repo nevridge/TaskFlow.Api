@@ -15,8 +15,8 @@ export default defineConfig({
     host: true,
     port: 5173,
     proxy: {
-      '/api': { target: 'http://taskflow-api:8080', changeOrigin: true },
-      '/openapi': { target: 'http://taskflow-api:8080', changeOrigin: true },
+      '/api': { target: process.env.API_TARGET ?? 'http://localhost:8080', changeOrigin: true },
+      '/openapi': { target: process.env.API_TARGET ?? 'http://localhost:8080', changeOrigin: true },
     },
   },
   test: {

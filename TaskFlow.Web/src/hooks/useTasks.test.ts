@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { renderHook, waitFor } from '@testing-library/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { createElement } from 'react'
-import { useTasksQuery, useTaskQuery, useCreateTaskMutation, useDeleteTaskMutation } from './useTasks'
+import { useTasksQuery, useTaskQuery, useCreateTaskMutation, useUpdateTaskMutation, useDeleteTaskMutation } from './useTasks'
 
 vi.mock('@/api/client/sdk.gen', () => ({
   getApiV1TaskItems: vi.fn(),
@@ -51,6 +51,18 @@ describe('useCreateTaskMutation', () => {
     result.current.mutate({ title: 'T' })
     await waitFor(() => expect(result.current.isSuccess || result.current.isError).toBe(true))
     expect(sdk.postApiV1TaskItems).toHaveBeenCalledOnce()
+  })
+})
+
+describe('useUpdateTaskMutation', () => {
+  beforeEach(() => vi.clearAllMocks())
+
+  it('calls putApiV1TaskItemsById with id and body', async () => {
+    vi.mocked(sdk.putApiV1TaskItemsById).mockResolvedValue({ data: { id: 2, title: 'U' }, response: new Response() } as never)
+    const { result } = renderHook(() => useUpdateTaskMutation(), { wrapper: makeWrapper() })
+    result.current.mutate({ id: 2, data: { title: 'U' } })
+    await waitFor(() => expect(result.current.isSuccess || result.current.isError).toBe(true))
+    expect(sdk.putApiV1TaskItemsById).toHaveBeenCalledWith(expect.objectContaining({ path: { id: 2 }, body: { title: 'U' } }))
   })
 })
 

@@ -15,6 +15,7 @@ export function useNotesQuery(taskId: number) {
   return useQuery({
     queryKey: noteKeys.all(taskId),
     queryFn: () => getApiV1TaskItemsByTaskIdNotes({ path: { taskId } }),
+    enabled: Number.isFinite(taskId),
   })
 }
 

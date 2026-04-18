@@ -24,6 +24,7 @@ export function useTaskQuery(id: number) {
   return useQuery({
     queryKey: taskKeys.detail(id),
     queryFn: () => getTaskV1({ path: { id } }),
+    enabled: Number.isFinite(id),
   })
 }
 

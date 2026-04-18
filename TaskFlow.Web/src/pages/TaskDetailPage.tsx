@@ -27,6 +27,7 @@ export function TaskDetailPage() {
   const task = taskData?.data as TaskItemResponseDto | undefined
   const notes: NoteResponseDto[] = (notesData?.data as NoteResponseDto[] | undefined) ?? []
 
+  if (!Number.isFinite(taskId)) return <div className="p-8 text-red-600">Task not found.</div>
   if (taskLoading) return <div className="p-8 text-slate-500">Loading…</div>
   if (taskError || !task) return <div className="p-8 text-red-600">Task not found.</div>
 
