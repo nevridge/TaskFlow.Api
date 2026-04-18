@@ -183,7 +183,9 @@ storybook-static/
 .Dockerfile.swp
 docker-compose.override.yml
 .env
+!/.env
 .env.*.local
+.claude/settings.local.json
 Thumbs.db
 
 # -----------------------
