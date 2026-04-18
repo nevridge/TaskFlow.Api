@@ -21,6 +21,7 @@ export function TaskForm({ task, onSubmit, onCancel }: Props) {
       description: description || null,
       status: status as 'draft' | 'todo' | 'completed',
       priority: priority as 'low' | 'medium' | 'high',
+      // dueDate is always YYYY-MM-DD from <input type="date">; append UTC midnight to avoid timezone drift
       dueDate: dueDate ? `${dueDate}T00:00:00.000Z` : null,
     })
   }
